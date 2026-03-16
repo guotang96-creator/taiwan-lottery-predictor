@@ -1,28 +1,218 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<title>台灣彩券預測系統</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>台灣彩券快速版</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, "Microsoft JhengHei", sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .sub {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: bold;
+    }
+    select, input, button {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 16px;
+    }
+    button {
+      border: none;
+      background: #111827;
+      color: white;
+      font-weight: bold;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #2563eb;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .balls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .ball {
+      min-width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #111827;
+      color: #fff;
+      font-weight: bold;
+      padding: 0 10px;
+    }
+    .ball.blue { background: #2563eb; }
+    .hint {
+      color: #6b7280;
+      font-size: 13px;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 12px;
+      margin-top: 18px;
+    }
+    @media (max-width: 520px) {
+      h1 { font-size: 24px; }
+      .row { grid-template-columns: 1fr; }
+      .ball { min-width: 44px; height: 44px; }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <div class="card">
+      <h1>台灣彩券快速版</h1>
+      <div class="sub">快速、簡單、手機可開。先用這版直接上線，再慢慢升級完整分析版。</div>
+    </div>
 
-<h1>台灣彩券預測系統</h1>
+    <div class="card">
+      <label for="game">選擇彩券</label>
+      <select id="game" onchange="changeGame()">
+        <option value="bingo">賓果賓果</option>
+        <option value="lotto">大樂透</option>
+        <option value="power">威力彩</option>
+        <option value="539">今彩539</option>
+      </select>
 
-<select id="game">
-<option value="bingo">賓果</option>
-<option value="lotto">大樂透</option>
-<option value="power">威力彩</option>
-<option value="539">今彩539</option>
-</select>
+      <div id="countBox">
+        <label for="count">賓果預測顆數（1-10）</label>
+        <input id="count" type="number" min="1" max="10" value="10" />
+      </div>
 
-<button onclick="predict()">產生推薦號碼</button>
+      <div class="row">
+        <button onclick="predict()">產生推薦號碼</button>
+        <button class="secondary" onclick="copyResult()">複製結果</button>
+      </div>
 
-<h2>推薦號碼</h2>
-<div id="result"></div>
+      <div class="hint">這是快速簡易版，先提供手機可用與直接選號。若之後要加歷史資料、拖號、尾數、熱冷號，我可以再升級。</div>
+    </div>
 
-<script src="script.js"></script>
+    <div class="card">
+      <h2 style="margin:0 0 10px;">推薦結果</h2>
+      <div id="resultText" class="sub">請先按「產生推薦號碼」</div>
+      <div id="balls" class="balls"></div>
+      <div id="secondArea"></div>
+    </div>
 
+    <div class="footer">僅供娛樂與統計參考，非保證中獎工具。</div>
+  </div>
+
+  <script>
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function randomNumbers(min, max, count) {
+      const arr = [];
+      while (arr.length < count) {
+        const n = Math.floor(Math.random() * (max - min + 1)) + min;
+        if (!arr.includes(n)) arr.push(n);
+      }
+      return arr.sort((a, b) => a - b);
+    }
+
+    function changeGame() {
+      const game = document.getElementById('game').value;
+      document.getElementById('countBox').style.display = game === 'bingo' ? 'block' : 'none';
+      document.getElementById('balls').innerHTML = '';
+      document.getElementById('secondArea').innerHTML = '';
+      document.getElementById('resultText').textContent = '請先按「產生推薦號碼」';
+    }
+
+    function renderBalls(nums, className='') {
+      return nums.map(n => `<div class="ball ${className}">${pad(n)}</div>`).join('');
+    }
+
+    function predict() {
+      const game = document.getElementById('game').value;
+      const balls = document.getElementById('balls');
+      const second = document.getElementById('secondArea');
+      const text = document.getElementById('resultText');
+      balls.innerHTML = '';
+      second.innerHTML = '';
+
+      if (game === 'bingo') {
+        let count = parseInt(document.getElementById('count').value || '10', 10);
+        if (count < 1) count = 1;
+        if (count > 10) count = 10;
+        const nums = randomNumbers(1, 80, count);
+        text.textContent = `賓果賓果推薦 ${count} 顆：${nums.map(pad).join('、')}`;
+        balls.innerHTML = renderBalls(nums);
+        return;
+      }
+
+      if (game === 'lotto') {
+        const nums = randomNumbers(1, 49, 6);
+        text.textContent = `大樂透推薦：${nums.map(pad).join('、')}`;
+        balls.innerHTML = renderBalls(nums);
+        return;
+      }
+
+      if (game === 'power') {
+        const nums = randomNumbers(1, 38, 6);
+        const secondNum = randomNumbers(1, 8, 1);
+        text.textContent = `威力彩推薦：第一區 ${nums.map(pad).join('、')}｜第二區 ${secondNum.map(pad).join('、')}`;
+        balls.innerHTML = renderBalls(nums);
+        second.innerHTML = `<div style="margin-top:12px;"><div class="sub" style="margin-bottom:8px;">第二區</div><div class="balls">${renderBalls(secondNum, 'blue')}</div></div>`;
+        return;
+      }
+
+      if (game === '539') {
+        const nums = randomNumbers(1, 39, 5);
+        text.textContent = `今彩539推薦：${nums.map(pad).join('、')}`;
+        balls.innerHTML = renderBalls(nums);
+      }
+    }
+
+    function copyResult() {
+      const text = document.getElementById('resultText').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('已複製到剪貼簿');
+      });
+    }
+
+    changeGame();
+  </script>
 </body>
 </html>
