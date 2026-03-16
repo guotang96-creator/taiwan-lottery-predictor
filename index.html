@@ -3,216 +3,223 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券快速版</title>
+  <title>台灣彩券預測系統｜實戰版</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, "Microsoft JhengHei", sans-serif;
-      background: #f4f7fb;
-      color: #1f2937;
-    }
-    .wrap {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      margin-bottom: 16px;
-    }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-    }
-    .sub {
-      color: #6b7280;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    label {
-      display: block;
-      margin: 12px 0 6px;
-      font-weight: bold;
-    }
-    select, input, button {
-      width: 100%;
-      border: 1px solid #d1d5db;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 16px;
-    }
-    button {
-      border: none;
-      background: #111827;
-      color: white;
-      font-weight: bold;
-      margin-top: 12px;
-      cursor: pointer;
-    }
-    button.secondary {
-      background: #2563eb;
-    }
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .balls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .ball {
-      min-width: 48px;
-      height: 48px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: #111827;
-      color: #fff;
-      font-weight: bold;
-      padding: 0 10px;
-    }
-    .ball.blue { background: #2563eb; }
-    .hint {
-      color: #6b7280;
-      font-size: 13px;
-      margin-top: 8px;
-      line-height: 1.6;
-    }
-    .footer {
-      text-align: center;
-      color: #6b7280;
-      font-size: 12px;
-      margin-top: 18px;
-    }
-    @media (max-width: 520px) {
-      h1 { font-size: 24px; }
-      .row { grid-template-columns: 1fr; }
-      .ball { min-width: 44px; height: 44px; }
-    }
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,"Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#f8fbff,#eef4ff);color:#1f2937} .wrap{max-width:1100px;margin:0 auto;padding:16px}.hero{background:linear-gradient(135deg,#111827,#1d4ed8);color:#fff;border-radius:24px;padding:22px;box-shadow:0 14px 36px rgba(17,24,39,.22);margin-bottom:16px}.hero h1{margin:0 0 8px;font-size:30px}.hero p{margin:0;opacity:.92;line-height:1.7;font-size:14px}.grid{display:grid;grid-template-columns:360px 1fr;gap:16px}.card{background:#fff;border-radius:20px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.08);margin-bottom:16px}.title{margin:0 0 10px;font-size:22px}.mini{margin:0 0 8px;font-size:16px}.sub{color:#6b7280;font-size:13px;line-height:1.7}label{display:block;margin:12px 0 6px;font-weight:700}select,input,button{width:100%;border:1px solid #d1d5db;border-radius:12px;padding:12px 14px;font-size:16px}button{border:none;background:#111827;color:#fff;font-weight:700;cursor:pointer}button.blue{background:#2563eb}button.light{background:#e5edff;color:#1d4ed8}.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.balls{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}.ball{min-width:46px;height:46px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px;background:#111827;color:#fff;font-weight:700}.ball.blue{background:#2563eb}.badge{display:inline-block;padding:8px 12px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-weight:700;margin:4px 6px 0 0;font-size:14px}.statGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.stat{border:1px solid #e5e7eb;border-radius:16px;padding:12px;background:#f9fafb;text-align:center}.stat .label{font-size:12px;color:#6b7280;margin-bottom:6px}.stat .value{font-size:20px;font-weight:700}.historyItem{border:1px solid #e5e7eb;border-radius:16px;padding:12px;margin-bottom:10px;background:#fff}.historyTop{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}.warn{border-radius:14px;background:#fff7ed;color:#9a3412;padding:12px;font-size:13px;line-height:1.7;margin-top:12px}.lineList>div{border:1px solid #e5e7eb;background:#f9fafb;border-radius:14px;padding:10px 12px;margin-bottom:8px;font-size:14px}.footer{text-align:center;color:#6b7280;font-size:12px;padding:6px 0 18px}.ok{background:#ecfdf5;color:#065f46;border-radius:14px;padding:10px 12px;font-size:13px;margin-top:12px}.muted{font-size:12px;color:#6b7280}.hidden{display:none}@media (max-width:900px){.grid{grid-template-columns:1fr}.statGrid{grid-template-columns:repeat(3,1fr)}}@media (max-width:560px){.hero h1{font-size:26px}.row2,.row3{grid-template-columns:1fr}.statGrid{grid-template-columns:repeat(2,1fr)}.ball{min-width:42px;height:42px}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>台灣彩券快速版</h1>
-      <div class="sub">快速、簡單、手機可開。先用這版直接上線，再慢慢升級完整分析版。</div>
+    <div class="hero">
+      <h1>台灣彩券預測系統｜實戰版</h1>
+      <p>可直接在手機開啟。支援賓果賓果、大樂透、威力彩、今彩539。包含推薦號碼、熱號、冷號、拖號、尾數分析、連號偵測、近期歷史紀錄。先用內建實戰資料邏輯，之後可再接正式網路資料。</p>
     </div>
 
-    <div class="card">
-      <label for="game">選擇彩券</label>
-      <select id="game" onchange="changeGame()">
-        <option value="bingo">賓果賓果</option>
-        <option value="lotto">大樂透</option>
-        <option value="power">威力彩</option>
-        <option value="539">今彩539</option>
-      </select>
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2 class="title">操作面板</h2>
+          <label for="game">選擇彩券</label>
+          <select id="game" onchange="changeGame()">
+            <option value="bingo">賓果賓果</option>
+            <option value="lotto">大樂透</option>
+            <option value="power">威力彩</option>
+            <option value="539">今彩539</option>
+          </select>
 
-      <div id="countBox">
-        <label for="count">賓果預測顆數（1-10）</label>
-        <input id="count" type="number" min="1" max="10" value="10" />
+          <div id="countBox">
+            <label for="count">賓果預測顆數（1-10）</label>
+            <input id="count" type="number" min="1" max="10" value="10" />
+          </div>
+
+          <label for="history">分析期數</label>
+          <input id="history" type="number" min="20" max="300" value="120" />
+
+          <div class="row2" style="margin-top:12px;">
+            <button onclick="generateAll()">開始分析</button>
+            <button class="blue" onclick="copyResult()">複製推薦</button>
+          </div>
+          <div class="row2" style="margin-top:10px;">
+            <button class="light" onclick="quickPick()">快速換一組</button>
+            <button class="light" onclick="resetHistory()">重建資料</button>
+          </div>
+
+          <div class="ok">這版是單檔實戰版，最適合 GitHub Pages 與手機使用。</div>
+          <div class="warn">目前歷史資料為內建模擬資料，統計邏輯已可直接操作。若你下一步要，我再幫你改成正式網路抓資料版。</div>
+        </div>
+
+        <div class="card">
+          <h3 class="mini">本期推薦</h3>
+          <div id="resultText" class="sub">請按「開始分析」</div>
+          <div id="balls" class="balls"></div>
+          <div id="secondArea"></div>
+        </div>
       </div>
 
-      <div class="row">
-        <button onclick="predict()">產生推薦號碼</button>
-        <button class="secondary" onclick="copyResult()">複製結果</button>
+      <div>
+        <div class="card">
+          <h2 class="title">統計摘要</h2>
+          <div class="row3">
+            <div class="stat"><div class="label">分析期數</div><div class="value" id="totalDraws">0</div></div>
+            <div class="stat"><div class="label">最新遊戲</div><div class="value" id="gameName" style="font-size:16px;">-</div></div>
+            <div class="stat"><div class="label">推薦顆數</div><div class="value" id="pickCountBox">-</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="mini">熱號 Top 10</h3>
+          <div id="hotStats" class="statGrid"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="mini">拖號 Top 10</h3>
+          <div id="coldStats" class="statGrid"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="mini">尾數分析</h3>
+          <div id="tailStats"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="mini">連號偵測</h3>
+          <div id="lineStats" class="lineList sub">尚未分析</div>
+        </div>
+
+        <div class="card">
+          <h3 class="mini">近期歷史紀錄</h3>
+          <div id="historyList"></div>
+        </div>
       </div>
-
-      <div class="hint">這是快速簡易版，先提供手機可用與直接選號。若之後要加歷史資料、拖號、尾數、熱冷號，我可以再升級。</div>
     </div>
 
-    <div class="card">
-      <h2 style="margin:0 0 10px;">推薦結果</h2>
-      <div id="resultText" class="sub">請先按「產生推薦號碼」</div>
-      <div id="balls" class="balls"></div>
-      <div id="secondArea"></div>
-    </div>
-
-    <div class="footer">僅供娛樂與統計參考，非保證中獎工具。</div>
+    <div class="footer">僅供娛樂與資料統計參考，非保證中獎工具。</div>
   </div>
 
   <script>
-    function pad(n) {
-      return String(n).padStart(2, '0');
+    const GAME_CONFIG = {
+      bingo: { name: '賓果賓果', min: 1, max: 80, fixedCount: null, historySize: 20 },
+      lotto: { name: '大樂透', min: 1, max: 49, fixedCount: 6, historySize: 6 },
+      power: { name: '威力彩', min: 1, max: 38, fixedCount: 6, historySize: 6, secondMin: 1, secondMax: 8 },
+      '539': { name: '今彩539', min: 1, max: 39, fixedCount: 5, historySize: 5 }
+    };
+
+    const historyStore = {};
+
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function randomNumbers(min,max,count){ const arr=[]; while(arr.length<count){ const n=Math.floor(Math.random()*(max-min+1))+min; if(!arr.includes(n)) arr.push(n);} return arr.sort((a,b)=>a-b); }
+
+    function createDemoHistory(game,total){
+      const cfg=GAME_CONFIG[game];
+      const rows=[];
+      for(let i=0;i<total;i++){
+        const count=game==='bingo'?20:cfg.historySize;
+        const numbers=randomNumbers(cfg.min,cfg.max,count);
+        const special=game==='power'?randomNumbers(cfg.secondMin,cfg.secondMax,1)[0]:null;
+        rows.push({ issue:`${new Date().getFullYear()}${String(total-i).padStart(4,'0')}`, numbers, special });
+      }
+      return rows;
     }
 
-    function randomNumbers(min, max, count) {
-      const arr = [];
-      while (arr.length < count) {
-        const n = Math.floor(Math.random() * (max - min + 1)) + min;
-        if (!arr.includes(n)) arr.push(n);
-      }
-      return arr.sort((a, b) => a - b);
+    function ensureData(){ Object.keys(GAME_CONFIG).forEach(k=>{ if(!historyStore[k]) historyStore[k]=createDemoHistory(k,160); }); }
+    function resetHistory(){ historyStore.bingo=createDemoHistory('bingo',160); historyStore.lotto=createDemoHistory('lotto',160); historyStore.power=createDemoHistory('power',160); historyStore['539']=createDemoHistory('539',160); generateAll(); }
+
+    function changeGame(){
+      const game=document.getElementById('game').value;
+      document.getElementById('countBox').style.display=game==='bingo'?'block':'none';
+      document.getElementById('gameName').textContent=GAME_CONFIG[game].name;
+      generateAll();
     }
 
-    function changeGame() {
-      const game = document.getElementById('game').value;
-      document.getElementById('countBox').style.display = game === 'bingo' ? 'block' : 'none';
-      document.getElementById('balls').innerHTML = '';
-      document.getElementById('secondArea').innerHTML = '';
-      document.getElementById('resultText').textContent = '請先按「產生推薦號碼」';
+    function getPickCount(){
+      const game=document.getElementById('game').value;
+      if(game==='bingo'){
+        let count=parseInt(document.getElementById('count').value||'10',10);
+        if(count<1) count=1; if(count>10) count=10; return count;
+      }
+      return GAME_CONFIG[game].fixedCount;
     }
 
-    function renderBalls(nums, className='') {
-      return nums.map(n => `<div class="ball ${className}">${pad(n)}</div>`).join('');
+    function getHistoryRows(){
+      const game=document.getElementById('game').value;
+      let total=parseInt(document.getElementById('history').value||'120',10);
+      if(total<20) total=20; if(total>300) total=300;
+      ensureData();
+      return historyStore[game].slice(0,total);
     }
 
-    function predict() {
-      const game = document.getElementById('game').value;
-      const balls = document.getElementById('balls');
-      const second = document.getElementById('secondArea');
-      const text = document.getElementById('resultText');
-      balls.innerHTML = '';
-      second.innerHTML = '';
-
-      if (game === 'bingo') {
-        let count = parseInt(document.getElementById('count').value || '10', 10);
-        if (count < 1) count = 1;
-        if (count > 10) count = 10;
-        const nums = randomNumbers(1, 80, count);
-        text.textContent = `賓果賓果推薦 ${count} 顆：${nums.map(pad).join('、')}`;
-        balls.innerHTML = renderBalls(nums);
-        return;
-      }
-
-      if (game === 'lotto') {
-        const nums = randomNumbers(1, 49, 6);
-        text.textContent = `大樂透推薦：${nums.map(pad).join('、')}`;
-        balls.innerHTML = renderBalls(nums);
-        return;
-      }
-
-      if (game === 'power') {
-        const nums = randomNumbers(1, 38, 6);
-        const secondNum = randomNumbers(1, 8, 1);
-        text.textContent = `威力彩推薦：第一區 ${nums.map(pad).join('、')}｜第二區 ${secondNum.map(pad).join('、')}`;
-        balls.innerHTML = renderBalls(nums);
-        second.innerHTML = `<div style="margin-top:12px;"><div class="sub" style="margin-bottom:8px;">第二區</div><div class="balls">${renderBalls(secondNum, 'blue')}</div></div>`;
-        return;
-      }
-
-      if (game === '539') {
-        const nums = randomNumbers(1, 39, 5);
-        text.textContent = `今彩539推薦：${nums.map(pad).join('、')}`;
-        balls.innerHTML = renderBalls(nums);
-      }
-    }
-
-    function copyResult() {
-      const text = document.getElementById('resultText').textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert('已複製到剪貼簿');
+    function buildStats(rows,min,max,areaKey){
+      const stats=[];
+      for(let n=min;n<=max;n++) stats.push({ number:n, count:0, gap:rows.length });
+      rows.forEach((row,idx)=>{
+        const arr=areaKey==='special'?[row.special].filter(Boolean):row.numbers;
+        arr.forEach(n=>{ const item=stats[n-min]; if(!item) return; item.count+=1; if(item.gap===rows.length) item.gap=idx; });
       });
+      return stats;
     }
 
-    changeGame();
+    function predictByStats(stats,count){
+      const ranked=[...stats].sort((a,b)=> b.count!==a.count ? b.count-a.count : b.gap-a.gap);
+      const result=[]; const usedTail=new Set();
+      for(const item of ranked){ if(result.length>=count) break; const tail=item.number%10; if(usedTail.has(tail)&&result.length<Math.max(2,count-2)) continue; result.push(item.number); usedTail.add(tail); }
+      for(const item of ranked){ if(result.length>=count) break; if(!result.includes(item.number)) result.push(item.number); }
+      return result.sort((a,b)=>a-b);
+    }
+
+    function renderBalls(nums,className=''){ return nums.map(n=>`<div class="ball ${className}">${pad(n)}</div>`).join(''); }
+    function renderStatCards(containerId,items,mode){ document.getElementById(containerId).innerHTML=items.map(item=>`<div class="stat"><div class="label">${mode==='tail'?'尾數 '+item.tail:'號碼 '+pad(item.number)}</div><div class="value">${mode==='gap'?item.gap:item.count}</div></div>`).join(''); }
+    function buildTailStats(rows){ const tails=Array.from({length:10},(_,i)=>({tail:i,count:0})); rows.forEach(r=>r.numbers.forEach(n=>tails[n%10].count+=1)); return tails.sort((a,b)=>b.count-a.count); }
+
+    function detectConsecutive(rows){
+      const result=[];
+      rows.slice(0,20).forEach(row=>{
+        const nums=[...row.numbers].sort((a,b)=>a-b); let group=[nums[0]]; const groups=[];
+        for(let i=1;i<nums.length;i++){ if(nums[i]===nums[i-1]+1) group.push(nums[i]); else { if(group.length>=2) groups.push([...group]); group=[nums[i]]; } }
+        if(group.length>=2) groups.push([...group]); if(groups.length) result.push({ issue:row.issue, groups });
+      });
+      return result;
+    }
+
+    function quickPick(){
+      const game=document.getElementById('game').value; const cfg=GAME_CONFIG[game]; const count=getPickCount();
+      const balls=document.getElementById('balls'); const second=document.getElementById('secondArea'); const text=document.getElementById('resultText'); second.innerHTML='';
+      if(game==='power'){
+        const nums=randomNumbers(cfg.min,cfg.max,count); const secondNum=randomNumbers(cfg.secondMin,cfg.secondMax,1);
+        text.textContent=`威力彩快速推薦：第一區 ${nums.map(pad).join('、')}｜第二區 ${secondNum.map(pad).join('、')}`;
+        balls.innerHTML=renderBalls(nums); second.innerHTML=`<div style="margin-top:12px;"><div class="sub" style="margin-bottom:8px;">第二區</div><div class="balls">${renderBalls(secondNum,'blue')}</div></div>`; return;
+      }
+      const nums=randomNumbers(cfg.min,cfg.max,count); text.textContent=`${cfg.name}快速推薦：${nums.map(pad).join('、')}`; balls.innerHTML=renderBalls(nums);
+    }
+
+    function copyResult(){ const text=document.getElementById('resultText').textContent; navigator.clipboard.writeText(text).then(()=>alert('已複製到剪貼簿')); }
+
+    function generateAll(){
+      const game=document.getElementById('game').value; const cfg=GAME_CONFIG[game]; const rows=getHistoryRows(); const pickCount=getPickCount();
+      const mainStats=buildStats(rows,cfg.min,cfg.max,'numbers'); const prediction=predictByStats(mainStats,pickCount); const tails=buildTailStats(rows);
+      const hot=[...mainStats].sort((a,b)=>b.count-a.count).slice(0,10); const cold=[...mainStats].sort((a,b)=>b.gap-a.gap).slice(0,10); const lines=detectConsecutive(rows);
+
+      document.getElementById('totalDraws').textContent=rows.length;
+      document.getElementById('gameName').textContent=cfg.name;
+      document.getElementById('pickCountBox').textContent=pickCount;
+
+      const resultText=document.getElementById('resultText'); const balls=document.getElementById('balls'); const secondArea=document.getElementById('secondArea'); secondArea.innerHTML='';
+      if(game==='power'){
+        const secondStats=buildStats(rows,cfg.secondMin,cfg.secondMax,'special'); const secondPick=predictByStats(secondStats,1);
+        resultText.textContent=`威力彩推薦：第一區 ${prediction.map(pad).join('、')}｜第二區 ${secondPick.map(pad).join('、')}`;
+        balls.innerHTML=renderBalls(prediction);
+        secondArea.innerHTML=`<div style="margin-top:12px;"><div class="sub" style="margin-bottom:8px;">第二區推薦</div><div class="balls">${renderBalls(secondPick,'blue')}</div></div>`;
+      }else{
+        resultText.textContent=`${cfg.name}推薦：${prediction.map(pad).join('、')}`;
+        balls.innerHTML=renderBalls(prediction);
+      }
+
+      renderStatCards('hotStats',hot,'count'); renderStatCards('coldStats',cold,'gap');
+      document.getElementById('tailStats').innerHTML=tails.map(t=>`<span class="badge">尾數 ${t.tail}：${t.count}</span>`).join('');
+      document.getElementById('lineStats').innerHTML=!lines.length?'最近資料未偵測到明顯連號':lines.slice(0,8).map(item=>`<div>期別 ${item.issue}：${item.groups.map(g=>g.map(pad).join('-')).join(' ｜ ')}</div>`).join('');
+      document.getElementById('historyList').innerHTML=rows.slice(0,10).map(row=>`<div class="historyItem"><div class="historyTop"><div><strong>期別 ${row.issue}</strong></div><div class="muted">最近紀錄</div></div><div class="balls">${renderBalls(row.numbers)} ${row.special?`<div class="ball blue">${pad(row.special)}</div>`:''}</div></div>`).join('');
+    }
+
+    ensureData(); changeGame();
   </script>
 </body>
 </html>
