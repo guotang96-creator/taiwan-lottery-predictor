@@ -588,9 +588,13 @@
         <div class="small">${GAME_CONFIG[state.game].name}</div>
       </div>
       <div class="row">
-        <div>已載入筆數</div>
-        <div class="small mono">${gameData.length}</div>
-      </div>
+  <div>已載入筆數</div>
+  <div class="small mono">${gameData.length}</div>
+</div>
+<div class="row">
+  <div>來源模式</div>
+  <div class="small">${meta.mode || "standard"}</div>
+</div>
       <div class="row">
         <div>最後更新</div>
         <div class="small mono">${fmtDateTime(updateAt)}</div>
