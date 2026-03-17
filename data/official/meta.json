@@ -1,24 +1,26 @@
 {
-  "version": "V66.2",
-  "updatedAt": "2026-03-17T12:49:56.251Z",
-  "source": "API fallback (stable)",
-  "results": {},
-  "errors": [
-    {
-      "key": "lotto649",
-      "error": "fetch failed"
+  "version": "V66.3",
+  "mode": "stable-fallback",
+  "sourceName": "遠端來源 + raw_data 本地備援 + 舊資料保留",
+  "generatedAt": "2026-03-17T13:06:47.122Z",
+  "updatedAt": "2026-03-17T13:06:47.122Z",
+  "games": {
+    "lotto649": {
+      "count": 1,
+      "source": "local:raw_data/lotto649.json"
     },
-    {
-      "key": "superlotto638",
-      "error": "fetch failed"
+    "superlotto638": {
+      "count": 1,
+      "source": "local:raw_data/superlotto638.json"
     },
-    {
-      "key": "dailycash",
-      "error": "fetch failed"
+    "dailycash": {
+      "count": 1,
+      "source": "local:raw_data/dailycash.json"
     },
-    {
-      "key": "bingo",
-      "error": "fetch failed"
+    "bingo": {
+      "count": 1,
+      "source": "local:raw_data/bingo.json"
     }
-  ]
+  },
+  "errors": []
 }
