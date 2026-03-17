@@ -43,7 +43,7 @@ jobs:
           echo "---- files ----"
           ls -lah data/official || true
 
-      - name: Commit updated data
+           - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -54,5 +54,6 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "chore: update official lottery data (V66.4)"
-            git push
+            git pull --rebase origin main
+            git push origin main
           fi
