@@ -1,8 +1,7 @@
 {
-  "version": 2,
   "functions": {
-    "api/fetch-lottery.js": {
-      "runtime": "nodejs20.x"
+    "api/*.js": {
+      "runtime": "@vercel/node"
     }
   }
 }
