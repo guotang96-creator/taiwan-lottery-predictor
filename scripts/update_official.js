@@ -1,40 +1,227 @@
+/* eslint-disable no-console */
 const fs = require("fs");
+const path = require("path");
 
-function safeUpdate(filePath) {
+const ROOT = process.cwd();
+const OFFICIAL_DIR = path.join(ROOT, "data", "official");
+
+const GAME_RULES = {
+  bingo: { min: 1, max: 80, take: 20, minCount: 10 },
+  lotto649: { min: 1, max: 49, take: 6, minCount: 6 },
+  superlotto638: { min: 1, max: 38, take: 6, minCount: 6, zone2Min: 1, zone2Max: 8 },
+  dailycash: { min: 1, max: 39, take: 5, minCount: 5 }
+};
+
+function exists(file) {
+  return fs.existsSync(file);
+}
+
+function readJson(file) {
   try {
-    if (!fs.existsSync(filePath)) {
-      console.log(`❌ 不存在: ${filePath}`);
-      return;
-    }
-
-    const oldData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-
-    // 🚫 不允許空資料覆蓋
-    if (!Array.isArray(oldData) || oldData.length === 0) {
-      console.log(`⚠️ 跳過（避免覆蓋空資料）: ${filePath}`);
-      return;
-    }
-
-    // ✅ 僅排序（確保最新在前）
-    oldData.sort((a, b) => {
-      return new Date(b.drawDate) - new Date(a.drawDate);
-    });
-
-    fs.writeFileSync(filePath, JSON.stringify(oldData, null, 2));
-
-    console.log(`✅ 保留並整理: ${filePath}`);
-  } catch (err) {
-    console.error(`❌ 錯誤: ${filePath}`, err);
+    return JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch {
+    return null;
   }
 }
 
-const files = [
-  "data/official/bingo.json",
-  "data/official/lotto649.json",
-  "data/official/superlotto638.json",
-  "data/official/dailycash.json",
-];
+function writeJson(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
+}
 
-files.forEach(safeUpdate);
+function ensureDir(dir) {
+  fs.mkdirSync(dir, { recursive: true });
+}
 
-console.log("🎯 V66.5 完成（真資料保護模式）");
+function uniq(arr) {
+  return [...new Set(arr)];
+}
+
+function sortNumbers(arr) {
+  return [...arr].sort((a, b) => a - b);
+}
+
+function normalizeDate(value) {
+  if (!value) return "";
+  const s = String(value).trim();
+  const m = s.match(/(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})/);
+  if (m) return `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`;
+  return s;
+}
+
+function looksFakeSequence(numbers) {
+  if (!Array.isArray(numbers) || numbers.length < 4) return false;
+  const diffs = [];
+  for (let i = 1; i < numbers.length; i += 1) {
+    diffs.push(numbers[i] - numbers[i - 1]);
+  }
+  return diffs.every(d => d === diffs[0]) && (diffs[0] === 1 || diffs[0] === 2 || diffs[0] === 3);
+}
+
+function normalizeDraw(gameKey, row) {
+  if (!row || typeof row !== "object") return null;
+
+  const issue = row.issue ? String(row.issue).trim() : "";
+  const drawDate = normalizeDate(row.drawDate);
+
+  if (gameKey === "bingo") {
+    const numbers = Array.isArray(row.numbers)
+      ? sortNumbers(uniq(row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 80))).slice(0, 20)
+      : [];
+
+    if (!issue || numbers.length < 10) return null;
+    return { game: "bingo", issue, drawDate, numbers };
+  }
+
+  if (gameKey === "dailycash") {
+    const numbers = Array.isArray(row.numbers)
+      ? sortNumbers(uniq(row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 39))).slice(0, 5)
+      : [];
+
+    if (!issue || numbers.length < 5) return null;
+    return { game: "dailycash", issue, drawDate, numbers };
+  }
+
+  if (gameKey === "lotto649") {
+    const numbers = Array.isArray(row.numbers)
+      ? sortNumbers(uniq(row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 49))).slice(0, 6)
+      : [];
+
+    const special = Number.isInteger(row.special) && row.special >= 1 && row.special <= 49
+      ? row.special
+      : null;
+
+    if (!issue || numbers.length < 6) return null;
+    return { game: "lotto649", issue, drawDate, numbers, special };
+  }
+
+  if (gameKey === "superlotto638") {
+    const numbers1 = Array.isArray(row.numbers1)
+      ? sortNumbers(uniq(row.numbers1.filter(n => Number.isInteger(n) && n >= 1 && n <= 38))).slice(0, 6)
+      : [];
+
+    let numbers2 = [];
+    if (Array.isArray(row.numbers2)) {
+      numbers2 = row.numbers2.filter(n => Number.isInteger(n) && n >= 1 && n <= 8).slice(0, 1);
+    } else if (Number.isInteger(row.numbers2) && row.numbers2 >= 1 && row.numbers2 <= 8) {
+      numbers2 = [row.numbers2];
+    }
+
+    if (!issue || numbers1.length < 6) return null;
+    return { game: "superlotto638", issue, drawDate, numbers1, numbers2 };
+  }
+
+  return null;
+}
+
+function isClearlyFake(gameKey, rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return false;
+
+  const sample = rows.slice(0, Math.min(12, rows.length));
+
+  let fakeCount = 0;
+  for (const row of sample) {
+    if (gameKey === "superlotto638") {
+      if (looksFakeSequence(row.numbers1 || [])) fakeCount += 1;
+    } else {
+      if (looksFakeSequence(row.numbers || [])) fakeCount += 1;
+    }
+  }
+
+  return fakeCount >= Math.ceil(sample.length * 0.7);
+}
+
+function dedupeRows(rows) {
+  const seen = new Set();
+  const out = [];
+
+  for (const row of rows) {
+    const key = JSON.stringify(row);
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(row);
+    }
+  }
+
+  return out;
+}
+
+function sortRows(rows) {
+  return [...rows].sort((a, b) => {
+    const db = String(b.drawDate || "");
+    const da = String(a.drawDate || "");
+    if (db !== da) return db.localeCompare(da);
+    return String(b.issue || "").localeCompare(String(a.issue || ""), "en", { numeric: true });
+  });
+}
+
+function validateGameRows(gameKey, rows) {
+  if (!Array.isArray(rows)) {
+    return { ok: false, reason: "not array", rows: [] };
+  }
+
+  const normalized = rows.map(r => normalizeDraw(gameKey, r)).filter(Boolean);
+  const deduped = dedupeRows(normalized);
+  const sorted = sortRows(deduped);
+
+  if (sorted.length === 0) {
+    return { ok: false, reason: "empty after normalize", rows: [] };
+  }
+
+  if (isClearlyFake(gameKey, sorted)) {
+    return { ok: false, reason: "looks like generated/fake pattern", rows: [] };
+  }
+
+  return { ok: true, reason: "ok", rows: sorted };
+}
+
+function updateOne(gameKey) {
+  const file = path.join(OFFICIAL_DIR, `${gameKey}.json`);
+
+  if (!exists(file)) {
+    console.log(`[WARN] ${gameKey}: file not found, skipped`);
+    return { gameKey, ok: false, count: 0, reason: "file not found" };
+  }
+
+  const raw = readJson(file);
+  const checked = validateGameRows(gameKey, raw);
+
+  if (!checked.ok) {
+    console.log(`[WARN] ${gameKey}: ${checked.reason}, keep existing file unchanged`);
+    return { gameKey, ok: false, count: Array.isArray(raw) ? raw.length : 0, reason: checked.reason };
+  }
+
+  writeJson(file, checked.rows);
+  console.log(`[OK] ${gameKey}: ${checked.rows.length}`);
+
+  return { gameKey, ok: true, count: checked.rows.length, reason: "validated" };
+}
+
+function main() {
+  ensureDir(OFFICIAL_DIR);
+
+  const results = {
+    bingo: updateOne("bingo"),
+    lotto649: updateOne("lotto649"),
+    superlotto638: updateOne("superlotto638"),
+    dailycash: updateOne("dailycash")
+  };
+
+  const meta = {
+    version: "V66.5",
+    mode: "official-only-safe",
+    sourceName: "data/official 驗證保護模式",
+    generatedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    games: {
+      bingo: { count: results.bingo.count, status: results.bingo.reason },
+      lotto649: { count: results.lotto649.count, status: results.lotto649.reason },
+      superlotto638: { count: results.superlotto638.count, status: results.superlotto638.reason },
+      dailycash: { count: results.dailycash.count, status: results.dailycash.reason }
+    }
+  };
+
+  writeJson(path.join(OFFICIAL_DIR, "meta.json"), meta);
+  console.log("[DONE] V66.5 official-only safe update complete");
+}
+
+main();
