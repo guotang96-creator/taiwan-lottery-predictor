@@ -1,9 +1,9 @@
 {
-  "version": "V66.3",
-  "mode": "stable-fallback",
+  "version": "V66.4",
+  "mode": "stable-fallback-weighted",
   "sourceName": "遠端來源 + raw_data 本地備援 + 舊資料保留",
-  "generatedAt": "2026-03-17T13:20:17.890Z",
-  "updatedAt": "2026-03-17T13:20:17.890Z",
+  "generatedAt": "2026-03-17T13:35:02.146Z",
+  "updatedAt": "2026-03-17T13:35:02.146Z",
   "games": {
     "lotto649": {
       "count": 60,
