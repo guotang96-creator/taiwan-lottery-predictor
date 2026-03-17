@@ -1,170 +1,140 @@
-let currentData = [];
+let historyData = [];
 
-const gameEl = document.getElementById("game");
-const historyCountEl = document.getElementById("historyCount");
-const bingoPickCountEl = document.getElementById("bingoPickCount");
-const groupCountEl = document.getElementById("groupCount");
-const birthdayEl = document.getElementById("birthday");
-const modeEl = document.getElementById("mode");
-
-const statusEl = document.getElementById("status");
-const resultEl = document.getElementById("result");
-const confidenceBoxEl = document.getElementById("confidenceBox");
-const burstBoxEl = document.getElementById("burstBox");
-const trendBoxEl = document.getElementById("trendBox");
-
-const hitPredictBoxEl = document.getElementById("hitPredictBox");
-const bestComboBoxEl = document.getElementById("bestComboBox");
-const fusionBoxEl = document.getElementById("fusionBox");
-
-document.getElementById("loadBtn").onclick = loadData;
-document.getElementById("analyzeBtn").onclick = analyzeData;
-
+// ===== 讀取資料 =====
 async function loadData() {
-  statusEl.textContent = "讀取中...";
+  const game = document.getElementById("game").value;
+  const count = document.getElementById("historyCount").value;
 
-  const res = await fetch(`/api/lottery?game=${gameEl.value}&count=${historyCountEl.value}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`/api/lottery?game=${game}&count=${count}`);
+    const data = await res.json();
 
-  currentData = data.draws || [];
+    console.log("API回傳:", data);
 
-  statusEl.textContent = `已讀取 ${currentData.length} 期`;
+    // ⭐️ 核心修正（重點）
+    historyData = data.draws || [];
+
+    document.getElementById("status").innerText =
+      `已讀取 ${historyData.length} 期`;
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById("status").innerText = "讀取失敗";
+  }
 }
 
-function analyzeData() {
-  if (!currentData.length) {
-    statusEl.textContent = "請先讀資料";
+// ===== 分析 =====
+function analyze() {
+  if (historyData.length === 0) {
+    alert("請先讀取資料");
     return;
   }
 
-  const config = getConfig();
-  const freq = buildFreq();
-  const aiRank = buildAI(freq);
+  const pickCount = Number(document.getElementById("pickCount").value);
+  const groupCount = Number(document.getElementById("groupCount").value);
 
-  const confidence = calcConfidence(aiRank, config);
-  const burst = buildBurst(aiRank);
-  const trend = currentData.slice(0, 5);
+  const allNumbers = [];
 
-  const bestCombo = aiRank.slice(0, config.pick).map(v => v.n);
-  const fusion = [...new Set([...bestCombo, ...burst.map(v => v.n)])].slice(0, config.pick);
-  const hitPredict = calcHit(confidence);
-
-  renderMain(aiRank, config);
-  renderConfidence(confidence);
-  renderBurst(burst);
-  renderTrend(trend);
-
-  renderHit(hitPredict);
-  renderBest(bestCombo);
-  renderFusion(fusion);
-
-  statusEl.textContent = "分析完成";
-}
-
-/* ===================== 核心 ===================== */
-
-function getConfig() {
-  const game = gameEl.value;
-  if (game === "bingo") return { max: 80, pick: Number(bingoPickCountEl.value) };
-  if (game === "lotto") return { max: 49, pick: 6 };
-  if (game === "power") return { max: 38, pick: 6 };
-  return { max: 39, pick: 5 };
-}
-
-function buildFreq() {
-  const map = {};
-  currentData.forEach(d => {
-    d.numbers.forEach(n => {
-      map[n] = (map[n] || 0) + 1;
-    });
+  historyData.forEach(d => {
+    allNumbers.push(...d.numbers);
   });
-  return map;
-}
 
-function buildAI(freq) {
-  return Object.entries(freq)
-    .map(([n, c]) => ({
-      n: Number(n),
-      score: c + Math.random() * 5
-    }))
-    .sort((a, b) => b.score - a.score);
-}
+  // 出現次數統計
+  const freq = {};
+  allNumbers.forEach(n => {
+    freq[n] = (freq[n] || 0) + 1;
+  });
 
-function calcConfidence(aiRank, config) {
-  const avg = aiRank.slice(0, config.pick).reduce((s, v) => s + v.score, 0) / config.pick;
-  return {
-    avg: avg.toFixed(2),
-    level: avg > 20 ? "高" : avg > 10 ? "中" : "低"
-  };
-}
+  // 排序（熱門號）
+  const sorted = Object.keys(freq)
+    .sort((a, b) => freq[b] - freq[a])
+    .map(Number);
 
-function buildBurst(aiRank) {
-  return aiRank.slice(5, 11);
-}
+  // ===== 推薦組合 =====
+  let resultHTML = "";
 
-function calcHit(conf) {
-  const v = Number(conf.avg);
-  if (v > 20) return "預估中 2~3 顆";
-  if (v > 10) return "預估中 1~2 顆";
-  return "預估中 1 顆";
-}
+  for (let i = 0; i < groupCount; i++) {
+    const group = [];
 
-/* ===================== UI ===================== */
+    while (group.length < pickCount) {
+      const num = sorted[Math.floor(Math.random() * sorted.length)];
+      if (!group.includes(num)) group.push(num);
+    }
 
-function renderMain(aiRank, config) {
-  const groups = Number(groupCountEl.value);
-  let html = "";
+    group.sort((a, b) => a - b);
 
-  for (let g = 0; g < groups; g++) {
-    const pick = aiRank.slice(g, g + config.pick).map(v => v.n).sort((a, b) => a - b);
-
-    html += `
-    <div class="group-box">
-      <div>第 ${g + 1} 組</div>
-      <div class="num-list">
-        ${pick.map(n => ball(n)).join("")}
+    resultHTML += `
+      <div class="card">
+        <div>第 ${i + 1} 組</div>
+        <div class="balls">
+          ${group.map(n => `<span>${n}</span>`).join("")}
+        </div>
       </div>
-    </div>`;
+    `;
   }
 
-  resultEl.innerHTML = html;
+  document.getElementById("result").innerHTML = resultHTML;
+
+  // ===== AI分數 =====
+  const avg =
+    Object.values(freq).reduce((a, b) => a + b, 0) /
+    Object.keys(freq).length;
+
+  document.getElementById("aiScore").innerText =
+    `平均 AI 分數：${avg.toFixed(2)} / 信心：高`;
 }
 
-function renderConfidence(c) {
-  confidenceBoxEl.innerHTML = `
-  平均 AI 分數：${c.avg}<br>
-  信心等級：${c.level}`;
+// ===== 命中率回測 =====
+function backtest() {
+  if (historyData.length < 10) {
+    alert("資料太少");
+    return;
+  }
+
+  let hit = 0;
+  let total = 0;
+
+  for (let i = 1; i < historyData.length; i++) {
+    const prev = historyData[i].numbers;
+    const next = historyData[i - 1].numbers;
+
+    prev.forEach(n => {
+      if (next.includes(n)) hit++;
+    });
+
+    total += prev.length;
+  }
+
+  const rate = ((hit / total) * 100).toFixed(2);
+
+  document.getElementById("backtest").innerText =
+    `命中率：約 ${rate}%`;
 }
 
-function renderBurst(list) {
-  burstBoxEl.innerHTML = list.map(v => ball(v.n, "gold")).join("");
+// ===== 爆號預測 =====
+function predictHot() {
+  if (historyData.length === 0) return;
+
+  const freq = {};
+
+  historyData.forEach(d => {
+    d.numbers.forEach(n => {
+      freq[n] = (freq[n] || 0) + 1;
+    });
+  });
+
+  const hot = Object.keys(freq)
+    .sort((a, b) => freq[b] - freq[a])
+    .slice(0, 6);
+
+  document.getElementById("hot").innerHTML =
+    hot.map(n => `<span>${n}</span>`).join("");
 }
 
-function renderTrend(list) {
-  trendBoxEl.innerHTML = list.map((d, i) =>
-    `${d.date} 第${i + 1}筆`
-  ).join("<br>");
-}
-
-/* 🔥 這三個就是你剛剛壞掉的 */
-
-function renderHit(text) {
-  if (!hitPredictBoxEl) return;
-  hitPredictBoxEl.innerHTML = text;
-}
-
-function renderBest(combo) {
-  if (!bestComboBoxEl) return;
-  bestComboBoxEl.innerHTML = combo.map(n => ball(n)).join("");
-}
-
-function renderFusion(list) {
-  if (!fusionBoxEl) return;
-  fusionBoxEl.innerHTML = list.map(n => ball(n, "gold")).join("");
-}
-
-/* ===================== UI helper ===================== */
-
-function ball(n, cls = "") {
-  return `<span class="ball ${cls}">${String(n).padStart(2, "0")}</span>`;
-}
+// ===== 初始化 =====
+window.onload = () => {
+  document.getElementById("loadBtn").onclick = loadData;
+  document.getElementById("analyzeBtn").onclick = analyze;
+  document.getElementById("backtestBtn").onclick = backtest;
+  document.getElementById("predictBtn").onclick = predictHot;
+};
