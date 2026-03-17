@@ -30,22 +30,25 @@ body {
 .hero h1 {
   margin: 0 0 8px;
   font-size: 30px;
+  line-height: 1.2;
 }
 
 .hero p {
   margin: 0;
   opacity: 0.96;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-size: 16px;
 }
 
 .install-btn {
   border: none;
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
   font-weight: 700;
   padding: 10px 14px;
   border-radius: 12px;
   min-height: 44px;
+  white-space: nowrap;
 }
 
 .hidden {
@@ -57,7 +60,7 @@ body {
   border-radius: 22px;
   padding: 16px;
   margin-bottom: 16px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
 }
 
 .form-grid {
@@ -74,7 +77,9 @@ label {
   font-weight: 700;
 }
 
-select, button, input {
+select,
+button,
+input {
   min-height: 46px;
   border-radius: 14px;
   border: 1px solid #d1d5db;
@@ -107,6 +112,7 @@ button {
   background: #fff7ed;
   color: #9a3412;
   font-weight: 700;
+  line-height: 1.6;
 }
 
 .tip {
@@ -126,7 +132,7 @@ button {
   background: #fff;
   border-radius: 22px;
   padding: 16px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
 }
 
 .card.wide {
@@ -135,8 +141,8 @@ button {
 
 .card h2 {
   margin-top: 0;
-  font-size: 22px;
   margin-bottom: 14px;
+  font-size: 22px;
 }
 
 .num-list {
@@ -156,6 +162,7 @@ button {
   background: #dbeafe;
   color: #1d4ed8;
   font-weight: 800;
+  font-size: 15px;
 }
 
 .ball.red {
@@ -181,6 +188,10 @@ button {
   background: #fafafa;
 }
 
+.group-box:last-child {
+  margin-bottom: 0;
+}
+
 .text-list {
   line-height: 1.9;
   font-size: 15px;
@@ -189,6 +200,7 @@ button {
 .score-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 10px;
   border-bottom: 1px dashed #e5e7eb;
   padding: 8px 0;
