@@ -3,25 +3,25 @@ export default async function handler(req, res) {
 const game=req.query.game
 const count=parseInt(req.query.count)||30
 
+try{
+
 let url=""
 
 if(game==="539"){
-url="https://api.apicep.com/api/twlotto539"
+url="https://raw.githubusercontent.com/ChanceYu/TaiwanLottery/master/data/539.json"
 }
 
 if(game==="lotto"){
-url="https://api.apicep.com/api/twlotto649"
+url="https://raw.githubusercontent.com/ChanceYu/TaiwanLottery/master/data/649.json"
 }
 
 if(game==="power"){
-url="https://api.apicep.com/api/twlotto638"
+url="https://raw.githubusercontent.com/ChanceYu/TaiwanLottery/master/data/638.json"
 }
 
 if(game==="bingo"){
-url="https://api.apicep.com/api/twbingo"
+url="https://raw.githubusercontent.com/ChanceYu/TaiwanLottery/master/data/bingo.json"
 }
-
-try{
 
 const r=await fetch(url)
 const data=await r.json()
@@ -35,38 +35,38 @@ let numbers=[]
 if(game==="power"){
 
 numbers=[
-d.Lotto1,
-d.Lotto2,
-d.Lotto3,
-d.Lotto4,
-d.Lotto5,
-d.Lotto6
+d.n1,
+d.n2,
+d.n3,
+d.n4,
+d.n5,
+d.n6
 ]
 
 draws.push({
-issue:d.Period,
-date:d.Date,
+issue:d.issue,
+date:d.date,
 numbers:numbers,
-second:d.Lotto7
+second:d.n7
 })
 
 }else{
 
 numbers=[
-d.Lotto1,
-d.Lotto2,
-d.Lotto3,
-d.Lotto4,
-d.Lotto5
+d.n1,
+d.n2,
+d.n3,
+d.n4,
+d.n5
 ]
 
 if(game==="lotto"){
-numbers.push(d.Lotto6)
+numbers.push(d.n6)
 }
 
 draws.push({
-issue:d.Period,
-date:d.Date,
+issue:d.issue,
+date:d.date,
 numbers:numbers
 })
 
