@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券預測助手 V40</title>
+  <title>台灣彩券預測助手 V60</title>
   <meta name="theme-color" content="#2563eb" />
-  <meta name="description" content="台灣彩券預測助手 V40，支援賓果、大樂透、威力彩、今彩539，含AI分析、冷門反彈、拖牌與命中率回測。" />
+  <meta name="description" content="台灣彩券預測助手 V60，支援賓果、大樂透、威力彩、今彩539，含AI信心分數、走勢、回測。" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,8 +13,8 @@
   <div class="app">
     <header class="hero">
       <div>
-        <h1>台灣彩券預測助手 V40</h1>
-        <p>AI混合｜熱門/冷門/均衡｜拖牌強化｜命中率回測</p>
+        <h1>台灣彩券預測助手 V60</h1>
+        <p>AI信心分數｜熱門/冷門/均衡｜拖牌強化｜命中率回測</p>
       </div>
       <button id="installBtn" class="install-btn hidden">安裝 App</button>
     </header>
@@ -97,8 +97,13 @@
 
     <section class="cards">
       <div class="card wide">
-        <h2>V40 推薦號碼</h2>
+        <h2>V60 推薦號碼</h2>
         <div id="result"></div>
+      </div>
+
+      <div class="card">
+        <h2>AI 信心分數</h2>
+        <div id="confidenceBox"></div>
       </div>
 
       <div class="card">
@@ -139,6 +144,11 @@
       <div class="card">
         <h2>Bingo 建議</h2>
         <div id="bingoAdvice"></div>
+      </div>
+
+      <div class="card wide">
+        <h2>近期走勢</h2>
+        <div id="trendBox"></div>
       </div>
 
       <div class="card wide">
