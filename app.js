@@ -228,71 +228,81 @@
   }
 
   function renderApp() {
-    byId("app").innerHTML = `
-      <div class="card">
-        <div class="title">台灣彩券預測 V67</div>
-        <div class="sub">真資料安全展示版｜只分析可驗證資料</div>
-      </div>
-
-      <div class="card">
-        <div class="grid grid-3">
-          <div>
-            <label>彩種</label>
-            <select id="gameSelect"></select>
-          </div>
-          <div>
-            <label>分析期數</label>
-            <select id="historyLimit">
-              <option value="30">最近 30 期</option>
-              <option value="60">最近 60 期</option>
-              <option value="120" selected>最近 120 期</option>
-              <option value="240">最近 240 期</option>
-              <option value="500">最近 500 期</option>
-            </select>
-          </div>
-          <div>
-            <label>預測顆數</label>
-            <select id="pickCount"></select>
-          </div>
-        </div>
-        <div style="height:10px;"></div>
-        <div class="btn-row">
-          <button id="btnAnalyze">開始分析</button>
-          <button id="btnReload">重新讀取資料</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">資料狀態</div>
-        <div id="metaInfo"></div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">推薦號碼</div>
-        <div id="prediction"></div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">分析摘要</div>
-        <div id="summaryStats" class="grid grid-2"></div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">熱門號碼 / 冷門號碼</div>
-        <div id="hotCold" class="grid grid-2"></div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">尾數 / 連號 / 拖牌</div>
-        <div id="patternStats" class="grid grid-2"></div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">最近開獎</div>
-        <div id="latestDraw"></div>
+  const app = byId("app");
+  if (!app) {
+    document.body.innerHTML = `
+      <div style="padding:20px;font-family:sans-serif;color:#fff;background:#081226;min-height:100vh;">
+        啟動失敗：找不到 #app 容器
       </div>
     `;
+    return;
   }
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="title">台灣彩券預測 V67</div>
+      <div class="sub">真資料安全展示版｜只分析可驗證資料</div>
+    </div>
+
+    <div class="card">
+      <div class="grid grid-3">
+        <div>
+          <label>彩種</label>
+          <select id="gameSelect"></select>
+        </div>
+        <div>
+          <label>分析期數</label>
+          <select id="historyLimit">
+            <option value="30">最近 30 期</option>
+            <option value="60">最近 60 期</option>
+            <option value="120" selected>最近 120 期</option>
+            <option value="240">最近 240 期</option>
+            <option value="500">最近 500 期</option>
+          </select>
+        </div>
+        <div>
+          <label>預測顆數</label>
+          <select id="pickCount"></select>
+        </div>
+      </div>
+      <div style="height:10px;"></div>
+      <div class="btn-row">
+        <button id="btnAnalyze">開始分析</button>
+        <button id="btnReload">重新讀取資料</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">資料狀態</div>
+      <div id="metaInfo"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">推薦號碼</div>
+      <div id="prediction"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">分析摘要</div>
+      <div id="summaryStats" class="grid grid-2"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">熱門號碼 / 冷門號碼</div>
+      <div id="hotCold" class="grid grid-2"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">尾數 / 連號 / 拖牌</div>
+      <div id="patternStats" class="grid grid-2"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">最近開獎</div>
+      <div id="latestDraw"></div>
+    </div>
+  `;
+}
 
   async function fetchJson(url) {
     const res = await fetch(`${url}?t=${Date.now()}`, { cache: "no-store" });
