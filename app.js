@@ -27,13 +27,8 @@ document.getElementById("loadBtn").addEventListener("click", loadData);
 document.getElementById("analyzeBtn").addEventListener("click", analyzeData);
 document.getElementById("backtestBtn").addEventListener("click", runBacktest);
 document.getElementById("battleBtn").addEventListener("click", goBattle);
-
-if (gameEl) {
-  gameEl.addEventListener("change", handleGameChange);
-}
-if (installBtn) {
-  installBtn.addEventListener("click", installApp);
-}
+gameEl.addEventListener("change", handleGameChange);
+if (installBtn) installBtn.addEventListener("click", installApp);
 
 handleGameChange();
 registerSW();
@@ -128,37 +123,25 @@ function analyzeData() {
 }
 
 function getGameConfig(game) {
-  if (game === "bingo") {
-    return { max: 80, pickCount: Number(bingoPickCountEl.value), secondMax: 0 };
-  }
-  if (game === "lotto") {
-    return { max: 49, pickCount: 6, secondMax: 0 };
-  }
-  if (game === "power") {
-    return { max: 38, pickCount: 6, secondMax: 8 };
-  }
+  if (game === "bingo") return { max: 80, pickCount: Number(bingoPickCountEl.value), secondMax: 0 };
+  if (game === "lotto") return { max: 49, pickCount: 6, secondMax: 0 };
+  if (game === "power") return { max: 38, pickCount: 6, secondMax: 8 };
   return { max: 39, pickCount: 5, secondMax: 0 };
 }
 
 function buildFrequency(draws, config) {
   const main = {};
-  for (let i = 1; i <= config.max; i++) {
-    main[i] = 0;
-  }
+  for (let i = 1; i <= config.max; i++) main[i] = 0;
 
   let second = null;
   if (config.secondMax) {
     second = {};
-    for (let i = 1; i <= config.secondMax; i++) {
-      second[i] = 0;
-    }
+    for (let i = 1; i <= config.secondMax; i++) second[i] = 0;
   }
 
   draws.forEach(draw => {
     (draw.numbers || []).forEach(n => {
-      if (main[n] !== undefined) {
-        main[n]++;
-      }
+      if (main[n] !== undefined) main[n]++;
     });
 
     if (second && draw.second && second[draw.second] !== undefined) {
@@ -183,9 +166,7 @@ function sortFreqAsc(obj) {
 
 function buildTailStats(mainFreq) {
   const tails = {};
-  for (let i = 0; i <= 9; i++) {
-    tails[i] = 0;
-  }
+  for (let i = 0; i <= 9; i++) tails[i] = 0;
 
   Object.entries(mainFreq).forEach(([num, count]) => {
     tails[Number(num) % 10] += count;
@@ -198,7 +179,6 @@ function buildTailStats(mainFreq) {
 
 function buildDragStats(draws) {
   const map = {};
-
   for (let i = 0; i < draws.length - 1; i++) {
     const current = draws[i].numbers || [];
     const next = draws[i + 1].numbers || [];
@@ -244,12 +224,10 @@ function buildSerialStats(draws) {
 
 function buildBirthdayNumbers(dateStr, config) {
   if (!dateStr) return [];
-
   const parts = dateStr.split("-");
   if (parts.length !== 3) return [];
 
   const [year, month, day] = parts.map(Number);
-
   const raw = [
     year % 100,
     month,
@@ -260,11 +238,9 @@ function buildBirthdayNumbers(dateStr, config) {
     Math.floor(day / 2)
   ];
 
-  const normalized = raw
-    .map(n => normalizeNumber(n, config.max))
-    .filter(n => n >= 1 && n <= config.max);
-
-  return [...new Set(normalized)];
+  return [...new Set(
+    raw.map(n => normalizeNumber(n, config.max)).filter(n => n >= 1 && n <= config.max)
+  )];
 }
 
 function normalizeNumber(n, max) {
@@ -284,14 +260,10 @@ function buildAIScores(draws, config, birthdayNumbers) {
   const coldRank = sortFreqAsc(freq.main).map(v => v.n);
 
   const hotIndex = {};
-  hotRank.forEach((n, idx) => {
-    hotIndex[n] = idx;
-  });
+  hotRank.forEach((n, idx) => { hotIndex[n] = idx; });
 
   const coldIndex = {};
-  coldRank.forEach((n, idx) => {
-    coldIndex[n] = idx;
-  });
+  coldRank.forEach((n, idx) => { coldIndex[n] = idx; });
 
   const rows = [];
   for (let n = 1; n <= config.max; n++) {
@@ -302,9 +274,7 @@ function buildAIScores(draws, config, birthdayNumbers) {
     score += (tailRank[n % 10] || 0) * 1.1;
     score += (dragMap[n] || 0) * 1.8;
 
-    if (birthdayNumbers.includes(n)) {
-      score += 8;
-    }
+    if (birthdayNumbers.includes(n)) score += 8;
 
     if ((coldIndex[n] ?? config.max) < Math.floor(config.max / 6)) {
       score -= 2.5;
@@ -322,9 +292,7 @@ function buildAIScores(draws, config, birthdayNumbers) {
 
 function buildNumberDragMap(draws, max) {
   const map = {};
-  for (let i = 1; i <= max; i++) {
-    map[i] = 0;
-  }
+  for (let i = 1; i <= max; i++) map[i] = 0;
 
   for (let i = 0; i < draws.length - 1; i++) {
     const current = draws[i].numbers || [];
@@ -343,19 +311,15 @@ function buildNumberDragMap(draws, max) {
 function buildTailWeightMap(mainFreq) {
   const tailStats = buildTailStats(mainFreq);
   const weight = {};
-
   tailStats.forEach((item, idx) => {
     weight[item.tail] = Math.max(1, 10 - idx);
   });
-
   return weight;
 }
 
 function buildRecentBoost(draws, max) {
   const boost = {};
-  for (let i = 1; i <= max; i++) {
-    boost[i] = 0;
-  }
+  for (let i = 1; i <= max; i++) boost[i] = 0;
 
   const recent = draws.slice(0, Math.min(5, draws.length));
   recent.forEach((draw, idx) => {
@@ -374,6 +338,7 @@ function renderPredictions(aiRank, freq, config, birthdayNumbers, mode) {
 
   const aiRanked = aiRank.map(v => v.n);
   const rankedMain = sortFreqDesc(freq.main).map(v => v.n);
+  const coldRanked = sortFreqAsc(freq.main).map(v => v.n);
   const rankedSecond = freq.second ? sortFreqDesc(freq.second).map(v => v.n) : [];
 
   let html = "";
@@ -381,14 +346,20 @@ function renderPredictions(aiRank, freq, config, birthdayNumbers, mode) {
   for (let g = 0; g < groups; g++) {
     let mainPick = [];
 
-    if (mode === "normal") {
+    if (mode === "hot") {
       mainPick = pickGroup(rankedMain, config.pickCount, g);
+    } else if (mode === "cold") {
+      mainPick = pickGroup(coldRanked, config.pickCount, g);
+    } else if (mode === "balanced") {
+      mainPick = pickBalancedGroup(rankedMain, coldRanked, config.pickCount, g);
     } else if (mode === "birthday") {
-      mainPick = mixBirthdayPriority(rankedMain, birthdayNumbers, config.pickCount, true, g);
-    } else if (mode === "mixed") {
-      mainPick = mixBirthdayPriority(aiRanked, birthdayNumbers, config.pickCount, false, g);
+      mainPick = mixBirthdayPriority(aiRanked, birthdayNumbers, config.pickCount, true, g);
     } else {
       mainPick = pickAIGroup(aiRanked, rankedMain, birthdayNumbers, config.pickCount, g);
+    }
+
+    if (game === "bingo") {
+      mainPick = mainPick.slice(0, Number(bingoPickCountEl.value));
     }
 
     mainPick = [...new Set(mainPick)]
@@ -417,21 +388,33 @@ function pickGroup(rankedList, count, offset) {
 
   while (chosen.length < count && i < rankedList.length) {
     const n = rankedList[i];
-    if (!chosen.includes(n)) {
-      chosen.push(n);
-    }
+    if (!chosen.includes(n)) chosen.push(n);
     i += 2;
   }
 
   let fillIndex = 0;
   while (chosen.length < count && fillIndex < rankedList.length) {
     const n = rankedList[fillIndex];
-    if (!chosen.includes(n)) {
-      chosen.push(n);
-    }
+    if (!chosen.includes(n)) chosen.push(n);
     fillIndex++;
   }
 
+  return chosen;
+}
+
+function pickBalancedGroup(hotList, coldList, count, offset) {
+  const chosen = [];
+  const hot = hotList.slice(offset).concat(hotList.slice(0, offset));
+  const cold = coldList.slice(offset).concat(coldList.slice(0, offset));
+
+  for (let i = 0; i < Math.max(hot.length, cold.length); i++) {
+    if (hot[i] !== undefined && chosen.length < count && !chosen.includes(hot[i])) {
+      chosen.push(hot[i]);
+    }
+    if (cold[i] !== undefined && chosen.length < count && !chosen.includes(cold[i])) {
+      chosen.push(cold[i]);
+    }
+  }
   return chosen;
 }
 
@@ -441,28 +424,22 @@ function mixBirthdayPriority(rankedList, birthdayNumbers, count, birthdayOnlyFir
 
   if (birthdayOnlyFirst) {
     birthdayNumbers.forEach(n => {
-      if (chosen.length < count && !chosen.includes(n)) {
-        chosen.push(n);
-      }
-    });
-  } else {
-    const mix = [];
-    for (let i = 0; i < Math.max(shiftedRanked.length, birthdayNumbers.length); i++) {
-      if (birthdayNumbers[i] !== undefined) mix.push(birthdayNumbers[i]);
-      if (shiftedRanked[i] !== undefined) mix.push(shiftedRanked[i]);
-    }
-
-    mix.forEach(n => {
-      if (chosen.length < count && !chosen.includes(n)) {
-        chosen.push(n);
-      }
+      if (chosen.length < count && !chosen.includes(n)) chosen.push(n);
     });
   }
 
+  const mix = [];
+  for (let i = 0; i < Math.max(shiftedRanked.length, birthdayNumbers.length); i++) {
+    if (birthdayNumbers[i] !== undefined) mix.push(birthdayNumbers[i]);
+    if (shiftedRanked[i] !== undefined) mix.push(shiftedRanked[i]);
+  }
+
+  mix.forEach(n => {
+    if (chosen.length < count && !chosen.includes(n)) chosen.push(n);
+  });
+
   shiftedRanked.forEach(n => {
-    if (chosen.length < count && !chosen.includes(n)) {
-      chosen.push(n);
-    }
+    if (chosen.length < count && !chosen.includes(n)) chosen.push(n);
   });
 
   return chosen;
@@ -481,9 +458,7 @@ function pickAIGroup(aiRanked, rankedMain, birthdayNumbers, count, offset) {
   }
 
   pool.forEach(n => {
-    if (chosen.length < count && !chosen.includes(n)) {
-      chosen.push(n);
-    }
+    if (chosen.length < count && !chosen.includes(n)) chosen.push(n);
   });
 
   return chosen;
@@ -495,11 +470,7 @@ function renderBirthdayNumbers(items) {
     return;
   }
 
-  birthdayNumbersEl.innerHTML = `
-    <div class="num-list">
-      ${items.map(n => ball(n, "red")).join("")}
-    </div>
-  `;
+  birthdayNumbersEl.innerHTML = `<div class="num-list">${items.map(n => ball(n, "red")).join("")}</div>`;
 }
 
 function renderAIScoreBoard(aiRank, game) {
@@ -555,9 +526,9 @@ function renderBingoAdvice() {
   const pickCount = Number(bingoPickCountEl.value);
   let text = "目前設定顆數屬中性策略。";
 
-  if (pickCount <= 3) text = "目前偏保守，適合縮小選號集中度。";
-  if (pickCount >= 4 && pickCount <= 6) text = "目前屬平衡策略，較適合一般實戰參考。";
-  if (pickCount >= 7) text = "目前偏擴散策略，適合想提高覆蓋面的玩法。";
+  if (pickCount <= 3) text = "目前偏保守，適合縮小集中度。";
+  if (pickCount >= 4 && pickCount <= 6) text = "目前屬平衡策略，適合一般實戰。";
+  if (pickCount >= 7) text = "目前偏擴散策略，適合提高覆蓋面。";
 
   bingoAdviceEl.innerHTML = `
     <div class="text-list">
@@ -611,18 +582,15 @@ function runBacktest() {
     const aiRank = buildAIScores(training, config, birthdayNumbers);
     const freq = buildFrequency(training, config);
     const rankedMain = sortFreqDesc(freq.main).map(v => v.n);
+    const coldRanked = sortFreqAsc(freq.main).map(v => v.n);
     const aiRanked = aiRank.map(v => v.n);
 
     let pick = [];
-    if (mode === "normal") {
-      pick = pickGroup(rankedMain, config.pickCount, 0);
-    } else if (mode === "birthday") {
-      pick = mixBirthdayPriority(rankedMain, birthdayNumbers, config.pickCount, true, 0);
-    } else if (mode === "mixed") {
-      pick = mixBirthdayPriority(aiRanked, birthdayNumbers, config.pickCount, false, 0);
-    } else {
-      pick = pickAIGroup(aiRanked, rankedMain, birthdayNumbers, config.pickCount, 0);
-    }
+    if (mode === "hot") pick = pickGroup(rankedMain, config.pickCount, 0);
+    else if (mode === "cold") pick = pickGroup(coldRanked, config.pickCount, 0);
+    else if (mode === "balanced") pick = pickBalancedGroup(rankedMain, coldRanked, config.pickCount, 0);
+    else if (mode === "birthday") pick = mixBirthdayPriority(aiRanked, birthdayNumbers, config.pickCount, true, 0);
+    else pick = pickAIGroup(aiRanked, rankedMain, birthdayNumbers, config.pickCount, 0);
 
     pick = pick.slice(0, config.pickCount);
     const hitCount = pick.filter(n => currentData[i].numbers.includes(n)).length;
@@ -668,7 +636,6 @@ function goBattle() {
     statusEl.textContent = "請先分析後再進入實戰";
     return;
   }
-
   statusEl.textContent = "實戰模式已啟動，請依推薦號碼作為參考使用";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -681,9 +648,7 @@ function setupPWA() {
   window.addEventListener("beforeinstallprompt", e => {
     e.preventDefault();
     deferredPrompt = e;
-    if (installBtn) {
-      installBtn.classList.remove("hidden");
-    }
+    if (installBtn) installBtn.classList.remove("hidden");
   });
 }
 
@@ -692,9 +657,7 @@ async function installApp() {
   deferredPrompt.prompt();
   await deferredPrompt.userChoice;
   deferredPrompt = null;
-  if (installBtn) {
-    installBtn.classList.add("hidden");
-  }
+  if (installBtn) installBtn.classList.add("hidden");
 }
 
 function registerSW() {
