@@ -2,24 +2,24 @@
   "version": "V66.5",
   "mode": "official-only-safe",
   "sourceName": "data/official 驗證保護模式",
-  "generatedAt": "2026-03-17T14:30:57.268Z",
-  "updatedAt": "2026-03-17T14:30:57.268Z",
+  "generatedAt": "2026-03-17T14:39:53.354Z",
+  "updatedAt": "2026-03-17T14:39:53.354Z",
   "games": {
     "bingo": {
       "count": 60,
       "status": "validated"
     },
     "lotto649": {
-      "count": 60,
-      "status": "looks like generated/fake pattern"
+      "count": 0,
+      "status": "empty after normalize"
     },
     "superlotto638": {
       "count": 60,
       "status": "validated"
     },
     "dailycash": {
-      "count": 60,
-      "status": "looks like generated/fake pattern"
+      "count": 0,
+      "status": "empty after normalize"
     }
   }
 }
