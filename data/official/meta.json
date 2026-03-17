@@ -1,9 +1,9 @@
 {
-  "version": "V66.5",
-  "mode": "official-only-safe",
-  "sourceName": "data/official 驗證保護模式",
-  "generatedAt": "2026-03-17T14:42:05.992Z",
-  "updatedAt": "2026-03-17T14:42:05.992Z",
+  "version": "V67",
+  "mode": "official-only-sanitized",
+  "sourceName": "data/official 真資料安全展示模式",
+  "generatedAt": "2026-03-17T15:01:01.113Z",
+  "updatedAt": "2026-03-17T15:01:01.113Z",
   "games": {
     "bingo": {
       "count": 60,
