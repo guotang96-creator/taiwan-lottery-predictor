@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券預測助手 V7</title>
+  <title>台灣彩券預測助手 V10</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header class="hero">
-      <h1>台灣彩券預測助手 V7</h1>
-      <p>手機版｜賓果｜大樂透｜威力彩｜539｜快速實戰</p>
+      <h1>台灣彩券預測助手 V10</h1>
+      <p>手機版｜賓果｜大樂透｜威力彩｜539｜偏財模式｜命中率回測</p>
     </header>
 
     <section class="panel">
@@ -57,6 +57,21 @@
             <option value="1">1組</option>
             <option value="3">3組</option>
             <option value="5" selected>5組</option>
+            <option value="10">10組</option>
+          </select>
+        </label>
+
+        <label>
+          出生年月日
+          <input id="birthday" type="date" value="1993-08-19" />
+        </label>
+
+        <label>
+          模式
+          <select id="mode">
+            <option value="normal" selected>一般分析</option>
+            <option value="birthday">偏財生日模式</option>
+            <option value="mixed">混合強化模式</option>
           </select>
         </label>
       </div>
@@ -64,6 +79,7 @@
       <div class="btn-row">
         <button id="loadBtn">讀取歷史資料</button>
         <button id="analyzeBtn">開始分析</button>
+        <button id="backtestBtn">命中率回測</button>
         <button id="battleBtn">進入實戰</button>
       </div>
 
@@ -74,6 +90,11 @@
       <div class="card">
         <h2>推薦號碼</h2>
         <div id="result"></div>
+      </div>
+
+      <div class="card">
+        <h2>偏財生日號碼</h2>
+        <div id="birthdayNumbers"></div>
       </div>
 
       <div class="card">
@@ -99,6 +120,11 @@
       <div class="card">
         <h2>連號偵測</h2>
         <div id="serialAnalysis"></div>
+      </div>
+
+      <div class="card">
+        <h2>命中率回測</h2>
+        <div id="backtestResult"></div>
       </div>
 
       <div class="card">
