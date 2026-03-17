@@ -1,12 +1,11 @@
 /* eslint-disable no-console */
-// V66.1 官方資料自動更新版
-// Node.js only / no Python / no external package required
-
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 const ROOT = process.cwd();
 const OUTPUT_DIR = path.join(ROOT, "data", "official");
+const TMP_DIR = path.join(ROOT, ".tmp_lottery");
 
 const GAME_SOURCES = {
   lotto649: {
@@ -48,39 +47,65 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
+function readJsonIfExists(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function fetchText(url) {
-  const res = await fetch(url, {
-    headers: {
-      "user-agent": "Mozilla/5.0 (compatible; LotteryBot/66.1; +https://vercel.app)",
-      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "cache-control": "no-cache",
-      "pragma": "no-cache"
-    }
-  });
+function downloadByCurl(url, outFile) {
+  const cmd = [
+    "curl",
+    "-L",
+    "--compressed",
+    "--connect-timeout", "20",
+    "--max-time", "60",
+    "--retry", "2",
+    "--retry-delay", "2",
+    "-A", "\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36\"",
+    "-H", "\"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\"",
+    "-H", "\"Accept-Language: zh-TW,zh;q=0.9,en;q=0.8\"",
+    "-H", "\"Cache-Control: no-cache\"",
+    "-H", "\"Pragma: no-cache\"",
+    "-o", `"${outFile}"`,
+    `"${url}"`
+  ].join(" ");
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} @ ${url}`);
+  execSync(cmd, { stdio: "pipe" });
+
+  if (!fs.existsSync(outFile)) {
+    throw new Error("curl 下載失敗，檔案不存在");
   }
-  return res.text();
+
+  const text = fs.readFileSync(outFile, "utf8");
+  if (!text || text.length < 3000) {
+    throw new Error("下載內容過短");
+  }
+  return text;
 }
 
-async function fetchFirstAvailable(urls) {
+async function fetchFirstAvailable(urls, gameKey) {
   let lastErr = null;
 
-  for (const url of urls) {
+  for (let i = 0; i < urls.length; i += 1) {
+    const url = urls[i];
+    const outFile = path.join(TMP_DIR, `${gameKey}_${i}.html`);
+
     try {
-      const text = await fetchText(url);
-      if (text && text.length > 5000) {
-        return { url, text };
-      }
+      const text = downloadByCurl(url, outFile);
+      return { url, text };
     } catch (err) {
       lastErr = err;
     }
-    await sleep(800);
+
+    await sleep(1000);
   }
 
   throw lastErr || new Error("No source available");
@@ -129,7 +154,7 @@ function uniqueDraws(draws) {
   const map = new Map();
   for (const draw of draws) {
     if (!draw || !draw.issue) continue;
-    const key = `${draw.issue}_${draw.drawDate}_${JSON.stringify(draw.numbers || draw.numbers1 || [])}`;
+    const key = `${draw.issue}_${draw.drawDate}_${JSON.stringify(draw.numbers || draw.numbers1 || [])}_${draw.special || ""}_${draw.numbers2 || ""}`;
     if (!map.has(key)) map.set(key, draw);
   }
   return [...map.values()];
@@ -186,15 +211,14 @@ function parseLotto649(html) {
 
   for (const table of tables) {
     const rows = parseRows(table);
-
     for (const row of rows) {
       const rowText = row.join(" | ");
-      if (!/期別|開獎|獎號|\d{6,9}/.test(rowText)) continue;
+      if (!/\d{6,9}/.test(rowText)) continue;
 
       const issue = extractIssue(rowText);
       const drawDate = normalizeDate(rowText);
-
       const nums = extractAllNumbers(rowText, 1, 49);
+
       if (!issue || nums.length < 6) continue;
 
       const uniqNums = [];
@@ -226,10 +250,9 @@ function parseSuperLotto638(html) {
 
   for (const table of tables) {
     const rows = parseRows(table);
-
     for (const row of rows) {
       const rowText = row.join(" | ");
-      if (!/期別|開獎|獎號|\d{6,9}/.test(rowText)) continue;
+      if (!/\d{6,9}/.test(rowText)) continue;
 
       const issue = extractIssue(rowText);
       const drawDate = normalizeDate(rowText);
@@ -267,10 +290,9 @@ function parseDailyCash(html) {
 
   for (const table of tables) {
     const rows = parseRows(table);
-
     for (const row of rows) {
       const rowText = row.join(" | ");
-      if (!/期別|開獎|獎號|\d{6,9}/.test(rowText)) continue;
+      if (!/\d{6,9}/.test(rowText)) continue;
 
       const issue = extractIssue(rowText);
       const drawDate = normalizeDate(rowText);
@@ -305,16 +327,14 @@ function parseBingo(html) {
 
   for (const table of tables) {
     const rows = parseRows(table);
-
     for (const row of rows) {
       const rowText = row.join(" | ");
-      if (!/期別|開獎|BINGO|\d{8,9}/i.test(rowText)) continue;
+      if (!/\d{8,9}/.test(rowText)) continue;
 
       const issue = extractIssue(rowText);
       const drawDate = normalizeDate(rowText);
 
       let nums = extractAllNumbers(rowText, 1, 80);
-
       const uniqNums = [];
       for (const n of nums) {
         if (!uniqNums.includes(n)) uniqNums.push(n);
@@ -353,7 +373,7 @@ function parseGame(gameKey, html) {
 
 async function updateOne(gameKey) {
   const source = GAME_SOURCES[gameKey];
-  const { url, text } = await fetchFirstAvailable(source.urls);
+  const { url, text } = await fetchFirstAvailable(source.urls, gameKey);
   const draws = parseGame(gameKey, text);
 
   if (!draws.length) {
@@ -370,6 +390,7 @@ async function updateOne(gameKey) {
 
 async function main() {
   ensureDir(OUTPUT_DIR);
+  ensureDir(TMP_DIR);
 
   const results = {};
   const errors = [];
@@ -378,15 +399,13 @@ async function main() {
     try {
       const result = await updateOne(gameKey);
       results[gameKey] = result;
-      await sleep(1200);
+      await sleep(1000);
     } catch (err) {
-      console.error(`[FAIL] ${gameKey}:`, err.message);
+      console.error(`[FAIL] ${gameKey}: ${err.message}`);
       errors.push({ gameKey, error: err.message });
 
       const backupFile = path.join(OUTPUT_DIR, `${gameKey}.json`);
-      if (fs.existsSync(backupFile)) {
-        console.log(`[KEEP] 使用既有 ${backupFile}`);
-      } else {
+      if (!fs.existsSync(backupFile)) {
         writeJson(backupFile, []);
       }
     }
@@ -404,34 +423,25 @@ async function main() {
     generatedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     games: Object.fromEntries(
-      Object.keys(GAME_SOURCES).map(gameKey => [
-        gameKey,
-        {
-          count: results[gameKey]?.draws?.length ?? (() => {
-            const backupFile = path.join(OUTPUT_DIR, `${gameKey}.json`);
-            if (fs.existsSync(backupFile)) {
-              try {
-                return JSON.parse(fs.readFileSync(backupFile, "utf8")).length || 0;
-              } catch {
-                return 0;
-              }
-            }
-            return 0;
-          })(),
-          sourceUrl: results[gameKey]?.sourceUrl || null
-        }
-      ])
+      Object.keys(GAME_SOURCES).map(gameKey => {
+        const existing = readJsonIfExists(path.join(OUTPUT_DIR, `${gameKey}.json`)) || [];
+        return [
+          gameKey,
+          {
+            count: results[gameKey]?.draws?.length ?? existing.length ?? 0,
+            sourceUrl: results[gameKey]?.sourceUrl || null
+          }
+        ];
+      })
     ),
     errors
   };
 
   writeJson(path.join(OUTPUT_DIR, "meta.json"), meta);
 
-  if (
-    Object.keys(results).length === 0 &&
-    errors.length > 0
-  ) {
-    throw new Error(`全部更新失敗：${errors.map(x => `${x.gameKey}:${x.error}`).join(" | ")}`);
+  if (Object.keys(results).length === 0) {
+    console.log("[WARN] 全部來源都失敗，已保留舊資料");
+    process.exit(0);
   }
 
   console.log("[DONE] official data updated");
