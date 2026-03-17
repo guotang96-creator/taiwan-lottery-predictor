@@ -1,87 +1,30 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券預測助手</title>
-  <link rel="stylesheet" href="./style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台灣彩券預測助手</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <div class="app">
-    <header class="topbar">
-      <h1>台灣彩券預測助手</h1>
-      <p>手機版｜歷史獎號分析｜快速實戰</p>
-    </header>
 
-    <div class="tabs">
-      <button class="tab active" data-game="bingo">賓果</button>
-      <button class="tab" data-game="lotto">大樂透</button>
-      <button class="tab" data-game="power">威力彩</button>
-      <button class="tab" data-game="539">539</button>
-    </div>
+<h1>台灣彩券預測助手</h1>
 
-    <section class="panel">
-      <div class="controls">
-        <label>歷史期數
-          <select id="historyCount">
-            <option value="30">近30期</option>
-            <option value="50" selected>近50期</option>
-            <option value="100">近100期</option>
-            <option value="200">近200期</option>
-          </select>
-        </label>
+<select id="game">
+<option value="bingo">賓果</option>
+<option value="lotto">大樂透</option>
+<option value="power">威力彩</option>
+<option value="539">539</option>
+</select>
 
-        <label id="bingoPickWrap">賓果選幾顆
-          <select id="bingoPickCount">
-            <option value="1">1顆</option>
-            <option value="2">2顆</option>
-            <option value="3">3顆</option>
-            <option value="4">4顆</option>
-            <option value="5">5顆</option>
-            <option value="6" selected>6顆</option>
-            <option value="7">7顆</option>
-            <option value="8">8顆</option>
-            <option value="9">9顆</option>
-            <option value="10">10顆</option>
-          </select>
-        </label>
+<button onclick="loadData()">讀取歷史資料</button>
+<button onclick="predict()">預測號碼</button>
 
-        <button id="loadBtn">讀取資料</button>
-        <button id="analyzeBtn">開始分析</button>
-        <button id="battleBtn">進入實戰</button>
-      </div>
+<h2>推薦號碼</h2>
+<div id="result"></div>
 
-      <div id="status" class="status">請先讀取資料</div>
+<script src="app.js"></script>
 
-      <div class="grid">
-        <div class="card">
-          <h3>推薦號碼</h3>
-          <div id="predictions"></div>
-        </div>
-
-        <div class="card">
-          <h3>開出次數</h3>
-          <div id="frequency"></div>
-        </div>
-
-        <div class="card">
-          <h3>拖號分析</h3>
-          <div id="dragAnalysis"></div>
-        </div>
-
-        <div class="card">
-          <h3>尾數分析</h3>
-          <div id="tailAnalysis"></div>
-        </div>
-
-        <div class="card">
-          <h3>最近開獎</h3>
-          <div id="latestDraws"></div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <script src="./app.js"></script>
 </body>
 </html>
