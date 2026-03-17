@@ -362,11 +362,7 @@ function buildBurstCandidates(draws, aiRank, config) {
   const seen = new Set();
   recent.forEach(draw => (draw.numbers || []).forEach(n => seen.add(n)));
 
-  const candidates = aiRank
-    .filter(item => !seen.has(item.n))
-    .slice(0, config.pickCount);
-
-  return candidates;
+  return aiRank.filter(item => !seen.has(item.n)).slice(0, config.pickCount);
 }
 
 function buildTrend(draws) {
@@ -457,6 +453,7 @@ function pickBalancedGroup(hotList, coldList, count, offset) {
     if (hot[i] !== undefined && chosen.length < count && !chosen.includes(hot[i])) chosen.push(hot[i]);
     if (cold[i] !== undefined && chosen.length < count && !chosen.includes(cold[i])) chosen.push(cold[i]);
   }
+
   return chosen;
 }
 
@@ -521,11 +518,7 @@ function renderBurst(items) {
     return;
   }
 
-  burstBoxEl.innerHTML = `
-    <div class="num-list">
-      ${items.map(v => ball(v.n, "gold")).join("")}
-    </div>
-  `;
+  burstBoxEl.innerHTML = `<div class="num-list">${items.map(v => ball(v.n, "gold")).join("")}</div>`;
 }
 
 function renderTrend(items) {
