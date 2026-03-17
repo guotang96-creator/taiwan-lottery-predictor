@@ -27,8 +27,13 @@ document.getElementById("loadBtn").addEventListener("click", loadData);
 document.getElementById("analyzeBtn").addEventListener("click", analyzeData);
 document.getElementById("backtestBtn").addEventListener("click", runBacktest);
 document.getElementById("battleBtn").addEventListener("click", goBattle);
-gameEl.addEventListener("change", handleGameChange);
-if (installBtn) installBtn.addEventListener("click", installApp);
+
+if (gameEl) {
+  gameEl.addEventListener("change", handleGameChange);
+}
+if (installBtn) {
+  installBtn.addEventListener("click", installApp);
+}
 
 handleGameChange();
 registerSW();
@@ -131,12 +136,16 @@ function getGameConfig(game) {
 
 function buildFrequency(draws, config) {
   const main = {};
-  for (let i = 1; i <= config.max; i++) main[i] = 0;
+  for (let i = 1; i <= config.max; i++) {
+    main[i] = 0;
+  }
 
   let second = null;
   if (config.secondMax) {
     second = {};
-    for (let i = 1; i <= config.secondMax; i++) second[i] = 0;
+    for (let i = 1; i <= config.secondMax; i++) {
+      second[i] = 0;
+    }
   }
 
   draws.forEach(draw => {
@@ -179,6 +188,7 @@ function buildTailStats(mainFreq) {
 
 function buildDragStats(draws) {
   const map = {};
+
   for (let i = 0; i < draws.length - 1; i++) {
     const current = draws[i].numbers || [];
     const next = draws[i + 1].numbers || [];
@@ -415,6 +425,7 @@ function pickBalancedGroup(hotList, coldList, count, offset) {
       chosen.push(cold[i]);
     }
   }
+
   return chosen;
 }
 
@@ -636,6 +647,7 @@ function goBattle() {
     statusEl.textContent = "請先分析後再進入實戰";
     return;
   }
+
   statusEl.textContent = "實戰模式已啟動，請依推薦號碼作為參考使用";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
