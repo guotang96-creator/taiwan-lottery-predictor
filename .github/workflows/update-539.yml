@@ -1,0 +1,33 @@
+name: Update 539 Data
+
+on:
+  schedule:
+    - cron: "10 14 * * *"
+  workflow_dispatch:
+
+jobs:
+  update-539:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run update script
+        run: node scripts/update_539.js
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/539.json
+          git diff --staged --quiet || git commit -m "auto: update 539 data"
+          git push
