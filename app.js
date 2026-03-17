@@ -48,8 +48,16 @@ async function loadData() {
     const res = await fetch(`/api/lottery?game=${game}&count=${count}`);
     const data = await res.json();
 
-    currentData = data.draws || [];
+    currentData = (data.draws || []).filter(
+      d => Array.isArray(d.numbers) && d.numbers.length > 0
+    );
+
     renderLatestDraws(currentData);
+
+    if (!currentData.length) {
+      statusEl.textContent = "官方資料已連線，但本次未成功解析，請稍後再試";
+      return;
+    }
 
     statusEl.textContent = `讀取完成，共 ${currentData.length} 期`;
   } catch (error) {
@@ -74,8 +82,8 @@ function analyzeData() {
   const drags = buildDragStats(currentData);
   const serials = buildSerialStats(currentData);
 
-  renderHotCold(hotNumbersEl, hot, game === "power" ? "" : "blue");
-  renderHotCold(coldNumbersEl, cold, game === "power" ? "" : "blue");
+  renderHotCold(hotNumbersEl, hot);
+  renderHotCold(coldNumbersEl, cold);
   renderTailStats(tails);
   renderDragStats(drags);
   renderSerialStats(serials);
@@ -117,7 +125,9 @@ function buildFrequency(draws, config) {
     });
 
     if (second && draw.second) {
-      second[draw.second]++;
+      if (second[draw.second] !== undefined) {
+        second[draw.second]++;
+      }
     }
   });
 
@@ -186,8 +196,8 @@ function buildSerialStats(draws) {
 
     if (serialPairs.length) {
       result.push({
-        issue: draw.issue,
-        date: draw.date,
+        issue: draw.issue || "",
+        date: draw.date || "",
         serials: serialPairs
       });
     }
@@ -213,7 +223,7 @@ function renderPredictions(freq, config) {
     html += `<div class="num-list" style="margin-top:8px;">${mainPick.map(n => ball(n)).join("")}</div>`;
 
     if (game === "power") {
-      const secondPick = rankedSecond[g % rankedSecond.length] || 1;
+      const secondPick = rankedSecond.length ? rankedSecond[g % rankedSecond.length] : 1;
       html += `<div style="margin-top:10px;"><strong>第二區：</strong></div>`;
       html += `<div class="num-list" style="margin-top:8px;">${ball(secondPick, "gold")}</div>`;
     }
@@ -257,6 +267,11 @@ function renderTailStats(tails) {
 }
 
 function renderDragStats(drags) {
+  if (!drags.length) {
+    dragAnalysisEl.innerHTML = `<div class="text-list">暫無拖號資料</div>`;
+    return;
+  }
+
   dragAnalysisEl.innerHTML = `
     <div class="text-list">
       ${drags.map(v => `<div>${v.pair}：${v.count} 次</div>`).join("")}
@@ -280,9 +295,14 @@ function renderSerialStats(serials) {
 function renderLatestDraws(draws) {
   const latest = draws.slice(0, 5);
 
+  if (!latest.length) {
+    latestDrawsEl.innerHTML = `<div class="text-list">目前沒有可顯示的開獎資料</div>`;
+    return;
+  }
+
   latestDrawsEl.innerHTML = latest.map(draw => `
     <div class="draw-item">
-      <div><strong>${draw.date}</strong>｜${draw.issue}</div>
+      <div><strong>${draw.date || ""}</strong>${draw.issue ? `｜${draw.issue}` : ""}</div>
       <div class="num-list" style="margin-top:8px;">
         ${(draw.numbers || []).map(n => ball(n)).join("")}
         ${draw.second ? ball(draw.second, "gold") : ""}
