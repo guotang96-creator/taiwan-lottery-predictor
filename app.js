@@ -14,6 +14,9 @@ const resultEl = document.getElementById("result");
 const confidenceBoxEl = document.getElementById("confidenceBox");
 const burstBoxEl = document.getElementById("burstBox");
 const trendBoxEl = document.getElementById("trendBox");
+const hitPredictBoxEl = document.getElementById("hitPredictBox");
+const bestComboBoxEl = document.getElementById("bestComboBox");
+const fusionBoxEl = document.getElementById("fusionBox");
 const birthdayNumbersEl = document.getElementById("birthdayNumbers");
 const aiScoreBoardEl = document.getElementById("aiScoreBoard");
 const hotNumbersEl = document.getElementById("hotNumbers");
@@ -52,6 +55,9 @@ function clearPanels() {
   confidenceBoxEl.innerHTML = "";
   burstBoxEl.innerHTML = "";
   trendBoxEl.innerHTML = "";
+  if (hitPredictBoxEl) hitPredictBoxEl.innerHTML = "";
+  if (bestComboBoxEl) bestComboBoxEl.innerHTML = "";
+  if (fusionBoxEl) fusionBoxEl.innerHTML = "";
   birthdayNumbersEl.innerHTML = "";
   aiScoreBoardEl.innerHTML = "";
   hotNumbersEl.innerHTML = "";
@@ -119,6 +125,9 @@ function analyzeData() {
   const confidence = buildConfidence(aiRank, config);
   const burst = buildBurstCandidates(currentData, aiRank, config);
   const trend = buildTrend(currentData);
+  const bestCombo = buildBestCombo(aiRank, freq, config, birthdayNumbers);
+  const fusion = buildFusionNumbers(aiRank, hot, burst, config);
+  const hitPredict = buildHitPredict(confidence, config);
 
   renderBirthdayNumbers(birthdayNumbers);
   renderHotCold(hotNumbersEl, hot);
@@ -131,6 +140,9 @@ function analyzeData() {
   renderConfidence(confidence);
   renderBurst(burst);
   renderTrend(trend);
+  renderHitPredict(hitPredict);
+  renderBestCombo(bestCombo, game, freq);
+  renderFusion(fusion);
 
   statusEl.textContent = "分析完成";
 }
@@ -192,7 +204,6 @@ function buildTailStats(mainFreq) {
 
 function buildDragStats(draws) {
   const map = {};
-
   for (let i = 0; i < draws.length - 1; i++) {
     const current = draws[i].numbers || [];
     const next = draws[i + 1].numbers || [];
@@ -374,6 +385,29 @@ function buildTrend(draws) {
   }));
 }
 
+function buildBestCombo(aiRank, freq, config, birthdayNumbers) {
+  const aiRanked = aiRank.map(v => v.n);
+  const hotRanked = sortFreqDesc(freq.main).map(v => v.n);
+  const combo = pickAIGroup(aiRanked, hotRanked, birthdayNumbers, config.pickCount, 0);
+  return [...new Set(combo)].slice(0, config.pickCount).sort((a, b) => a - b);
+}
+
+function buildFusionNumbers(aiRank, hot, burst, config) {
+  const combined = [];
+  hot.forEach(v => combined.push(v.n));
+  burst.forEach(v => combined.push(v.n));
+  aiRank.slice(0, config.pickCount * 2).forEach(v => combined.push(v.n));
+  return [...new Set(combined)].slice(0, config.pickCount);
+}
+
+function buildHitPredict(confidence, config) {
+  const avg = Number(confidence.avg);
+  let predict = "預估中 1 ~ 2 顆";
+  if (config.pickCount >= 6 && avg >= 120) predict = "預估中 2 ~ 3 顆";
+  else if (avg >= 60) predict = "預估中 2 顆左右";
+  return predict;
+}
+
 function renderPredictions(aiRank, freq, config, birthdayNumbers, mode) {
   const groups = Number(groupCountEl.value);
   const game = gameEl.value;
@@ -453,7 +487,6 @@ function pickBalancedGroup(hotList, coldList, count, offset) {
     if (hot[i] !== undefined && chosen.length < count && !chosen.includes(hot[i])) chosen.push(hot[i]);
     if (cold[i] !== undefined && chosen.length < count && !chosen.includes(cold[i])) chosen.push(cold[i]);
   }
-
   return chosen;
 }
 
@@ -532,6 +565,32 @@ function renderTrend(items) {
       ${items.map(v => `<div>${v.date}｜第 ${v.index} 筆｜共 ${v.count} 號</div>`).join("")}
     </div>
   `;
+}
+
+function renderHitPredict(text) {
+  if (hitPredictBoxEl) {
+    hitPredictBoxEl.innerHTML = `<div class="text-list">${text}</div>`;
+  }
+}
+
+function renderBestCombo(combo, game, freq) {
+  if (!bestComboBoxEl) return;
+
+  let html = `<div class="num-list">${combo.map(n => ball(n)).join("")}</div>`;
+
+  if (game === "power" && freq.second) {
+    const secondRanked = sortFreqDesc(freq.second).map(v => v.n);
+    const secondPick = secondRanked[0] || 1;
+    html += `<div style="margin-top:10px;"><strong>第二區：</strong></div>`;
+    html += `<div class="num-list" style="margin-top:8px;">${ball(secondPick, "gold")}</div>`;
+  }
+
+  bestComboBoxEl.innerHTML = html;
+}
+
+function renderFusion(items) {
+  if (!fusionBoxEl) return;
+  fusionBoxEl.innerHTML = `<div class="num-list">${items.map(n => ball(n, "gold")).join("")}</div>`;
 }
 
 function renderBirthdayNumbers(items) {
