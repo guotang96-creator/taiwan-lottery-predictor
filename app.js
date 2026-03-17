@@ -27,14 +27,17 @@ const bingoAdviceEl = document.getElementById("bingoAdvice");
 const backtestResultEl = document.getElementById("backtestResult");
 const latestDrawsEl = document.getElementById("latestDraws");
 
-document.getElementById("loadBtn").onclick = loadData;
-document.getElementById("analyzeBtn").onclick = analyzeData;
-document.getElementById("backtestBtn").onclick = runBacktest;
-document.getElementById("battleBtn").onclick = goBattle;
+const loadBtn = document.getElementById("loadBtn");
+const analyzeBtn = document.getElementById("analyzeBtn");
+const backtestBtn = document.getElementById("backtestBtn");
+const battleBtn = document.getElementById("battleBtn");
 
-if (gameEl) {
-  gameEl.addEventListener("change", onGameChange);
-}
+if (loadBtn) loadBtn.addEventListener("click", loadData);
+if (analyzeBtn) analyzeBtn.addEventListener("click", analyzeData);
+if (backtestBtn) backtestBtn.addEventListener("click", runBacktest);
+if (battleBtn) battleBtn.addEventListener("click", goBattle);
+
+if (gameEl) gameEl.addEventListener("change", onGameChange);
 
 onGameChange();
 
@@ -127,6 +130,59 @@ function analyzeData() {
   renderSerialAnalysis(historyData);
 
   statusEl.innerText = "分析完成";
+}
+
+function runBacktest() {
+  if (!backtestResultEl) return;
+
+  if (!historyData.length || historyData.length < 6) {
+    backtestResultEl.innerHTML = `<div class="text-list">資料不足，至少需要 6 期以上才能回測</div>`;
+    statusEl.innerText = "資料不足，無法回測";
+    return;
+  }
+
+  const config = getConfig();
+  let totalHits = 0;
+  let tests = 0;
+
+  for (let i = 5; i < historyData.length; i++) {
+    const training = historyData.slice(i - 5, i);
+    const freqMap = buildFreqMap(training, config.max);
+    const recentMap = buildRecentMap(training, config.max);
+    const dragMap = buildDragMap(training, config.max);
+    const coldMap = buildColdReboundMap(freqMap, config.max);
+    const tailMap = buildTailMap(freqMap);
+
+    const aiRank = buildAiRank(
+      config.max,
+      freqMap,
+      dragMap,
+      recentMap,
+      coldMap,
+      tailMap,
+      []
+    );
+
+    const pick = aiRank.slice(0, config.pickCount).map(v => v.n);
+    const hits = pick.filter(n => historyData[i].numbers.includes(n)).length;
+
+    totalHits += hits;
+    tests++;
+  }
+
+  const avg = tests ? (totalHits / tests).toFixed(2) : "0.00";
+  backtestResultEl.innerHTML = `<div class="text-list">回測 ${tests} 期，平均命中 ${avg} 顆</div>`;
+  statusEl.innerText = "回測完成";
+}
+
+function goBattle() {
+  if (!resultEl || !resultEl.innerHTML.trim()) {
+    statusEl.innerText = "請先分析後再進入實戰";
+    return;
+  }
+
+  statusEl.innerText = "實戰模式已啟動，請依推薦號碼作為參考使用";
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function getConfig() {
@@ -544,6 +600,7 @@ function runBacktest() {
     const dragMap = buildDragMap(training, config.max);
     const coldMap = buildColdReboundMap(freqMap, config.max);
     const tailMap = buildTailMap(freqMap);
+
     const aiRank = buildAiRank(config.max, freqMap, dragMap, recentMap, coldMap, tailMap, []);
     const pick = aiRank.slice(0, config.pickCount).map(v => v.n);
 
