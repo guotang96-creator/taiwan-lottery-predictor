@@ -2,23 +2,23 @@
   "version": "V66.3",
   "mode": "stable-fallback",
   "sourceName": "遠端來源 + raw_data 本地備援 + 舊資料保留",
-  "generatedAt": "2026-03-17T13:06:47.122Z",
-  "updatedAt": "2026-03-17T13:06:47.122Z",
+  "generatedAt": "2026-03-17T13:20:17.890Z",
+  "updatedAt": "2026-03-17T13:20:17.890Z",
   "games": {
     "lotto649": {
-      "count": 1,
+      "count": 60,
       "source": "local:raw_data/lotto649.json"
     },
     "superlotto638": {
-      "count": 1,
+      "count": 60,
       "source": "local:raw_data/superlotto638.json"
     },
     "dailycash": {
-      "count": 1,
+      "count": 60,
       "source": "local:raw_data/dailycash.json"
     },
     "bingo": {
-      "count": 1,
+      "count": 60,
       "source": "local:raw_data/bingo.json"
     }
   },
