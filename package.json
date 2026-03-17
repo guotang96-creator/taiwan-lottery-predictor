@@ -1,8 +1,8 @@
 {
   "name": "taiwan-lottery-predictor",
-  "version": "1.0.0",
   "private": true,
+  "version": "1.0.0",
   "scripts": {
-    "update:539": "node scripts/update_539.js"
+    "update:data": "node scripts/update_official.js"
   }
 }
