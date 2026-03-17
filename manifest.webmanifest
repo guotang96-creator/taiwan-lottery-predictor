@@ -1,0 +1,20 @@
+{
+  "name": "台灣彩券預測助手 V25",
+  "short_name": "彩券V25",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef3fb",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://dummyimage.com/192x192/2563eb/ffffff&text=V25",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://dummyimage.com/512x512/2563eb/ffffff&text=V25",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
