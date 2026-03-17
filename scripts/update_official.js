@@ -8,37 +8,24 @@ const RAW_DIR = path.join(ROOT, "raw_data");
 
 const GAME_CONFIG = {
   lotto649: {
-    aliases: ["lotto649", "649", "biglotto", "lotto_649"],
-    minCount: 6
+    aliases: ["lotto649", "649", "lotto", "biglotto", "lotto_649"]
   },
   superlotto638: {
-    aliases: ["superlotto638", "638", "power", "powerlotto", "super_lotto_638"],
-    minCount: 6
+    aliases: ["superlotto638", "638", "power", "powerlotto", "super_lotto_638"]
   },
   dailycash: {
-    aliases: ["dailycash", "539", "daily_cash", "cash539"],
-    minCount: 5
+    aliases: ["dailycash", "539", "cash539", "daily_cash"]
   },
   bingo: {
-    aliases: ["bingo", "bingobingo", "bingo_bingo"],
-    minCount: 10
+    aliases: ["bingo", "bingobingo", "bingo_bingo"]
   }
 };
 
-// 可自行再加來源；有抓到且格式正確才會覆蓋
 const REMOTE_SOURCES = {
-  lotto649: [
-    "https://api.taiwanlottery.io/lotto649"
-  ],
-  superlotto638: [
-    "https://api.taiwanlottery.io/superlotto638"
-  ],
-  dailycash: [
-    "https://api.taiwanlottery.io/dailycash"
-  ],
-  bingo: [
-    "https://api.taiwanlottery.io/bingo"
-  ]
+  lotto649: [],
+  superlotto638: [],
+  dailycash: [],
+  bingo: []
 };
 
 function ensureDir(dir) {
@@ -65,120 +52,126 @@ function uniq(arr) {
   return [...new Set(arr)];
 }
 
-function num(v) {
+function toNum(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
 
-function toDateString(v) {
+function normalizeIssue(v) {
+  if (v === undefined || v === null) return "";
+  return String(v).replace(/[^\dA-Za-z]/g, "");
+}
+
+function normalizeDate(v) {
   if (!v) return "";
   const s = String(v).trim();
   const m = s.match(/(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})/);
-  if (m) {
-    return `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`;
-  }
+  if (m) return `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`;
   return s;
 }
 
-function sortDescByIssue(arr) {
-  return [...arr].sort((a, b) => {
-    const ia = Number(a.issue || 0);
-    const ib = Number(b.issue || 0);
-    if (ib !== ia) return ib - ia;
+function normalizeNumbers(arr, min, max, takeCount) {
+  if (!Array.isArray(arr)) return [];
+  return uniq(
+    arr
+      .map(v => toNum(v))
+      .filter(v => Number.isInteger(v) && v >= min && v <= max)
+  )
+    .sort((a, b) => a - b)
+    .slice(0, takeCount);
+}
+
+function sortByIssueDesc(draws) {
+  return [...draws].sort((a, b) => {
+    const ia = String(a.issue || "");
+    const ib = String(b.issue || "");
+    if (ia !== ib) return ib.localeCompare(ia, "en", { numeric: true });
     return String(b.drawDate || "").localeCompare(String(a.drawDate || ""));
   });
 }
 
-function dedupeDraws(draws, gameKey) {
+function dedupeDraws(draws) {
   const seen = new Set();
   const out = [];
-
   for (const draw of draws) {
-    const key = JSON.stringify({
-      issue: draw.issue,
-      drawDate: draw.drawDate,
-      numbers: draw.numbers,
-      numbers1: draw.numbers1,
-      numbers2: draw.numbers2,
-      special: draw.special,
-      gameKey
-    });
-
+    const key = JSON.stringify(draw);
     if (!seen.has(key)) {
       seen.add(key);
       out.push(draw);
     }
   }
-
-  return sortDescByIssue(out);
-}
-
-function normalizeNumbers(arr, min, max) {
-  if (!Array.isArray(arr)) return [];
-  const cleaned = arr
-    .map(v => num(v))
-    .filter(v => Number.isInteger(v) && v >= min && v <= max);
-
-  return uniq(cleaned).sort((a, b) => a - b);
-}
-
-function normalizeIssue(v) {
-  if (v === undefined || v === null) return "";
-  return String(v).replace(/[^\d]/g, "");
+  return sortByIssueDesc(out);
 }
 
 function normalizeDraw(gameKey, item) {
   if (!item || typeof item !== "object") return null;
 
-  const issue = normalizeIssue(item.issue || item.period || item.drawNo || item.draw || item.id);
-  const drawDate = toDateString(item.drawDate || item.date || item.draw_date || item.opendate);
+  const issue = normalizeIssue(item.issue || item.period || item.id || item.drawNo);
+  const drawDate = normalizeDate(item.drawDate || item.date || item.draw_date || item.opendate);
 
-  if (gameKey === "lotto649") {
+  if (gameKey === "bingo") {
     const numbers = normalizeNumbers(
-      item.numbers || item.no || item.main || item.drawNumbers,
+      item.numbers || item.no || item.drawNumbers || item.main,
       1,
-      49
-    ).slice(0, 6);
-
-    const special = num(item.special ?? item.specialNumber ?? item.bonus ?? item.extra);
-
-    if (!issue || numbers.length < 6) return null;
-    return { game: gameKey, issue, drawDate, numbers, special: special || null };
-  }
-
-  if (gameKey === "superlotto638") {
-    const numbers1 = normalizeNumbers(
-      item.numbers1 || item.numbers || item.main || item.drawNumbers,
-      1,
-      38
-    ).slice(0, 6);
-
-    const numbers2 = num(item.numbers2 ?? item.special ?? item.secondZone ?? item.extra);
-
-    if (!issue || numbers1.length < 6) return null;
-    return { game: gameKey, issue, drawDate, numbers1, numbers2: numbers2 || null };
+      80,
+      20
+    );
+    if (!issue || numbers.length < 10) return null;
+    return { game: "bingo", issue, drawDate, numbers };
   }
 
   if (gameKey === "dailycash") {
     const numbers = normalizeNumbers(
-      item.numbers || item.no || item.main || item.drawNumbers,
+      item.numbers || item.no || item.drawNumbers || item.main,
       1,
-      39
-    ).slice(0, 5);
-
+      39,
+      5
+    );
     if (!issue || numbers.length < 5) return null;
-    return { game: gameKey, issue, drawDate, numbers };
+    return { game: "dailycash", issue, drawDate, numbers };
   }
 
-  if (gameKey === "bingo") {
+  if (gameKey === "lotto649") {
     const numbers = normalizeNumbers(
-      item.numbers || item.no || item.main || item.drawNumbers,
+      item.numbers || item.no || item.drawNumbers || item.main,
       1,
-      80
-    ).slice(0, 20);
+      49,
+      6
+    );
 
-    if (!issue || numbers.length < 10) return null;
-    return { game: gameKey, issue, drawDate, numbers };
+    const specialVal = toNum(item.special ?? item.specialNumber ?? item.bonus ?? item.extra);
+    const special = Number.isInteger(specialVal) && specialVal >= 1 && specialVal <= 49 ? specialVal : null;
+
+    if (!issue || numbers.length < 6) return null;
+    return { game: "lotto649", issue, drawDate, numbers, special };
+  }
+
+  if (gameKey === "superlotto638") {
+    const numbers1 = normalizeNumbers(
+      item.numbers1 || item.numbers || item.no || item.main || item.drawNumbers,
+      1,
+      38,
+      6
+    );
+
+    let zone2Raw = item.numbers2 ?? item.secondZone ?? item.special ?? item.extra;
+    let numbers2 = [];
+
+    if (Array.isArray(zone2Raw)) {
+      numbers2 = normalizeNumbers(zone2Raw, 1, 8, 1);
+    } else {
+      const one = toNum(zone2Raw);
+      if (Number.isInteger(one) && one >= 1 && one <= 8) numbers2 = [one];
+    }
+
+    if (!issue || numbers1.length < 6) return null;
+    return {
+      game: "superlotto638",
+      issue,
+      drawDate,
+      numbers1,
+      numbers2
+    };
   }
 
   return null;
@@ -186,10 +179,7 @@ function normalizeDraw(gameKey, item) {
 
 function normalizeArray(gameKey, data) {
   if (!Array.isArray(data)) return [];
-  return dedupeDraws(
-    data.map(item => normalizeDraw(gameKey, item)).filter(Boolean),
-    gameKey
-  );
+  return dedupeDraws(data.map(item => normalizeDraw(gameKey, item)).filter(Boolean));
 }
 
 async function fetchJson(url) {
@@ -198,64 +188,44 @@ async function fetchJson(url) {
       accept: "application/json,text/plain,*/*"
     }
   });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
-
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
 async function tryRemote(gameKey) {
-  const urls = REMOTE_SOURCES[gameKey] || [];
-
-  for (const url of urls) {
+  for (const url of REMOTE_SOURCES[gameKey] || []) {
     try {
       const data = await fetchJson(url);
       const normalized = normalizeArray(gameKey, data);
       if (normalized.length > 0) {
-        return {
-          ok: true,
-          source: `remote:${url}`,
-          data: normalized
-        };
+        return { ok: true, source: `remote:${url}`, data: normalized };
       }
-    } catch (err) {
-      // continue
+    } catch {
+      // ignore
     }
   }
-
-  return {
-    ok: false,
-    source: null,
-    data: []
-  };
+  return { ok: false, source: null, data: [] };
 }
 
 function candidateFiles(gameKey) {
   const aliases = GAME_CONFIG[gameKey].aliases;
-  const names = uniq(
-    aliases.flatMap(name => [
-      `${name}.json`,
-      `${name}.js`,
-      `${name}.txt`
-    ])
-  );
+  const files = [];
 
-  return [
-    ...names.map(name => path.join(RAW_DIR, name)),
-    path.join(ROOT, "data", `${gameKey}.json`),
-    path.join(OFFICIAL_DIR, `${gameKey}.json`)
-  ];
+  for (const alias of aliases) {
+    files.push(path.join(RAW_DIR, `${alias}.json`));
+  }
+
+  files.push(path.join(ROOT, "data", `${gameKey}.json`));
+  files.push(path.join(OFFICIAL_DIR, `${gameKey}.json`));
+
+  return uniq(files);
 }
 
 function tryLocal(gameKey) {
   for (const file of candidateFiles(gameKey)) {
     if (!exists(file)) continue;
-
-    const parsed = readJson(file);
-    const normalized = normalizeArray(gameKey, parsed);
-
+    const data = readJson(file);
+    const normalized = normalizeArray(gameKey, data);
     if (normalized.length > 0) {
       return {
         ok: true,
@@ -264,12 +234,7 @@ function tryLocal(gameKey) {
       };
     }
   }
-
-  return {
-    ok: false,
-    source: null,
-    data: []
-  };
+  return { ok: false, source: null, data: [] };
 }
 
 async function resolveGame(gameKey) {
@@ -279,17 +244,13 @@ async function resolveGame(gameKey) {
   const local = tryLocal(gameKey);
   if (local.ok) return local;
 
-  return {
-    ok: false,
-    source: "empty",
-    data: []
-  };
+  return { ok: false, source: "empty", data: [] };
 }
 
 async function main() {
   ensureDir(OFFICIAL_DIR);
 
-  const summary = {};
+  const metaGames = {};
   const errors = [];
   let hasAnyData = false;
 
@@ -297,10 +258,9 @@ async function main() {
     try {
       const result = await resolveGame(gameKey);
       const outFile = path.join(OFFICIAL_DIR, `${gameKey}.json`);
-
       writeJson(outFile, result.data);
 
-      summary[gameKey] = {
+      metaGames[gameKey] = {
         count: result.data.length,
         source: result.source
       };
@@ -309,39 +269,25 @@ async function main() {
         hasAnyData = true;
         console.log(`[OK] ${gameKey}: ${result.data.length} from ${result.source}`);
       } else {
-        errors.push({
-          gameKey,
-          error: "no valid data from remote/local sources"
-        });
+        errors.push({ gameKey, error: "no valid data from remote/local sources" });
         console.log(`[WARN] ${gameKey}: no valid data`);
       }
     } catch (err) {
-      errors.push({
-        gameKey,
-        error: err.message
-      });
-
+      errors.push({ gameKey, error: err.message });
       const outFile = path.join(OFFICIAL_DIR, `${gameKey}.json`);
-      if (!exists(outFile)) {
-        writeJson(outFile, []);
-      }
-
-      summary[gameKey] = {
-        count: 0,
-        source: "error"
-      };
-
+      if (!exists(outFile)) writeJson(outFile, []);
+      metaGames[gameKey] = { count: 0, source: "error" };
       console.log(`[FAIL] ${gameKey}: ${err.message}`);
     }
   }
 
   const meta = {
-    version: "V66.3",
-    mode: "stable-fallback",
+    version: "V66.4",
+    mode: "stable-fallback-weighted",
     sourceName: "遠端來源 + raw_data 本地備援 + 舊資料保留",
     generatedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    games: summary,
+    games: metaGames,
     errors
   };
 
@@ -350,7 +296,7 @@ async function main() {
   if (!hasAnyData) {
     console.log("[WARN] all games empty, but workflow kept stable output");
   } else {
-    console.log("[DONE] V66.3 data ready");
+    console.log("[DONE] V66.4 data ready");
   }
 }
 
