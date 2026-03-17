@@ -139,6 +139,10 @@
         cursor: pointer;
         font-weight: 800;
       }
+      button:disabled, select:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
       .btn-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -228,81 +232,87 @@
   }
 
   function renderApp() {
-  const app = byId("app");
-  if (!app) {
-    document.body.innerHTML = `
-      <div style="padding:20px;font-family:sans-serif;color:#fff;background:#081226;min-height:100vh;">
-        啟動失敗：找不到 #app 容器
+    const app = byId("app");
+    if (!app) {
+      document.body.innerHTML = `
+        <div style="padding:20px;font-family:sans-serif;color:#fff;background:#081226;min-height:100vh;">
+          啟動失敗：找不到 #app 容器
+        </div>
+      `;
+      return;
+    }
+
+    app.innerHTML = `
+      <div class="card">
+        <div class="title">台灣彩券預測 V67.1</div>
+        <div class="sub">穩定展示版｜只開放有真資料的彩種</div>
+      </div>
+
+      <div class="card">
+        <div class="note">
+          目前僅開放通過真資料驗證的彩種；無資料或疑似假資料的彩種會自動停用。
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="grid grid-3">
+          <div>
+            <label>彩種</label>
+            <select id="gameSelect"></select>
+          </div>
+          <div>
+            <label>分析期數</label>
+            <select id="historyLimit">
+              <option value="30">最近 30 期</option>
+              <option value="60">最近 60 期</option>
+              <option value="120" selected>最近 120 期</option>
+              <option value="240">最近 240 期</option>
+              <option value="500">最近 500 期</option>
+            </select>
+          </div>
+          <div>
+            <label>預測顆數</label>
+            <select id="pickCount"></select>
+          </div>
+        </div>
+        <div style="height:10px;"></div>
+        <div class="btn-row">
+          <button id="btnAnalyze">開始分析</button>
+          <button id="btnReload">重新讀取資料</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">資料狀態</div>
+        <div id="metaInfo"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">推薦號碼</div>
+        <div id="prediction"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">分析摘要</div>
+        <div id="summaryStats" class="grid grid-2"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">熱門號碼 / 冷門號碼</div>
+        <div id="hotCold" class="grid grid-2"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">尾數 / 連號 / 拖牌</div>
+        <div id="patternStats" class="grid grid-2"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">最近開獎</div>
+        <div id="latestDraw"></div>
       </div>
     `;
-    return;
   }
-
-  app.innerHTML = `
-    <div class="card">
-      <div class="title">台灣彩券預測 V67</div>
-      <div class="sub">真資料安全展示版｜只分析可驗證資料</div>
-    </div>
-
-    <div class="card">
-      <div class="grid grid-3">
-        <div>
-          <label>彩種</label>
-          <select id="gameSelect"></select>
-        </div>
-        <div>
-          <label>分析期數</label>
-          <select id="historyLimit">
-            <option value="30">最近 30 期</option>
-            <option value="60">最近 60 期</option>
-            <option value="120" selected>最近 120 期</option>
-            <option value="240">最近 240 期</option>
-            <option value="500">最近 500 期</option>
-          </select>
-        </div>
-        <div>
-          <label>預測顆數</label>
-          <select id="pickCount"></select>
-        </div>
-      </div>
-      <div style="height:10px;"></div>
-      <div class="btn-row">
-        <button id="btnAnalyze">開始分析</button>
-        <button id="btnReload">重新讀取資料</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">資料狀態</div>
-      <div id="metaInfo"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">推薦號碼</div>
-      <div id="prediction"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">分析摘要</div>
-      <div id="summaryStats" class="grid grid-2"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">熱門號碼 / 冷門號碼</div>
-      <div id="hotCold" class="grid grid-2"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">尾數 / 連號 / 拖牌</div>
-      <div id="patternStats" class="grid grid-2"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">最近開獎</div>
-      <div id="latestDraw"></div>
-    </div>
-  `;
-}
 
   async function fetchJson(url) {
     const res = await fetch(`${url}?t=${Date.now()}`, { cache: "no-store" });
@@ -577,20 +587,6 @@
     return sortNum(selected.slice(0, count));
   }
 
-  function pickSecondNumber(draws) {
-    if (state.game === "superlotto638") {
-      const freq = calcFrequency(draws, GAME_CONFIG.superlotto638.secondZoneRange, draw => extractSecondNumbers(draw));
-      return freq.sort((a, b) => b.count - a.count)[0]?.number || 1;
-    }
-
-    if (state.game === "lotto649") {
-      const freq = calcFrequency(draws, 49, draw => extractSecondNumbers(draw));
-      return freq.sort((a, b) => b.count - a.count)[0]?.number || 1;
-    }
-
-    return null;
-  }
-
   function renderMeta() {
     const meta = state.data.meta || {};
     const gameData = getCurrentDraws();
@@ -632,29 +628,8 @@
     }
 
     const main = pickMainNumbers(draws, config, state.pickCount);
-    const second = pickSecondNumber(draws);
-
     let html = `<div class="pill-wrap">${main.map(n => `<span class="ball">${pad2(n)}</span>`).join("")}</div>`;
-
-    if (state.game === "superlotto638") {
-      html += `
-        <div style="margin-top:12px;" class="small">第二區推薦</div>
-        <div class="pill-wrap" style="margin-top:8px;">
-          <span class="ball red">${pad2(second)}</span>
-        </div>
-      `;
-    }
-
-    if (state.game === "lotto649") {
-      html += `
-        <div style="margin-top:12px;" class="small">特別號參考</div>
-        <div class="pill-wrap" style="margin-top:8px;">
-          <span class="ball green">${pad2(second)}</span>
-        </div>
-      `;
-    }
-
-    html += `<div class="note">V67 只使用驗證通過的 official 真資料做分析。</div>`;
+    html += `<div class="note">V67.1 目前僅展示通過驗證的真資料彩種。</div>`;
     wrap.innerHTML = html;
   }
 
@@ -766,13 +741,11 @@
     const latest = draws.slice(0, 5);
     byId("latestDraw").innerHTML = latest.map(draw => {
       const main = extractMainNumbers(draw);
-      const second = extractSecondNumbers(draw);
       return `
         <div class="row" style="display:block;">
           <div class="small mono">期別：${draw.issue || "—"}｜日期：${draw.drawDate || "—"}</div>
           <div class="pill-wrap" style="margin-top:8px;">
             ${main.map(n => `<span class="ball">${pad2(n)}</span>`).join("")}
-            ${second.map(n => `<span class="ball red">${pad2(n)}</span>`).join("")}
           </div>
         </div>
       `;
@@ -808,6 +781,7 @@
     });
 
     byId("btnAnalyze").addEventListener("click", analyze);
+
     byId("btnReload").addEventListener("click", async () => {
       await loadAllData();
       buildGameOptions();
