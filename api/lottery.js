@@ -12,11 +12,12 @@ export default async function handler(req, res) {
   try {
     const file = fileMap[game];
 
-    const url = `${req.headers.origin || ""}/${file}?t=${Date.now()}`;
+    // ⭐️ 直接用你自己的網站（最穩）
+    const base = "https://taiwan-lottery-predictor.vercel.app";
 
-    const r = await fetch(url, {
-      cache: "no-store"
-    });
+    const url = `${base}/${file}?t=${Date.now()}`;
+
+    const r = await fetch(url, { cache: "no-store" });
 
     if (!r.ok) throw new Error("讀不到 JSON");
 
@@ -25,11 +26,11 @@ export default async function handler(req, res) {
     return res.status(200).json({
       game,
       draws: data.slice(0, count),
-      source: "json-ok"
+      source: "ok"
     });
 
   } catch (e) {
-    console.error(e);
+    console.error("API錯誤:", e);
 
     return res.status(200).json({
       game,
