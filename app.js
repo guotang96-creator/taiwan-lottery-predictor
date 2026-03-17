@@ -157,9 +157,7 @@
         padding: 10px 0;
         border-bottom: 1px dashed rgba(255,255,255,.08);
       }
-      .row:last-child {
-        border-bottom: 0;
-      }
+      .row:last-child { border-bottom: 0; }
       .small { font-size: 12px; color: #9fb0c9; }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
       .pill-wrap {
@@ -209,6 +207,22 @@
         font-size: 20px;
         font-weight: 800;
       }
+      .tag {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: rgba(255,255,255,.08);
+        color: #c7d5ea;
+      }
+      .tag.ok {
+        background: rgba(16,185,129,.15);
+        color: #a7f3d0;
+      }
+      .tag.off {
+        background: rgba(245,158,11,.15);
+        color: #fde68a;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -216,20 +230,15 @@
   function renderApp() {
     byId("app").innerHTML = `
       <div class="card">
-        <div class="title">台灣彩券預測 V66.5</div>
-        <div class="sub">穩定修正版｜只讀 official｜不再使用 fake 資料</div>
+        <div class="title">台灣彩券預測 V67</div>
+        <div class="sub">真資料安全展示版｜只分析可驗證資料</div>
       </div>
 
       <div class="card">
         <div class="grid grid-3">
           <div>
             <label>彩種</label>
-            <select id="gameSelect">
-              <option value="bingo">賓果賓果</option>
-              <option value="lotto649">大樂透</option>
-              <option value="superlotto638">威力彩</option>
-              <option value="dailycash">今彩539</option>
-            </select>
+            <select id="gameSelect"></select>
           </div>
           <div>
             <label>分析期數</label>
@@ -285,25 +294,6 @@
     `;
   }
 
-  function buildPickOptions() {
-    const game = GAME_CONFIG[state.game];
-    const el = byId("pickCount");
-    el.innerHTML = "";
-
-    for (let i = game.minPick; i <= game.maxPick; i += 1) {
-      const option = document.createElement("option");
-      option.value = String(i);
-      option.textContent = `${i} 顆`;
-      if (i === state.pickCount) option.selected = true;
-      el.appendChild(option);
-    }
-
-    if (state.pickCount < game.minPick || state.pickCount > game.maxPick) {
-      state.pickCount = game.defaultPick;
-      el.value = String(state.pickCount);
-    }
-  }
-
   async function fetchJson(url) {
     const res = await fetch(`${url}?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`讀取失敗 ${url} (${res.status})`);
@@ -313,9 +303,8 @@
   function normalizeDraws(gameKey, rows) {
     if (!Array.isArray(rows)) return [];
 
-    const normalized = rows.map((row) => {
+    return rows.map((row) => {
       if (!row || typeof row !== "object") return null;
-
       const issue = row.issue ? String(row.issue) : "";
       const drawDate = row.drawDate ? String(row.drawDate) : "";
 
@@ -323,14 +312,12 @@
         const numbers1 = Array.isArray(row.numbers1)
           ? row.numbers1.filter(n => Number.isInteger(n) && n >= 1 && n <= 38).slice(0, 6)
           : [];
-
         let numbers2 = [];
         if (Array.isArray(row.numbers2)) {
           numbers2 = row.numbers2.filter(n => Number.isInteger(n) && n >= 1 && n <= 8).slice(0, 1);
         } else if (Number.isInteger(row.numbers2) && row.numbers2 >= 1 && row.numbers2 <= 8) {
           numbers2 = [row.numbers2];
         }
-
         if (!issue || numbers1.length < 6) return null;
         return { game: "superlotto638", issue, drawDate, numbers1, numbers2 };
       }
@@ -339,10 +326,7 @@
         const numbers = Array.isArray(row.numbers)
           ? row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 49).slice(0, 6)
           : [];
-        const special = Number.isInteger(row.special) && row.special >= 1 && row.special <= 49
-          ? row.special
-          : null;
-
+        const special = Number.isInteger(row.special) ? row.special : null;
         if (!issue || numbers.length < 6) return null;
         return { game: "lotto649", issue, drawDate, numbers, special };
       }
@@ -365,8 +349,6 @@
 
       return null;
     }).filter(Boolean);
-
-    return normalized;
   }
 
   async function loadAllData() {
@@ -395,6 +377,52 @@
     return getCurrentDraws().slice(0, state.historyLimit);
   }
 
+  function gameAvailable(gameKey) {
+    return safeArray(state.data[gameKey]).length > 0;
+  }
+
+  function buildGameOptions() {
+    const select = byId("gameSelect");
+    select.innerHTML = "";
+
+    Object.values(GAME_CONFIG).forEach((game) => {
+      const available = gameAvailable(game.key);
+      const option = document.createElement("option");
+      option.value = game.key;
+      option.textContent = available ? game.name : `${game.name}（暫無真資料）`;
+      option.disabled = !available;
+      if (game.key === state.game && available) option.selected = true;
+      select.appendChild(option);
+    });
+
+    if (!gameAvailable(state.game)) {
+      const firstAvailable = Object.keys(GAME_CONFIG).find(gameKey => gameAvailable(gameKey));
+      if (firstAvailable) {
+        state.game = firstAvailable;
+        select.value = firstAvailable;
+      }
+    }
+  }
+
+  function buildPickOptions() {
+    const game = GAME_CONFIG[state.game];
+    const el = byId("pickCount");
+    el.innerHTML = "";
+
+    for (let i = game.minPick; i <= game.maxPick; i += 1) {
+      const option = document.createElement("option");
+      option.value = String(i);
+      option.textContent = `${i} 顆`;
+      if (i === state.pickCount) option.selected = true;
+      el.appendChild(option);
+    }
+
+    if (state.pickCount < game.minPick || state.pickCount > game.maxPick) {
+      state.pickCount = game.defaultPick;
+      el.value = String(state.pickCount);
+    }
+  }
+
   function extractMainNumbers(draw) {
     if (!draw) return [];
     if (state.game === "superlotto638") return safeArray(draw.numbers1);
@@ -403,15 +431,8 @@
 
   function extractSecondNumbers(draw) {
     if (!draw) return [];
-    if (state.game === "superlotto638") {
-      if (Array.isArray(draw.numbers2)) return draw.numbers2;
-      if (typeof draw.numbers2 === "number") return [draw.numbers2];
-      return [];
-    }
-    if (state.game === "lotto649") {
-      if (typeof draw.special === "number") return [draw.special];
-      return [];
-    }
+    if (state.game === "superlotto638") return safeArray(draw.numbers2);
+    if (state.game === "lotto649" && typeof draw.special === "number") return [draw.special];
     return [];
   }
 
@@ -508,7 +529,6 @@
       const f = freqMap.get(n) || 0;
       const m = missMap.get(n) || 0;
       let score = 0;
-
       score += (f / maxFreq) * 38;
       score += (m / maxMiss) * 22;
       if (tailsTop.includes(n % 10)) score += 8;
@@ -517,12 +537,7 @@
       if (latestSet.has(n - 1) || latestSet.has(n + 1)) score += 5;
       if (prevSet.has(n - 1) || prevSet.has(n + 1)) score += 4;
 
-      scores.push({
-        number: n,
-        freq: f,
-        miss: m,
-        score: Number(score.toFixed(2))
-      });
+      scores.push({ number: n, freq: f, miss: m, score: Number(score.toFixed(2)) });
     }
 
     return scores.sort((a, b) => b.score - a.score);
@@ -554,11 +569,7 @@
 
   function pickSecondNumber(draws) {
     if (state.game === "superlotto638") {
-      const freq = calcFrequency(
-        draws,
-        GAME_CONFIG.superlotto638.secondZoneRange,
-        draw => extractSecondNumbers(draw)
-      );
+      const freq = calcFrequency(draws, GAME_CONFIG.superlotto638.secondZoneRange, draw => extractSecondNumbers(draw));
       return freq.sort((a, b) => b.count - a.count)[0]?.number || 1;
     }
 
@@ -573,7 +584,9 @@
   function renderMeta() {
     const meta = state.data.meta || {};
     const gameData = getCurrentDraws();
-    const source = meta.sourceName || meta.source || meta.mode || "台灣彩券資料";
+    const source = meta.sourceName || meta.mode || "台灣彩券資料";
+    const gameMeta = meta.games?.[state.game] || {};
+    const available = gameData.length > 0;
 
     byId("metaInfo").innerHTML = `
       <div class="row">
@@ -589,8 +602,8 @@
         <div class="small mono">${gameData.length}</div>
       </div>
       <div class="row">
-        <div>來源模式</div>
-        <div class="small">${meta.mode || "standard"}</div>
+        <div>驗證狀態</div>
+        <div><span class="tag ${available ? "ok" : "off"}">${gameMeta.status || (available ? "validated" : "no data")}</span></div>
       </div>
       <div class="row">
         <div>最後更新</div>
@@ -604,7 +617,7 @@
     const wrap = byId("prediction");
 
     if (!draws.length) {
-      wrap.innerHTML = `<div class="note warn">目前沒有可分析資料。</div>`;
+      wrap.innerHTML = `<div class="note warn">此彩種目前沒有可用的真實資料，已停用分析。</div>`;
       return;
     }
 
@@ -631,16 +644,16 @@
       `;
     }
 
-    html += `
-      <div class="note">
-        V66.5 預測邏輯：只使用 official 歷史資料，綜合熱門、冷門、尾數、缺失期數、鄰近號、拖牌與連號分布加權分析。
-      </div>
-    `;
-
+    html += `<div class="note">V67 只使用驗證通過的 official 真資料做分析。</div>`;
     wrap.innerHTML = html;
   }
 
   function renderSummary(draws) {
+    if (!draws.length) {
+      byId("summaryStats").innerHTML = "";
+      return;
+    }
+
     const config = GAME_CONFIG[state.game];
     const freq = calcFrequency(draws, config.range);
     const miss = calcMiss(draws, config.range);
@@ -680,6 +693,11 @@
   }
 
   function renderHotCold(draws) {
+    if (!draws.length) {
+      byId("hotCold").innerHTML = "";
+      return;
+    }
+
     const config = GAME_CONFIG[state.game];
     const hot = calcFrequency(draws, config.range).sort((a, b) => b.count - a.count).slice(0, 10);
     const cold = calcMiss(draws, config.range).sort((a, b) => b.miss - a.miss).slice(0, 10);
@@ -699,6 +717,11 @@
   }
 
   function renderPatterns(draws) {
+    if (!draws.length) {
+      byId("patternStats").innerHTML = "";
+      return;
+    }
+
     const tails = calcTailStats(draws).slice(0, 5);
     const cons = calcConsecutive(draws);
     const repeatAvg = calcRepeatFromPrev(draws);
@@ -725,6 +748,11 @@
   }
 
   function renderLatest(draws) {
+    if (!draws.length) {
+      byId("latestDraw").innerHTML = `<div class="small">目前無真實歷史資料</div>`;
+      return;
+    }
+
     const latest = draws.slice(0, 5);
     byId("latestDraw").innerHTML = latest.map(draw => {
       const main = extractMainNumbers(draw);
@@ -738,39 +766,11 @@
           </div>
         </div>
       `;
-    }).join("") || `<div class="small">沒有資料</div>`;
+    }).join("");
   }
 
   function analyze() {
-  const draws = getLimitedDraws();
-
-  // ✅ 防呆：沒有資料就停止分析
-  if (!draws || draws.length === 0) {
-    renderMeta();
-
-    byId("prediction").innerHTML = `
-      <div class="note warn">
-        ⚠ 此彩種目前沒有可用的真實資料（已自動過濾假資料）
-      </div>
-    `;
-
-    byId("summaryStats").innerHTML = "";
-    byId("hotCold").innerHTML = "";
-    byId("patternStats").innerHTML = "";
-    byId("latestDraw").innerHTML = `
-      <div class="small">目前無開獎資料</div>
-    `;
-
-    return;
-  }
-
-  renderMeta();
-  renderPrediction(draws);
-  renderSummary(draws);
-  renderHotCold(draws);
-  renderPatterns(draws);
-  renderLatest(draws);
-}
+    const draws = getLimitedDraws();
     renderMeta();
     renderPrediction(draws);
     renderSummary(draws);
@@ -798,27 +798,24 @@
     });
 
     byId("btnAnalyze").addEventListener("click", analyze);
-
     byId("btnReload").addEventListener("click", async () => {
-      try {
-        await loadAllData();
-        analyze();
-      } catch (err) {
-        console.error(err);
-      }
+      await loadAllData();
+      buildGameOptions();
+      buildPickOptions();
+      analyze();
     });
   }
 
   async function init() {
     createStyles();
     renderApp();
-    byId("gameSelect").value = state.game;
-    byId("historyLimit").value = String(state.historyLimit);
-    buildPickOptions();
-    bindEvents();
 
     try {
       await loadAllData();
+      buildGameOptions();
+      byId("historyLimit").value = String(state.historyLimit);
+      buildPickOptions();
+      bindEvents();
       analyze();
     } catch (err) {
       console.error(err);
