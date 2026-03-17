@@ -64,6 +64,7 @@ export default async function handler(req, res) {
       if (r.ok) {
         const data = await r.json();
         const draws = Array.isArray(data) ? data.slice(0, count) : [];
+
         if (draws.length) {
           return res.status(200).json({
             game,
