@@ -3,14 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券預測助手 V10</title>
+  <title>台灣彩券預測助手 V25</title>
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="description" content="台灣彩券預測助手，支援賓果、大樂透、威力彩、今彩539，含AI分析與手機安裝版。" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="https://dummyimage.com/192x192/2563eb/ffffff&text=V25" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header class="hero">
-      <h1>台灣彩券預測助手 V10</h1>
-      <p>手機版｜賓果｜大樂透｜威力彩｜539｜偏財模式｜命中率回測</p>
+      <div>
+        <h1>台灣彩券預測助手 V25</h1>
+        <p>AI混合選號｜偏財生日模式｜命中率回測｜手機安裝版</p>
+      </div>
+      <button id="installBtn" class="install-btn hidden">安裝 App</button>
     </header>
 
     <section class="panel">
@@ -67,16 +74,17 @@
         </label>
 
         <label>
-          模式
+          分析模式
           <select id="mode">
-            <option value="normal" selected>一般分析</option>
+            <option value="ai" selected>AI混合模式</option>
+            <option value="normal">一般分析</option>
             <option value="birthday">偏財生日模式</option>
             <option value="mixed">混合強化模式</option>
           </select>
         </label>
       </div>
 
-      <div class="btn-row">
+      <div class="btn-row btn-row-4">
         <button id="loadBtn">讀取歷史資料</button>
         <button id="analyzeBtn">開始分析</button>
         <button id="backtestBtn">命中率回測</button>
@@ -84,17 +92,25 @@
       </div>
 
       <div id="status" class="status">請先讀取資料</div>
+      <div class="tip">
+        本工具屬統計參考，不保證中獎；建議當作分析輔助使用。
+      </div>
     </section>
 
     <section class="cards">
-      <div class="card">
-        <h2>推薦號碼</h2>
+      <div class="card wide">
+        <h2>AI 推薦號碼</h2>
         <div id="result"></div>
       </div>
 
       <div class="card">
         <h2>偏財生日號碼</h2>
         <div id="birthdayNumbers"></div>
+      </div>
+
+      <div class="card">
+        <h2>AI 分數排行榜</h2>
+        <div id="aiScoreBoard"></div>
       </div>
 
       <div class="card">
@@ -108,13 +124,13 @@
       </div>
 
       <div class="card">
-        <h2>拖號分析</h2>
-        <div id="dragAnalysis"></div>
+        <h2>尾數分析</h2>
+        <div id="tailAnalysis"></div>
       </div>
 
       <div class="card">
-        <h2>尾數分析</h2>
-        <div id="tailAnalysis"></div>
+        <h2>拖號分析</h2>
+        <div id="dragAnalysis"></div>
       </div>
 
       <div class="card">
@@ -123,11 +139,16 @@
       </div>
 
       <div class="card">
+        <h2>Bingo 最佳顆數建議</h2>
+        <div id="bingoAdvice"></div>
+      </div>
+
+      <div class="card wide">
         <h2>命中率回測</h2>
         <div id="backtestResult"></div>
       </div>
 
-      <div class="card">
+      <div class="card wide">
         <h2>最近開獎</h2>
         <div id="latestDraws"></div>
       </div>
