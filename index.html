@@ -95,10 +95,10 @@
 
       <!-- 按鈕 -->
       <div class="btn-row btn-row-4">
-        <button id="loadBtn" onclick="alert('讀取按鈕正常')">讀取歷史資料</button>
-<button id="analyzeBtn" onclick="alert('分析按鈕正常')">開始分析</button>
-<button id="backtestBtn" onclick="alert('回測按鈕正常')">命中率回測</button>
-<button id="battleBtn" onclick="alert('實戰按鈕正常')">進入實戰</button>
+       <button id="loadBtn" onclick="loadData()">讀取歷史資料</button>
+<button id="analyzeBtn" onclick="analyzeData()">開始分析</button>
+<button id="backtestBtn" onclick="runBacktest()">命中率回測</button>
+<button id="battleBtn" onclick="goBattle()">進入實戰</button>
 
       <div id="status" class="status">請先讀取資料</div>
       <div class="tip">本工具僅供參考，請理性投注</div>
