@@ -4,19 +4,24 @@ const gameEl = document.getElementById("game");
 const historyCountEl = document.getElementById("historyCount");
 const bingoPickCountEl = document.getElementById("bingoPickCount");
 const groupCountEl = document.getElementById("groupCount");
+const birthdayEl = document.getElementById("birthday");
+const modeEl = document.getElementById("mode");
 const bingoPickWrap = document.getElementById("bingoPickWrap");
 
 const statusEl = document.getElementById("status");
 const resultEl = document.getElementById("result");
+const birthdayNumbersEl = document.getElementById("birthdayNumbers");
 const hotNumbersEl = document.getElementById("hotNumbers");
 const coldNumbersEl = document.getElementById("coldNumbers");
 const dragAnalysisEl = document.getElementById("dragAnalysis");
 const tailAnalysisEl = document.getElementById("tailAnalysis");
 const serialAnalysisEl = document.getElementById("serialAnalysis");
+const backtestResultEl = document.getElementById("backtestResult");
 const latestDrawsEl = document.getElementById("latestDraws");
 
 document.getElementById("loadBtn").addEventListener("click", loadData);
 document.getElementById("analyzeBtn").addEventListener("click", analyzeData);
+document.getElementById("backtestBtn").addEventListener("click", runBacktest);
 document.getElementById("battleBtn").addEventListener("click", goBattle);
 gameEl.addEventListener("change", handleGameChange);
 
@@ -31,11 +36,13 @@ function clearPanels() {
   currentData = [];
   statusEl.textContent = "請先讀取資料";
   resultEl.innerHTML = "";
+  birthdayNumbersEl.innerHTML = "";
   hotNumbersEl.innerHTML = "";
   coldNumbersEl.innerHTML = "";
   dragAnalysisEl.innerHTML = "";
   tailAnalysisEl.innerHTML = "";
   serialAnalysisEl.innerHTML = "";
+  backtestResultEl.innerHTML = "";
   latestDrawsEl.innerHTML = "";
 }
 
@@ -55,7 +62,7 @@ async function loadData() {
     renderLatestDraws(currentData);
 
     if (!currentData.length) {
-      statusEl.textContent = "官方資料已連線，但本次未成功解析，請稍後再試";
+      statusEl.textContent = "本次未成功取得資料，請稍後再試";
       return;
     }
 
@@ -74,6 +81,7 @@ function analyzeData() {
 
   const game = gameEl.value;
   const config = getGameConfig(game);
+  const mode = modeEl.value;
 
   const freq = buildFrequency(currentData, config);
   const hot = sortFreqDesc(freq.main).slice(0, 10);
@@ -81,13 +89,15 @@ function analyzeData() {
   const tails = buildTailStats(freq.main);
   const drags = buildDragStats(currentData);
   const serials = buildSerialStats(currentData);
+  const birthdayNumbers = buildBirthdayNumbers(birthdayEl.value, config);
 
   renderHotCold(hotNumbersEl, hot);
   renderHotCold(coldNumbersEl, cold);
+  renderBirthdayNumbers(birthdayNumbers);
   renderTailStats(tails);
   renderDragStats(drags);
   renderSerialStats(serials);
-  renderPredictions(freq, config);
+  renderPredictions(freq, config, birthdayNumbers, mode);
 
   statusEl.textContent = "分析完成";
 }
@@ -124,10 +134,8 @@ function buildFrequency(draws, config) {
       if (main[n] !== undefined) main[n]++;
     });
 
-    if (second && draw.second) {
-      if (second[draw.second] !== undefined) {
-        second[draw.second]++;
-      }
+    if (second && draw.second && second[draw.second] !== undefined) {
+      second[draw.second]++;
     }
   });
 
@@ -206,7 +214,35 @@ function buildSerialStats(draws) {
   return result.slice(0, 8);
 }
 
-function renderPredictions(freq, config) {
+function buildBirthdayNumbers(dateStr, config) {
+  if (!dateStr) return [];
+
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const raw = [
+    year % 100,
+    month,
+    day,
+    Math.floor(day / 2),
+    month + day,
+    (year + month + day) % config.max,
+    (month * day) % config.max
+  ];
+
+  const normalized = raw
+    .map(n => normalizeNumber(n, config.max))
+    .filter(n => n >= 1 && n <= config.max);
+
+  return [...new Set(normalized)];
+}
+
+function normalizeNumber(n, max) {
+  let value = Number(n || 0);
+  while (value > max) value -= max;
+  while (value <= 0) value += max;
+  return value;
+}
+
+function renderPredictions(freq, config, birthdayNumbers, mode) {
   const groups = Number(groupCountEl.value);
   const game = gameEl.value;
 
@@ -216,7 +252,17 @@ function renderPredictions(freq, config) {
   let html = "";
 
   for (let g = 0; g < groups; g++) {
-    const mainPick = pickGroup(rankedMain, config.pickCount, g).sort((a, b) => a - b);
+    let mainPick = [];
+
+    if (mode === "normal") {
+      mainPick = pickGroup(rankedMain, config.pickCount, g);
+    } else if (mode === "birthday") {
+      mainPick = mixBirthdayPriority(rankedMain, birthdayNumbers, config.pickCount, true, g);
+    } else {
+      mainPick = mixBirthdayPriority(rankedMain, birthdayNumbers, config.pickCount, false, g);
+    }
+
+    mainPick = [...new Set(mainPick)].slice(0, config.pickCount).sort((a, b) => a - b);
 
     html += `<div class="group-box">`;
     html += `<div><strong>第 ${g + 1} 組</strong></div>`;
@@ -254,8 +300,50 @@ function pickGroup(rankedList, count, offset) {
   return chosen;
 }
 
+function mixBirthdayPriority(rankedList, birthdayNumbers, count, birthdayOnlyFirst, offset) {
+  const chosen = [];
+  const shiftedRanked = rankedList.slice(offset).concat(rankedList.slice(0, offset));
+
+  if (birthdayOnlyFirst) {
+    birthdayNumbers.forEach(n => {
+      if (chosen.length < count && !chosen.includes(n)) {
+        chosen.push(n);
+      }
+    });
+  } else {
+    const mix = [];
+    for (let i = 0; i < Math.max(shiftedRanked.length, birthdayNumbers.length); i++) {
+      if (birthdayNumbers[i] !== undefined) mix.push(birthdayNumbers[i]);
+      if (shiftedRanked[i] !== undefined) mix.push(shiftedRanked[i]);
+    }
+
+    mix.forEach(n => {
+      if (chosen.length < count && !chosen.includes(n)) {
+        chosen.push(n);
+      }
+    });
+  }
+
+  shiftedRanked.forEach(n => {
+    if (chosen.length < count && !chosen.includes(n)) {
+      chosen.push(n);
+    }
+  });
+
+  return chosen;
+}
+
 function renderHotCold(target, items) {
   target.innerHTML = `<div class="num-list">${items.map(v => ball(v.n)).join("")}</div>`;
+}
+
+function renderBirthdayNumbers(items) {
+  if (!items.length) {
+    birthdayNumbersEl.innerHTML = `<div class="text-list">請先選擇出生年月日</div>`;
+    return;
+  }
+
+  birthdayNumbersEl.innerHTML = `<div class="num-list">${items.map(n => ball(n, "red")).join("")}</div>`;
 }
 
 function renderTailStats(tails) {
@@ -309,6 +397,65 @@ function renderLatestDraws(draws) {
       </div>
     </div>
   `).join("");
+}
+
+function runBacktest() {
+  if (!currentData.length || currentData.length < 6) {
+    backtestResultEl.innerHTML = `<div class="text-list">資料不足，至少需要 6 期以上才能回測</div>`;
+    return;
+  }
+
+  const game = gameEl.value;
+  const config = getGameConfig(game);
+  const birthdayNumbers = buildBirthdayNumbers(birthdayEl.value, config);
+  const mode = modeEl.value;
+
+  let totalHits = 0;
+  let tests = 0;
+  const details = [];
+
+  for (let i = 5; i < currentData.length; i++) {
+    const training = currentData.slice(i - 5, i);
+    const target = currentData[i];
+    const freq = buildFrequency(training, config);
+    const rankedMain = sortFreqDesc(freq.main).map(v => v.n);
+
+    let pick = [];
+    if (mode === "normal") {
+      pick = pickGroup(rankedMain, config.pickCount, 0);
+    } else if (mode === "birthday") {
+      pick = mixBirthdayPriority(rankedMain, birthdayNumbers, config.pickCount, true, 0);
+    } else {
+      pick = mixBirthdayPriority(rankedMain, birthdayNumbers, config.pickCount, false, 0);
+    }
+
+    pick = pick.slice(0, config.pickCount);
+    const hitCount = pick.filter(n => target.numbers.includes(n)).length;
+
+    totalHits += hitCount;
+    tests++;
+
+    details.push({
+      issue: target.issue || "",
+      date: target.date || "",
+      hits: hitCount,
+      target: target.numbers
+    });
+  }
+
+  const avgHits = tests ? (totalHits / tests).toFixed(2) : "0.00";
+
+  backtestResultEl.innerHTML = `
+    <div class="text-list">
+      <div>回測期數：${tests} 期</div>
+      <div>總命中數：${totalHits}</div>
+      <div>平均每期命中：${avgHits}</div>
+      <div style="margin-top:10px;"><strong>最近回測明細：</strong></div>
+      ${details.slice(-5).reverse().map(d => `
+        <div>${d.date} ${d.issue}：命中 ${d.hits} 個｜開獎 ${d.target.join("、")}</div>
+      `).join("")}
+    </div>
+  `;
 }
 
 function goBattle() {
