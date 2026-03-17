@@ -2,15 +2,7 @@ name: Update Official Lottery Data
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "scripts/update_official.js"
-      - ".github/workflows/update-official.yml"
   schedule:
-    # 避開整點，降低 GitHub schedule 延遲或掉排程機率
-    # GitHub Actions 最短 5 分鐘一次；這裡設成每 15 分鐘跑一次
     - cron: "7,22,37,52 * * * *"
 
 permissions:
@@ -32,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Ensure folders
         run: |
