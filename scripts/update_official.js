@@ -41,26 +41,75 @@ function normalizeDate(value) {
   return s;
 }
 
-function looksFakeSequence(numbers) {
+function looksArithmetic(numbers) {
   if (!Array.isArray(numbers) || numbers.length < 4) return false;
   const diffs = [];
-  for (let i = 1; i < numbers.length; i += 1) diffs.push(numbers[i] - numbers[i - 1]);
-  return diffs.every(d => d === diffs[0]) && (diffs[0] === 1 || diffs[0] === 2 || diffs[0] === 3);
+  for (let i = 1; i < numbers.length; i += 1) {
+    diffs.push(numbers[i] - numbers[i - 1]);
+  }
+  return diffs.every(d => d === diffs[0]) && diffs[0] > 0 && diffs[0] <= 5;
 }
 
-function normalizeDraw(gameKey, row) {
-  if (!row || typeof row !== "object") return null;
+function issueLooksFake(gameKey, issue) {
+  const s = String(issue || "");
+  if (!s) return false;
 
-  const issue = row.issue ? String(row.issue).trim() : "";
-  const drawDate = normalizeDate(row.drawDate);
+  if (gameKey === "dailycash" && /^539\d{4}$/.test(s)) return true;
+  if (gameKey === "lotto649" && /^649\d{4}$/.test(s)) return true;
+  if (gameKey === "superlotto638" && /^638\d{4}$/.test(s)) return true;
+  if (gameKey === "bingo" && /^\d{6}$/.test(s)) return true;
 
-  if (gameKey === "bingo") {
-    const numbers = Array.isArray(row.numbers)
-      ? sortNumbers(uniq(row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 80))).slice(0, 20)
-      : [];
-    if (!issue || numbers.length < 10) return null;
-    return { game: "bingo", issue, drawDate, numbers };
+  return false;
+}
+
+function rowSignature(gameKey, row) {
+  if (gameKey === "superlotto638") {
+    return (row.numbers1 || []).join(",");
   }
+  return (row.numbers || []).join(",");
+}
+
+function isClearlyFake(gameKey, rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return false;
+
+  const sample = rows.slice(0, Math.min(20, rows.length));
+
+  let arithmeticCount = 0;
+  let fakeIssueCount = 0;
+  let progressiveShiftCount = 0;
+
+  for (let i = 0; i < sample.length; i += 1) {
+    const row = sample[i];
+    const nums = gameKey === "superlotto638" ? (row.numbers1 || []) : (row.numbers || []);
+
+    if (looksArithmetic(nums)) arithmeticCount += 1;
+    if (issueLooksFake(gameKey, row.issue)) fakeIssueCount += 1;
+
+    if (i > 0) {
+      const prev = gameKey === "superlotto638"
+        ? (sample[i - 1].numbers1 || [])
+        : (sample[i - 1].numbers || []);
+
+      if (prev.length === nums.length && prev.length >= 4) {
+        const deltas = nums.map((n, idx) => n - prev[idx]);
+        const sameDelta = deltas.every(d => d === deltas[0]);
+        if (sameDelta && Math.abs(deltas[0]) > 0 && Math.abs(deltas[0]) <= 5) {
+          progressiveShiftCount += 1;
+        }
+      }
+    }
+  }
+
+  const arithmeticRatio = arithmeticCount / sample.length;
+  const fakeIssueRatio = fakeIssueCount / sample.length;
+  const shiftRatio = sample.length > 1 ? progressiveShiftCount / (sample.length - 1) : 0;
+
+  return (
+    arithmeticRatio >= 0.6 ||
+    fakeIssueRatio >= 0.8 ||
+    shiftRatio >= 0.6
+  );
+}
 
   if (gameKey === "dailycash") {
     const numbers = Array.isArray(row.numbers)
