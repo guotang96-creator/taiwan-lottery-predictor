@@ -55,7 +55,7 @@ label {
   font-weight: 700;
 }
 
-select, button {
+select, button, input {
   min-height: 44px;
   border-radius: 12px;
   border: 1px solid #d1d5db;
