@@ -572,7 +572,11 @@
     const gameData = getCurrentDraws();
 
     const updateAt = meta.updatedAt || meta.generatedAt;
-    const source = meta.sourceName || "台灣彩券官方資料";
+    const source =
+  meta.sourceName ||
+  meta.source ||
+  meta.mode ||
+  "台灣彩券資料";
 
     el.innerHTML = `
       <div class="row">
