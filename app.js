@@ -11,6 +11,9 @@ const bingoPickWrap = document.getElementById("bingoPickWrap");
 
 const statusEl = document.getElementById("status");
 const resultEl = document.getElementById("result");
+const confidenceBoxEl = document.getElementById("confidenceBox");
+const burstBoxEl = document.getElementById("burstBox");
+const trendBoxEl = document.getElementById("trendBox");
 const birthdayNumbersEl = document.getElementById("birthdayNumbers");
 const aiScoreBoardEl = document.getElementById("aiScoreBoard");
 const hotNumbersEl = document.getElementById("hotNumbers");
@@ -28,12 +31,8 @@ document.getElementById("analyzeBtn").addEventListener("click", analyzeData);
 document.getElementById("backtestBtn").addEventListener("click", runBacktest);
 document.getElementById("battleBtn").addEventListener("click", goBattle);
 
-if (gameEl) {
-  gameEl.addEventListener("change", handleGameChange);
-}
-if (installBtn) {
-  installBtn.addEventListener("click", installApp);
-}
+if (gameEl) gameEl.addEventListener("change", handleGameChange);
+if (installBtn) installBtn.addEventListener("click", installApp);
 
 handleGameChange();
 registerSW();
@@ -50,6 +49,9 @@ function clearPanels() {
   currentData = [];
   statusEl.textContent = "請先讀取資料";
   resultEl.innerHTML = "";
+  confidenceBoxEl.innerHTML = "";
+  burstBoxEl.innerHTML = "";
+  trendBoxEl.innerHTML = "";
   birthdayNumbersEl.innerHTML = "";
   aiScoreBoardEl.innerHTML = "";
   hotNumbersEl.innerHTML = "";
@@ -114,6 +116,9 @@ function analyzeData() {
   const drags = buildDragStats(currentData);
   const serials = buildSerialStats(currentData);
   const aiRank = buildAIScores(currentData, config, birthdayNumbers);
+  const confidence = buildConfidence(aiRank, config);
+  const burst = buildBurstCandidates(currentData, aiRank, config);
+  const trend = buildTrend(currentData);
 
   renderBirthdayNumbers(birthdayNumbers);
   renderHotCold(hotNumbersEl, hot);
@@ -123,6 +128,9 @@ function analyzeData() {
   renderSerialStats(serials);
   renderAIScoreBoard(aiRank, game);
   renderPredictions(aiRank, freq, config, birthdayNumbers, mode);
+  renderConfidence(confidence);
+  renderBurst(burst);
+  renderTrend(trend);
 
   statusEl.textContent = "分析完成";
 }
@@ -136,16 +144,12 @@ function getGameConfig(game) {
 
 function buildFrequency(draws, config) {
   const main = {};
-  for (let i = 1; i <= config.max; i++) {
-    main[i] = 0;
-  }
+  for (let i = 1; i <= config.max; i++) main[i] = 0;
 
   let second = null;
   if (config.secondMax) {
     second = {};
-    for (let i = 1; i <= config.secondMax; i++) {
-      second[i] = 0;
-    }
+    for (let i = 1; i <= config.secondMax; i++) second[i] = 0;
   }
 
   draws.forEach(draw => {
@@ -278,17 +282,13 @@ function buildAIScores(draws, config, birthdayNumbers) {
   const rows = [];
   for (let n = 1; n <= config.max; n++) {
     let score = 0;
-
     score += Math.max(0, config.max - (hotIndex[n] ?? config.max)) * 1.2;
     score += (recentBoost[n] || 0) * 2.2;
     score += (tailRank[n % 10] || 0) * 1.1;
     score += (dragMap[n] || 0) * 1.8;
 
     if (birthdayNumbers.includes(n)) score += 8;
-
-    if ((coldIndex[n] ?? config.max) < Math.floor(config.max / 6)) {
-      score -= 2.5;
-    }
+    if ((coldIndex[n] ?? config.max) < Math.floor(config.max / 6)) score -= 2.5;
 
     rows.push({
       n,
@@ -307,7 +307,6 @@ function buildNumberDragMap(draws, max) {
   for (let i = 0; i < draws.length - 1; i++) {
     const current = draws[i].numbers || [];
     const next = draws[i + 1].numbers || [];
-
     current.forEach(a => {
       next.forEach(b => {
         map[b] = (map[b] || 0) + (Math.abs(a - b) <= 2 ? 2 : 1);
@@ -340,6 +339,43 @@ function buildRecentBoost(draws, max) {
   });
 
   return boost;
+}
+
+function buildConfidence(aiRank, config) {
+  const top = aiRank.slice(0, config.pickCount);
+  const avg = top.length
+    ? top.reduce((sum, item) => sum + item.score, 0) / top.length
+    : 0;
+
+  let level = "低";
+  if (avg >= 60) level = "高";
+  else if (avg >= 35) level = "中";
+
+  return {
+    avg: avg.toFixed(2),
+    level
+  };
+}
+
+function buildBurstCandidates(draws, aiRank, config) {
+  const recent = draws.slice(0, Math.min(3, draws.length));
+  const seen = new Set();
+  recent.forEach(draw => (draw.numbers || []).forEach(n => seen.add(n)));
+
+  const candidates = aiRank
+    .filter(item => !seen.has(item.n))
+    .slice(0, config.pickCount);
+
+  return candidates;
+}
+
+function buildTrend(draws) {
+  const latest = draws.slice(0, 5);
+  return latest.map((draw, idx) => ({
+    date: draw.date || "",
+    index: idx + 1,
+    count: (draw.numbers || []).length
+  }));
 }
 
 function renderPredictions(aiRank, freq, config, birthdayNumbers, mode) {
@@ -418,14 +454,9 @@ function pickBalancedGroup(hotList, coldList, count, offset) {
   const cold = coldList.slice(offset).concat(coldList.slice(0, offset));
 
   for (let i = 0; i < Math.max(hot.length, cold.length); i++) {
-    if (hot[i] !== undefined && chosen.length < count && !chosen.includes(hot[i])) {
-      chosen.push(hot[i]);
-    }
-    if (cold[i] !== undefined && chosen.length < count && !chosen.includes(cold[i])) {
-      chosen.push(cold[i]);
-    }
+    if (hot[i] !== undefined && chosen.length < count && !chosen.includes(hot[i])) chosen.push(hot[i]);
+    if (cold[i] !== undefined && chosen.length < count && !chosen.includes(cold[i])) chosen.push(cold[i]);
   }
-
   return chosen;
 }
 
@@ -473,6 +504,41 @@ function pickAIGroup(aiRanked, rankedMain, birthdayNumbers, count, offset) {
   });
 
   return chosen;
+}
+
+function renderConfidence(confidence) {
+  confidenceBoxEl.innerHTML = `
+    <div class="text-list">
+      <div>平均 AI 分數：${confidence.avg}</div>
+      <div>信心等級：${confidence.level}</div>
+    </div>
+  `;
+}
+
+function renderBurst(items) {
+  if (!items.length) {
+    burstBoxEl.innerHTML = `<div class="text-list">目前沒有明顯爆號候選</div>`;
+    return;
+  }
+
+  burstBoxEl.innerHTML = `
+    <div class="num-list">
+      ${items.map(v => ball(v.n, "gold")).join("")}
+    </div>
+  `;
+}
+
+function renderTrend(items) {
+  if (!items.length) {
+    trendBoxEl.innerHTML = `<div class="text-list">目前沒有走勢資料</div>`;
+    return;
+  }
+
+  trendBoxEl.innerHTML = `
+    <div class="text-list">
+      ${items.map(v => `<div>${v.date}｜第 ${v.index} 筆｜共 ${v.count} 號</div>`).join("")}
+    </div>
+  `;
 }
 
 function renderBirthdayNumbers(items) {
