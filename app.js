@@ -64,10 +64,6 @@
     return String(n).padStart(2, "0");
   }
 
-  function uniq(arr) {
-    return [...new Set(arr)];
-  }
-
   function sortNum(arr) {
     return [...arr].sort((a, b) => a - b);
   }
@@ -220,8 +216,8 @@
   function renderApp() {
     byId("app").innerHTML = `
       <div class="card">
-        <div class="title">台灣彩券預測 V66.4</div>
-        <div class="sub">穩定版｜手機版｜加權預測｜威力彩第二區修正版</div>
+        <div class="title">台灣彩券預測 V66.5</div>
+        <div class="sub">穩定修正版｜只讀 official｜不再使用 fake 資料</div>
       </div>
 
       <div class="card">
@@ -293,6 +289,7 @@
     const game = GAME_CONFIG[state.game];
     const el = byId("pickCount");
     el.innerHTML = "";
+
     for (let i = game.minPick; i <= game.maxPick; i += 1) {
       const option = document.createElement("option");
       option.value = String(i);
@@ -300,6 +297,7 @@
       if (i === state.pickCount) option.selected = true;
       el.appendChild(option);
     }
+
     if (state.pickCount < game.minPick || state.pickCount > game.maxPick) {
       state.pickCount = game.defaultPick;
       el.value = String(state.pickCount);
@@ -312,8 +310,67 @@
     return res.json();
   }
 
+  function normalizeDraws(gameKey, rows) {
+    if (!Array.isArray(rows)) return [];
+
+    const normalized = rows.map((row) => {
+      if (!row || typeof row !== "object") return null;
+
+      const issue = row.issue ? String(row.issue) : "";
+      const drawDate = row.drawDate ? String(row.drawDate) : "";
+
+      if (gameKey === "superlotto638") {
+        const numbers1 = Array.isArray(row.numbers1)
+          ? row.numbers1.filter(n => Number.isInteger(n) && n >= 1 && n <= 38).slice(0, 6)
+          : [];
+
+        let numbers2 = [];
+        if (Array.isArray(row.numbers2)) {
+          numbers2 = row.numbers2.filter(n => Number.isInteger(n) && n >= 1 && n <= 8).slice(0, 1);
+        } else if (Number.isInteger(row.numbers2) && row.numbers2 >= 1 && row.numbers2 <= 8) {
+          numbers2 = [row.numbers2];
+        }
+
+        if (!issue || numbers1.length < 6) return null;
+        return { game: "superlotto638", issue, drawDate, numbers1, numbers2 };
+      }
+
+      if (gameKey === "lotto649") {
+        const numbers = Array.isArray(row.numbers)
+          ? row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 49).slice(0, 6)
+          : [];
+        const special = Number.isInteger(row.special) && row.special >= 1 && row.special <= 49
+          ? row.special
+          : null;
+
+        if (!issue || numbers.length < 6) return null;
+        return { game: "lotto649", issue, drawDate, numbers, special };
+      }
+
+      if (gameKey === "dailycash") {
+        const numbers = Array.isArray(row.numbers)
+          ? row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 39).slice(0, 5)
+          : [];
+        if (!issue || numbers.length < 5) return null;
+        return { game: "dailycash", issue, drawDate, numbers };
+      }
+
+      if (gameKey === "bingo") {
+        const numbers = Array.isArray(row.numbers)
+          ? row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 80).slice(0, 20)
+          : [];
+        if (!issue || numbers.length < 10) return null;
+        return { game: "bingo", issue, drawDate, numbers };
+      }
+
+      return null;
+    }).filter(Boolean);
+
+    return normalized;
+  }
+
   async function loadAllData() {
-    const [bingo, lotto649, superlotto638, dailycash, meta] = await Promise.all([
+    const [bingoRaw, lotto649Raw, superlotto638Raw, dailycashRaw, meta] = await Promise.all([
       fetchJson(DATA_FILES.bingo).catch(() => []),
       fetchJson(DATA_FILES.lotto649).catch(() => []),
       fetchJson(DATA_FILES.superlotto638).catch(() => []),
@@ -321,7 +378,13 @@
       fetchJson(DATA_FILES.meta).catch(() => null)
     ]);
 
-    state.data = { bingo, lotto649, superlotto638, dailycash, meta };
+    state.data = {
+      bingo: normalizeDraws("bingo", bingoRaw),
+      lotto649: normalizeDraws("lotto649", lotto649Raw),
+      superlotto638: normalizeDraws("superlotto638", superlotto638Raw),
+      dailycash: normalizeDraws("dailycash", dailycashRaw),
+      meta
+    };
   }
 
   function getCurrentDraws() {
@@ -448,11 +511,9 @@
 
       score += (f / maxFreq) * 38;
       score += (m / maxMiss) * 22;
-
       if (tailsTop.includes(n % 10)) score += 8;
       if (!latestSet.has(n)) score += 6;
       if (prevSet.has(n)) score += 7;
-
       if (latestSet.has(n - 1) || latestSet.has(n + 1)) score += 5;
       if (prevSet.has(n - 1) || prevSet.has(n + 1)) score += 4;
 
@@ -473,10 +534,8 @@
 
     for (const item of ranked) {
       if (selected.includes(item.number)) continue;
-
       const nearCount = selected.filter(n => Math.abs(n - item.number) <= 1).length;
       if (nearCount >= 2) continue;
-
       selected.push(item.number);
       if (selected.length >= count) break;
     }
@@ -514,11 +573,7 @@
   function renderMeta() {
     const meta = state.data.meta || {};
     const gameData = getCurrentDraws();
-    const source =
-      meta.sourceName ||
-      meta.source ||
-      meta.mode ||
-      "台灣彩券資料";
+    const source = meta.sourceName || meta.source || meta.mode || "台灣彩券資料";
 
     byId("metaInfo").innerHTML = `
       <div class="row">
@@ -578,7 +633,7 @@
 
     html += `
       <div class="note">
-        V66.4 預測邏輯：綜合熱門、冷門、尾數、缺失期數、鄰近號、拖牌與連號分布做加權分析。
+        V66.5 預測邏輯：只使用 official 歷史資料，綜合熱門、冷門、尾數、缺失期數、鄰近號、拖牌與連號分布加權分析。
       </div>
     `;
 
