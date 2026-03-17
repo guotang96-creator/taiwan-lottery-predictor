@@ -5,13 +5,6 @@ const path = require("path");
 const ROOT = process.cwd();
 const OFFICIAL_DIR = path.join(ROOT, "data", "official");
 
-const GAME_RULES = {
-  bingo: { min: 1, max: 80, take: 20, minCount: 10 },
-  lotto649: { min: 1, max: 49, take: 6, minCount: 6 },
-  superlotto638: { min: 1, max: 38, take: 6, minCount: 6, zone2Min: 1, zone2Max: 8 },
-  dailycash: { min: 1, max: 39, take: 5, minCount: 5 }
-};
-
 function exists(file) {
   return fs.existsSync(file);
 }
@@ -51,9 +44,7 @@ function normalizeDate(value) {
 function looksFakeSequence(numbers) {
   if (!Array.isArray(numbers) || numbers.length < 4) return false;
   const diffs = [];
-  for (let i = 1; i < numbers.length; i += 1) {
-    diffs.push(numbers[i] - numbers[i - 1]);
-  }
+  for (let i = 1; i < numbers.length; i += 1) diffs.push(numbers[i] - numbers[i - 1]);
   return diffs.every(d => d === diffs[0]) && (diffs[0] === 1 || diffs[0] === 2 || diffs[0] === 3);
 }
 
@@ -67,7 +58,6 @@ function normalizeDraw(gameKey, row) {
     const numbers = Array.isArray(row.numbers)
       ? sortNumbers(uniq(row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 80))).slice(0, 20)
       : [];
-
     if (!issue || numbers.length < 10) return null;
     return { game: "bingo", issue, drawDate, numbers };
   }
@@ -76,7 +66,6 @@ function normalizeDraw(gameKey, row) {
     const numbers = Array.isArray(row.numbers)
       ? sortNumbers(uniq(row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 39))).slice(0, 5)
       : [];
-
     if (!issue || numbers.length < 5) return null;
     return { game: "dailycash", issue, drawDate, numbers };
   }
@@ -85,11 +74,7 @@ function normalizeDraw(gameKey, row) {
     const numbers = Array.isArray(row.numbers)
       ? sortNumbers(uniq(row.numbers.filter(n => Number.isInteger(n) && n >= 1 && n <= 49))).slice(0, 6)
       : [];
-
-    const special = Number.isInteger(row.special) && row.special >= 1 && row.special <= 49
-      ? row.special
-      : null;
-
+    const special = Number.isInteger(row.special) && row.special >= 1 && row.special <= 49 ? row.special : null;
     if (!issue || numbers.length < 6) return null;
     return { game: "lotto649", issue, drawDate, numbers, special };
   }
@@ -115,7 +100,6 @@ function normalizeDraw(gameKey, row) {
 
 function isClearlyFake(gameKey, rows) {
   if (!Array.isArray(rows) || rows.length === 0) return false;
-
   const sample = rows.slice(0, Math.min(12, rows.length));
 
   let fakeCount = 0;
@@ -126,14 +110,12 @@ function isClearlyFake(gameKey, rows) {
       if (looksFakeSequence(row.numbers || [])) fakeCount += 1;
     }
   }
-
   return fakeCount >= Math.ceil(sample.length * 0.7);
 }
 
 function dedupeRows(rows) {
   const seen = new Set();
   const out = [];
-
   for (const row of rows) {
     const key = JSON.stringify(row);
     if (!seen.has(key)) {
@@ -141,7 +123,6 @@ function dedupeRows(rows) {
       out.push(row);
     }
   }
-
   return out;
 }
 
@@ -155,73 +136,59 @@ function sortRows(rows) {
 }
 
 function validateGameRows(gameKey, rows) {
-  if (!Array.isArray(rows)) {
-    return { ok: false, reason: "not array", rows: [] };
-  }
+  if (!Array.isArray(rows)) return { ok: false, reason: "not array", rows: [] };
 
   const normalized = rows.map(r => normalizeDraw(gameKey, r)).filter(Boolean);
   const deduped = dedupeRows(normalized);
   const sorted = sortRows(deduped);
 
-  if (sorted.length === 0) {
-    return { ok: false, reason: "empty after normalize", rows: [] };
-  }
+  if (sorted.length === 0) return { ok: false, reason: "empty after normalize", rows: [] };
+  if (isClearlyFake(gameKey, sorted)) return { ok: false, reason: "looks like generated/fake pattern", rows: [] };
 
-  if (isClearlyFake(gameKey, sorted)) {
-    return { ok: false, reason: "looks like generated/fake pattern", rows: [] };
-  }
-
-  return { ok: true, reason: "ok", rows: sorted };
+  return { ok: true, reason: "validated", rows: sorted };
 }
 
-function updateOne(gameKey) {
+function sanitizeOne(gameKey) {
   const file = path.join(OFFICIAL_DIR, `${gameKey}.json`);
-
   if (!exists(file)) {
-    console.log(`[WARN] ${gameKey}: file not found, skipped`);
-    return { gameKey, ok: false, count: 0, reason: "file not found" };
+    writeJson(file, []);
+    return { count: 0, status: "file not found" };
   }
 
   const raw = readJson(file);
   const checked = validateGameRows(gameKey, raw);
 
-  if (!checked.ok) {
-    console.log(`[WARN] ${gameKey}: ${checked.reason}, keep existing file unchanged`);
-    return { gameKey, ok: false, count: Array.isArray(raw) ? raw.length : 0, reason: checked.reason };
+  if (checked.ok) {
+    writeJson(file, checked.rows);
+    return { count: checked.rows.length, status: checked.reason };
   }
 
-  writeJson(file, checked.rows);
-  console.log(`[OK] ${gameKey}: ${checked.rows.length}`);
-
-  return { gameKey, ok: true, count: checked.rows.length, reason: "validated" };
+  // V67: 假資料或無效資料直接清空，不再保留污染資料
+  writeJson(file, []);
+  return { count: 0, status: checked.reason };
 }
 
 function main() {
   ensureDir(OFFICIAL_DIR);
 
-  const results = {
-    bingo: updateOne("bingo"),
-    lotto649: updateOne("lotto649"),
-    superlotto638: updateOne("superlotto638"),
-    dailycash: updateOne("dailycash")
+  const games = {
+    bingo: sanitizeOne("bingo"),
+    lotto649: sanitizeOne("lotto649"),
+    superlotto638: sanitizeOne("superlotto638"),
+    dailycash: sanitizeOne("dailycash")
   };
 
   const meta = {
-    version: "V66.5",
-    mode: "official-only-safe",
-    sourceName: "data/official 驗證保護模式",
+    version: "V67",
+    mode: "official-only-sanitized",
+    sourceName: "data/official 真資料安全展示模式",
     generatedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    games: {
-      bingo: { count: results.bingo.count, status: results.bingo.reason },
-      lotto649: { count: results.lotto649.count, status: results.lotto649.reason },
-      superlotto638: { count: results.superlotto638.count, status: results.superlotto638.reason },
-      dailycash: { count: results.dailycash.count, status: results.dailycash.reason }
-    }
+    games
   };
 
   writeJson(path.join(OFFICIAL_DIR, "meta.json"), meta);
-  console.log("[DONE] V66.5 official-only safe update complete");
+  console.log("[DONE] V67 official sanitize complete");
 }
 
 main();
