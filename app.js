@@ -742,7 +742,35 @@
   }
 
   function analyze() {
-    const draws = getLimitedDraws();
+  const draws = getLimitedDraws();
+
+  // ✅ 防呆：沒有資料就停止分析
+  if (!draws || draws.length === 0) {
+    renderMeta();
+
+    byId("prediction").innerHTML = `
+      <div class="note warn">
+        ⚠ 此彩種目前沒有可用的真實資料（已自動過濾假資料）
+      </div>
+    `;
+
+    byId("summaryStats").innerHTML = "";
+    byId("hotCold").innerHTML = "";
+    byId("patternStats").innerHTML = "";
+    byId("latestDraw").innerHTML = `
+      <div class="small">目前無開獎資料</div>
+    `;
+
+    return;
+  }
+
+  renderMeta();
+  renderPrediction(draws);
+  renderSummary(draws);
+  renderHotCold(draws);
+  renderPatterns(draws);
+  renderLatest(draws);
+}
     renderMeta();
     renderPrediction(draws);
     renderSummary(draws);
