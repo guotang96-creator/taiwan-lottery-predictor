@@ -199,9 +199,13 @@ function validateGameRows(gameKey, rows) {
 
 function sanitizeOne(gameKey) {
   const file = path.join(OFFICIAL_DIR, `${gameKey}.json`);
-  if (!exists(file)) {
-    writeJson(file, []);
-    return { count: 0, status: "file not found" };
+  if (checked.ok) {
+  writeJson(file, checked.rows);
+  return { count: checked.rows.length, status: checked.reason };
+}
+
+writeJson(file, []);
+return { count: 0, status: checked.reason };;
   }
 
   const raw = readJson(file);
