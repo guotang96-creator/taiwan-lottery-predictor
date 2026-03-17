@@ -1,68 +1,66 @@
 export default async function handler(req, res) {
-  const { game, count } = req.query;
 
-  let url = "";
+const game = req.query.game;
+const count = Number(req.query.count || 30);
 
-  if (game === "bingo") {
-    url = "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/BingoResult";
-  }
+let url = "";
 
-  if (game === "lotto") {
-    url = "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result";
-  }
+if (game === "539") {
+url = "https://www.taiwanlottery.com.tw/lotto/DailyCash/history.aspx";
+}
 
-  if (game === "power") {
-    url = "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/SuperLotto638Result";
-  }
+if (game === "lotto") {
+url = "https://www.taiwanlottery.com.tw/lotto/Lotto649/history.aspx";
+}
 
-  if (game === "539") {
-    url = "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result";
-  }
+if (game === "power") {
+url = "https://www.taiwanlottery.com.tw/lotto/SuperLotto638/history.aspx";
+}
 
-  try {
-    const r = await fetch(url);
-    const data = await r.json();
+if (game === "bingo") {
+url = "https://www.taiwanlottery.com.tw/lotto/bingo/bingo.asp";
+}
 
-    let draws = [];
+try {
 
-    if (game === "bingo") {
-      draws = data?.content?.map(d => ({
-        issue: d.drawTerm,
-        date: d.drawDate,
-        numbers: d.drawNumberAppear.split(",").map(Number)
-      }));
-    }
+const r = await fetch(url,{
+headers:{
+"user-agent":"Mozilla/5.0"
+}
+});
 
-    if (game === "lotto") {
-      draws = data?.content?.map(d => ({
-        issue: d.drawTerm,
-        date: d.drawDate,
-        numbers: d.drawNumberAppear.slice(0,6).map(Number)
-      }));
-    }
+const text = await r.text();
 
-    if (game === "power") {
-      draws = data?.content?.map(d => ({
-        issue: d.drawTerm,
-        date: d.drawDate,
-        numbers: d.drawNumberAppear.slice(0,6).map(Number),
-        second: Number(d.drawNumberAppear[6])
-      }));
-    }
+const numbers = [...text.matchAll(/\d{2}/g)]
+.map(v=>Number(v[0]))
+.filter(n=>n>0 && n<90);
 
-    if (game === "539") {
-      draws = data?.content?.map(d => ({
-        issue: d.drawTerm,
-        date: d.drawDate,
-        numbers: d.drawNumberAppear.slice(0,5).map(Number)
-      }));
-    }
+const draws = [];
 
-    res.status(200).json({
-      draws: draws.slice(0, Number(count || 30))
-    });
+for(let i=0;i<count;i++){
 
-  } catch (err) {
-    res.status(200).json({ draws: [] });
-  }
+const start=i*6;
+
+const nums=numbers.slice(start,start+6);
+
+if(nums.length>=5){
+
+draws.push({
+issue:String(539000+i),
+date:"",
+numbers:nums.slice(0,5)
+});
+
+}
+
+}
+
+res.status(200).json({draws});
+
+}catch(e){
+
+res.status(200).json({draws:[]});
+
+}
+
 }
