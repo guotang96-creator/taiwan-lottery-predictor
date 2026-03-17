@@ -10,12 +10,12 @@ permissions:
 
 concurrency:
   group: update-official-data
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -29,6 +29,7 @@ jobs:
       - name: Ensure folders
         run: |
           mkdir -p data/official
+          mkdir -p raw_data
           mkdir -p scripts
 
       - name: Run updater
@@ -36,9 +37,11 @@ jobs:
 
       - name: Show result
         run: |
-          ls -lah data/official
           echo "---- meta.json ----"
           cat data/official/meta.json || true
+          echo
+          echo "---- files ----"
+          ls -lah data/official || true
 
       - name: Commit updated data
         run: |
@@ -50,6 +53,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: update official lottery data"
+            git commit -m "chore: update official lottery data (V66.3)"
             git push
           fi
