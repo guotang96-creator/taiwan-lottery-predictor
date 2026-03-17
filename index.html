@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券預測助手 V25</title>
+  <title>台灣彩券預測助手 V40</title>
   <meta name="theme-color" content="#2563eb" />
-  <meta name="description" content="台灣彩券預測助手，支援賓果、大樂透、威力彩、今彩539，含AI分析與手機安裝版。" />
+  <meta name="description" content="台灣彩券預測助手 V40，支援賓果、大樂透、威力彩、今彩539，含AI分析、冷門反彈、拖牌與命中率回測。" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="https://dummyimage.com/192x192/2563eb/ffffff&text=V25" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header class="hero">
       <div>
-        <h1>台灣彩券預測助手 V25</h1>
-        <p>AI混合選號｜偏財生日模式｜命中率回測｜手機安裝版</p>
+        <h1>台灣彩券預測助手 V40</h1>
+        <p>AI混合｜熱門/冷門/均衡｜拖牌強化｜命中率回測</p>
       </div>
       <button id="installBtn" class="install-btn hidden">安裝 App</button>
     </header>
@@ -77,9 +76,10 @@
           分析模式
           <select id="mode">
             <option value="ai" selected>AI混合模式</option>
-            <option value="normal">一般分析</option>
+            <option value="hot">熱門強化</option>
+            <option value="cold">冷門反彈</option>
+            <option value="balanced">均衡模式</option>
             <option value="birthday">偏財生日模式</option>
-            <option value="mixed">混合強化模式</option>
           </select>
         </label>
       </div>
@@ -92,14 +92,12 @@
       </div>
 
       <div id="status" class="status">請先讀取資料</div>
-      <div class="tip">
-        本工具屬統計參考，不保證中獎；建議當作分析輔助使用。
-      </div>
+      <div class="tip">本工具屬統計分析參考，不保證中獎，請理性使用。</div>
     </section>
 
     <section class="cards">
       <div class="card wide">
-        <h2>AI 推薦號碼</h2>
+        <h2>V40 推薦號碼</h2>
         <div id="result"></div>
       </div>
 
@@ -139,7 +137,7 @@
       </div>
 
       <div class="card">
-        <h2>Bingo 最佳顆數建議</h2>
+        <h2>Bingo 建議</h2>
         <div id="bingoAdvice"></div>
       </div>
 
