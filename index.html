@@ -4,23 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>台灣彩券預測助手 V60</title>
+
   <meta name="theme-color" content="#2563eb" />
-  <meta name="description" content="台灣彩券預測助手 V60，支援賓果、大樂透、威力彩、今彩539，含AI信心分數、走勢、回測。" />
+  <meta name="description" content="台灣彩券AI預測，支援539、大樂透、威力彩、Bingo，含AI分析、爆號預測與回測。" />
+
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div class="app">
+
+    <!-- 頂部 -->
     <header class="hero">
       <div>
         <h1>台灣彩券預測助手 V60</h1>
-        <p>AI信心分數｜熱門/冷門/均衡｜拖牌強化｜命中率回測</p>
+        <p>AI信心分數｜爆號預測｜拖牌分析｜命中率回測</p>
       </div>
       <button id="installBtn" class="install-btn hidden">安裝 App</button>
     </header>
 
+    <!-- 控制面板 -->
     <section class="panel">
+
       <div class="form-grid">
+
         <label>
           彩券類型
           <select id="game">
@@ -82,8 +90,10 @@
             <option value="birthday">偏財生日模式</option>
           </select>
         </label>
+
       </div>
 
+      <!-- 按鈕 -->
       <div class="btn-row btn-row-4">
         <button id="loadBtn">讀取歷史資料</button>
         <button id="analyzeBtn">開始分析</button>
@@ -92,18 +102,31 @@
       </div>
 
       <div id="status" class="status">請先讀取資料</div>
-      <div class="tip">本工具屬統計分析參考，不保證中獎，請理性使用。</div>
+      <div class="tip">本工具僅供參考，請理性投注</div>
+
     </section>
 
+    <!-- 卡片區 -->
     <section class="cards">
+
       <div class="card wide">
-        <h2>V60 推薦號碼</h2>
+        <h2>推薦號碼</h2>
         <div id="result"></div>
       </div>
 
       <div class="card">
         <h2>AI 信心分數</h2>
         <div id="confidenceBox"></div>
+      </div>
+
+      <div class="card">
+        <h2>爆號預測</h2>
+        <div id="burstBox"></div>
+      </div>
+
+      <div class="card wide">
+        <h2>近期走勢</h2>
+        <div id="trendBox"></div>
       </div>
 
       <div class="card">
@@ -147,11 +170,6 @@
       </div>
 
       <div class="card wide">
-        <h2>近期走勢</h2>
-        <div id="trendBox"></div>
-      </div>
-
-      <div class="card wide">
         <h2>命中率回測</h2>
         <div id="backtestResult"></div>
       </div>
@@ -160,10 +178,11 @@
         <h2>最近開獎</h2>
         <div id="latestDraws"></div>
       </div>
+
     </section>
+
   </div>
 
   <script src="app.js"></script>
 </body>
 </html>
-V40 stable version
