@@ -1,0 +1,63 @@
+name: Update Official Lottery Data
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/update_official.js"
+      - ".github/workflows/update-official.yml"
+  schedule:
+    # 避開整點，降低 GitHub schedule 延遲或掉排程機率
+    # GitHub Actions 最短 5 分鐘一次；這裡設成每 15 分鐘跑一次
+    - cron: "7,22,37,52 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-official-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Ensure folders
+        run: |
+          mkdir -p data/official
+          mkdir -p scripts
+
+      - name: Run updater
+        run: node scripts/update_official.js
+
+      - name: Show result
+        run: |
+          ls -lah data/official
+          echo "---- meta.json ----"
+          cat data/official/meta.json || true
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/official/*.json
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update official lottery data"
+            git push
+          fi
