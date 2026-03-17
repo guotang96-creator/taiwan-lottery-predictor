@@ -3,19 +3,11 @@ name: Update Official Lottery Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "7,22,37,52 * * * *"
-
-permissions:
-  contents: write
-
-concurrency:
-  group: update-official-data
-  cancel-in-progress: true
+    - cron: "0 */6 * * *" # 每6小時跑一次
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -24,36 +16,16 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-
-      - name: Ensure folders
-        run: |
-          mkdir -p data/official
-          mkdir -p raw_data
-          mkdir -p scripts
+          node-version: "20"
 
       - name: Run updater
         run: node scripts/update_official.js
 
-      - name: Show result
-        run: |
-          echo "---- meta.json ----"
-          cat data/official/meta.json || true
-          echo
-          echo "---- files ----"
-          ls -lah data/official || true
-
-           - name: Commit updated data
+      - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add data/official/*.json
-
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: update official lottery data (V66.4)"
-            git pull --rebase origin main
-            git push origin main
-          fi
+          git config user.email "github-actions@github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "V66.5 keep official data safe"
+          git pull --rebase
+          git push
