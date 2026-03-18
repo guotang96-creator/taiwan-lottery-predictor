@@ -6,7 +6,145 @@ const OFFICIAL_DATA_PATHS = {
   ],
   lotto649: [
     "data/official/lotto649.json",
-    "data/official/大樂透.json"
+    "const DATA_PATHS = {
+  bingo: "data/official/bingo.json",
+  lotto649: "data/official/lotto649.json",
+  superlotto638: "data/official/superlotto638.json",
+  dailycash: "data/official/dailycash.json",
+  meta: "data/official/meta.json"
+};
+
+const GAME_NAMES = {
+  bingo: "Bingo Bingo",
+  lotto649: "大樂透",
+  superlotto638: "威力彩",
+  dailycash: "今彩539"
+};
+
+const STORAGE_KEY = "tw_lottery_predictions_v69_3";
+
+let cache = {
+  bingo: [],
+  lotto649: [],
+  superlotto638: [],
+  dailycash: [],
+  meta: null
+};
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function uniq(arr) {
+  return [...new Set(arr)];
+}
+
+function sortAsc(arr) {
+  return [...arr].sort((a, b) => a - b);
+}
+
+function pickRandom(arr, count) {
+  const pool = [...arr];
+  const out = [];
+  while (pool.length && out.length < count) {
+    const idx = Math.floor(Math.random() * pool.length);
+    out.push(pool.splice(idx, 1)[0]);
+  }
+  return out;
+}
+
+async function loadJSON(url) {
+  const res = await fetch(url + `?t=${Date.now()}`);
+  if (!res.ok) throw new Error(`載入失敗: ${url}`);
+  return res.json();
+}
+
+async function initData() {
+  try {
+    const [bingo, lotto649, superlotto638, dailycash, meta] = await Promise.all([
+      loadJSON(DATA_PATHS.bingo),
+      loadJSON(DATA_PATHS.lotto649),
+      loadJSON(DATA_PATHS.superlotto638),
+      loadJSON(DATA_PATHS.dailycash),
+      loadJSON(DATA_PATHS.meta).catch(() => null)
+    ]);
+
+    cache.bingo = Array.isArray(bingo) ? bingo : [];
+    cache.lotto649 = Array.isArray(lotto649) ? lotto649 : [];
+    cache.superlotto638 = Array.isArray(superlotto638) ? superlotto638 : [];
+    cache.dailycash = Array.isArray(dailycash) ? dailycash : [];
+    cache.meta = meta;
+
+    console.log("✅ 官方資料載入完成", {
+      bingo: cache.bingo.length,
+      lotto649: cache.lotto649.length,
+      superlotto638: cache.superlotto638.length,
+      dailycash: cache.dailycash.length
+    });
+  } catch (err) {
+    console.error(err);
+    alert("官方資料載入失敗，請稍後再試");
+  }
+}
+
+function getHistoryCount() {
+  const el = document.getElementById("historyPeriods");
+  return parseInt(el?.value || "50", 10);
+}
+
+function getSetCount() {
+  const el = document.getElementById("setCount");
+  return parseInt(el?.value || "3", 10);
+}
+
+function getBingoCount() {
+  const el = document.getElementById("bingoCount");
+  return parseInt(el?.value || "10", 10);
+}
+
+function normalizeDraw(draw, key) {
+  if (!draw) return null;
+
+  const numbers = Array.isArray(draw.numbers)
+    ? draw.numbers.map(Number).filter(n => !Number.isNaN(n))
+    : [];
+
+  let extra = null;
+  if (draw.extra !== undefined && draw.extra !== null && draw.extra !== "") {
+    const n = Number(draw.extra);
+    if (!Number.isNaN(n)) extra = n;
+  }
+
+  return {
+    date: draw.date || draw.drawDate || "",
+    period: draw.period || draw.issue || "",
+    numbers: sortAsc(numbers),
+    extra
+  };
+}
+
+function getRecentDraws(key, count) {
+  const list = cache[key] || [];
+  return list.slice(0, count).map(item => normalizeDraw(item, key)).filter(Boolean);
+}
+
+function getLatestDraw(key) {
+  const list = getRecentDraws(key, 1);
+  return list[0] || null;
+}
+
+function countFrequency(draws, maxNumber, pickCount) {
+  const freq = Array.from({ length: maxNumber + 1 }, () => 0);
+
+  draws.forEach(draw => {
+    draw.numbers.forEach(n => {
+      if (n >= 1 && n <= maxNumber) freq[n]++;
+    });
+  });
+
+  const all = Array.from({ length: maxNumber }, (_, i) => i + 1);
+
+  const hot = [...all]./official/大樂透.json"
   ],
   superlotto638: [
     "data/official/superlotto638.json",
