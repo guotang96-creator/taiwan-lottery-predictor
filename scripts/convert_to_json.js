@@ -133,6 +133,19 @@ function hasDuplicateNumbers(arr) {
   return new Set(arr).size !== arr.length;
 }
 
+function extractNumbers(row, count, min, max) {
+  const numbers = [];
+
+  for (let i = 1; i <= count; i++) {
+    const n = safeInt(row[`n${i}`]);
+    if (n !== null && n >= min && n <= max) {
+      numbers.push(n);
+    }
+  }
+
+  return numbers;
+}
+
 function sortRowsDesc(rows) {
   return [...rows].sort((a, b) => {
     const ai = Number(String(a.issue).replace(/\D/g, ""));
@@ -166,14 +179,14 @@ function dedupeRowsByIssue(rows) {
     const prevScore =
       (prev.date ? 1 : 0) +
       (Array.isArray(prev.numbers) ? prev.numbers.length : 0) +
-      (prev.special ? 1 : 0) +
-      (prev.zone2 ? 1 : 0);
+      (prev.special !== undefined ? 1 : 0) +
+      (prev.zone2 !== undefined ? 1 : 0);
 
     const currScore =
       (row.date ? 1 : 0) +
       (Array.isArray(row.numbers) ? row.numbers.length : 0) +
-      (row.special ? 1 : 0) +
-      (row.zone2 ? 1 : 0);
+      (row.special !== undefined ? 1 : 0) +
+      (row.zone2 !== undefined ? 1 : 0);
 
     if (currScore > prevScore) {
       map.set(key, row);
@@ -200,19 +213,6 @@ function syncToPublic(fileName) {
     fs.copyFileSync(src, dest);
     console.log(`📁 同步到 public: ${fileName}`);
   }
-}
-
-function extractNumbers(row, count, min, max) {
-  const numbers = [];
-
-  for (let i = 1; i <= count; i++) {
-    const n = safeInt(row[`n${i}`]);
-    if (n !== null && n >= min && n <= max) {
-      numbers.push(n);
-    }
-  }
-
-  return numbers;
 }
 
 function normalizeBingoRows(records) {
@@ -255,18 +255,33 @@ function normalizeDailycashRows(records) {
   return result;
 }
 
+function normalizeLotto649Rows(records) {
+  const result = [];
+
+  for (let i = 0; i < records.length; i++) {
+    const row = records[i];
+    const issue = normalizeIssue(row.issue, i);
+    const date = normalizeDate(row.date);
+    const numbers = extractNumbers(row, 6, 1, 49);
+
+    if (!issue) continue;
+    if (!date) continue;
+    if (numbers.length !== 6) continue;
+    if (hasDuplicateNumbers(numbers)) continue;
+
+    result.push({ issue, date, numbers });
+  }
+
+  return result;
+}
+
 function convertCsvFile(options) {
-  const {
-    csvFile,
-    jsonFile,
-    latestKey,
-    normalizer
-  } = options;
+  const { csvFile, jsonFile, latestKey, normalizer } = options;
 
   const csvPath = path.join(RAW_DIR, csvFile);
   if (!fs.existsSync(csvPath)) {
     console.warn(`⚠️ 找不到 ${csvFile}，略過`);
-    return [];
+    return null;
   }
 
   const csvText = readText(csvPath);
@@ -276,7 +291,7 @@ function convertCsvFile(options) {
   if (records.length === 0) {
     console.warn(`⚠️ ${csvFile} 解析後沒有任何資料列`);
     writeJson(path.join(DATA_DIR, jsonFile), []);
-    return [];
+    return { key: latestKey, rows: [] };
   }
 
   const normalized = normalizer(records);
@@ -303,7 +318,7 @@ function updateLatestJson(results) {
 
   const latest = {
     ...existing,
-    version: "csv-fix-2",
+    version: "csv-fix-3",
     updatedAt: new Date().toISOString(),
     games: {
       ...(existing && existing.games ? existing.games : {})
@@ -342,10 +357,20 @@ function main() {
     })
   );
 
+  results.push(
+    convertCsvFile({
+      csvFile: "lotto.csv",
+      jsonFile: "lotto649.json",
+      latestKey: "lotto649",
+      normalizer: normalizeLotto649Rows
+    })
+  );
+
   updateLatestJson(results);
 
   syncToPublic("bingo.json");
   syncToPublic("dailycash.json");
+  syncToPublic("lotto649.json");
   syncToPublic("latest.json");
 
   console.log("✅ convert_to_json 完成");
