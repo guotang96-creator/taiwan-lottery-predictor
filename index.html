@@ -1,63 +1,74 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>台灣彩券 AI 預測系統 V72.2</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台灣彩券 AI 預測系統</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-<div class="app-shell">
 
-<header class="topbar">
-  <h1>🎯 台灣彩券 AI 預測系統</h1>
-  <p>V72.2｜官方資料版｜最新五期 + AI分析</p>
-</header>
+  <div class="container">
 
-<div class="main-wrap">
+    <header class="header">
+      <h1>🎯 台灣彩券 AI 預測系統</h1>
+      <p>V72.9｜官方資料版｜最新五期 + AI分析</p>
+    </header>
 
-<!-- 控制區 -->
-<div class="panel">
-  <h2>預測設定</h2>
+    <div class="main-grid">
 
-  <label>推薦組數</label>
-  <select id="setCount">
-    <option value="1">1組</option>
-    <option value="3" selected>3組</option>
-    <option value="5">5組</option>
-  </select>
+      <!-- 左側 -->
+      <div class="panel">
 
-  <label>分析期數</label>
-  <select id="historyPeriods">
-    <option value="30">30期</option>
-    <option value="50" selected>50期</option>
-    <option value="100">100期</option>
-  </select>
+        <h2>預測設定</h2>
 
-  <label>Bingo 選幾顆</label>
-  <select id="bingoCount">
-    <option value="5">5顆</option>
-    <option value="10" selected>10顆</option>
-  </select>
+        <label>推薦組數</label>
+        <select id="setCount">
+          <option>1</option>
+          <option selected>3</option>
+          <option>5</option>
+        </select>
 
-  <div class="btn-group">
-    <button onclick="runPrediction('bingo')">Bingo</button>
-    <button onclick="runPrediction('649')">大樂透</button>
-    <button onclick="runPrediction('638')">威力彩</button>
-    <button onclick="runPrediction('539')">539</button>
+        <label>分析期數</label>
+        <select id="historyPeriods">
+          <option>20</option>
+          <option selected>50</option>
+          <option>100</option>
+        </select>
+
+        <label>Bingo 選球數</label>
+        <select id="bingoCount">
+          <option>5</option>
+          <option selected>10</option>
+          <option>20</option>
+        </select>
+
+        <div class="btn-group">
+          <button onclick="runPrediction('bingo')">🎱 Bingo</button>
+          <button onclick="runPrediction('649')">💰 大樂透</button>
+          <button onclick="runPrediction('638')">⚡ 威力彩</button>
+          <button onclick="runPrediction('539')">🍀 539</button>
+        </div>
+
+      </div>
+
+      <!-- 右側 -->
+      <div class="panel result-panel">
+
+        <div class="result-header">
+          <h2 id="resultGameName">尚未預測</h2>
+          <span id="resultBadge">待預測</span>
+        </div>
+
+        <div id="predictionResult"></div>
+
+      </div>
+
+    </div>
+
   </div>
-</div>
 
-<!-- 結果區 -->
-<div class="panel">
-  <h2 id="resultGameName">尚未預測</h2>
-  <div id="predictionResult">請按上方按鈕開始</div>
-</div>
-
-</div>
-</div>
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
