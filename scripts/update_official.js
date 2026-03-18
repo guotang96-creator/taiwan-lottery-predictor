@@ -13,9 +13,13 @@ function write(file, data) {
   fs.writeFileSync(path.join(DIR, file), JSON.stringify(data, null, 2));
 }
 
+function clean(arr) {
+  return arr.filter(x => x && x.issue); // 🔥 過濾壞資料
+}
+
 function latest(arr, n = 5) {
-  return [...arr]
-    .sort((a, b) => b.issue.localeCompare(a.issue))
+  return clean(arr)
+    .sort((a, b) => String(b.issue).localeCompare(String(a.issue)))
     .slice(0, n);
 }
 
@@ -26,7 +30,7 @@ function main() {
   const dailycash = read("dailycash.json");
 
   const latestData = {
-    version: "V72.6",
+    version: "V72.7",
     updatedAt: new Date().toISOString(),
     games: {
       bingo: latest(bingo),
@@ -38,7 +42,7 @@ function main() {
 
   write("latest.json", latestData);
 
-  console.log("✅ latest.json 已產生");
+  console.log("✅ latest.json 已產生（已過濾壞資料）");
 }
 
 main();
