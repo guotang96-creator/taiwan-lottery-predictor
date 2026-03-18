@@ -32,6 +32,8 @@ jobs:
 
       - name: Parse downloaded zip files into raw CSV
         run: node scripts/parse_downloads.js
+      - name: Fetch latest official incremental data
+        run: node scripts/fetch_latest_official.js
 
       - name: Convert CSV to JSON
         run: node scripts/convert_to_json.js
