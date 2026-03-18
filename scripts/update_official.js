@@ -23,75 +23,22 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
-function normalizeRows(rows, game) {
+function sortDesc(rows) {
   if (!Array.isArray(rows)) return [];
 
-  return rows
-    .map((row) => {
-      const issue = String(row.issue || "").trim();
-      const date = String(row.date || "").trim();
-
-      const numbers = Array.isArray(row.numbers)
-        ? [...new Set(
-            row.numbers
-              .map(v => Number(v))
-              .filter(v => Number.isFinite(v) && v > 0)
-          )].sort((a, b) => a - b)
-        : [];
-
-      if (!issue || !numbers.length) return null;
-
-      const base = { issue, date, numbers };
-
-      if (game === "lotto649") {
-        const special = Number(row.special);
-        if (Number.isFinite(special) && special >= 1 && special <= 49) {
-          base.special = special;
-        }
-      }
-
-      if (game === "superlotto638") {
-        const zone2 = Number(row.zone2 ?? row.second ?? row.special);
-        if (Number.isFinite(zone2) && zone2 >= 1 && zone2 <= 8) {
-          base.zone2 = zone2;
-        }
-      }
-
-      return base;
-    })
-    .filter(Boolean);
-}
-
-function dedupeRows(rows) {
-  const map = new Map();
-
-  for (const row of rows) {
-    const key = [
-      row.issue,
-      row.date,
-      row.numbers.join("-"),
-      row.special ?? "",
-      row.zone2 ?? ""
-    ].join("|");
-
-    if (!map.has(key)) {
-      map.set(key, row);
-    }
-  }
-
-  return [...map.values()];
-}
-
-function sortDesc(rows) {
   return [...rows].sort((a, b) => {
-    const an = Number(String(a.issue).replace(/\D/g, ""));
-    const bn = Number(String(b.issue).replace(/\D/g, ""));
+    const ai = Number(String(a?.issue || "").replace(/\D/g, ""));
+    const bi = Number(String(b?.issue || "").replace(/\D/g, ""));
 
-    if (Number.isFinite(an) && Number.isFinite(bn) && an !== bn) {
-      return bn - an;
+    if (Number.isFinite(ai) && Number.isFinite(bi) && ai !== bi) {
+      return bi - ai;
     }
 
-    return String(b.issue).localeCompare(String(a.issue));
+    const ad = String(a?.date || "");
+    const bd = String(b?.date || "");
+    if (ad !== bd) return bd.localeCompare(ad);
+
+    return String(b?.issue || "").localeCompare(String(a?.issue || ""));
   });
 }
 
@@ -113,18 +60,13 @@ function main() {
   ensureDir(DATA_DIR);
   ensureDir(PUBLIC_DIR);
 
-  const bingo = sortDesc(dedupeRows(normalizeRows(readJsonSafe(path.join(DATA_DIR, "bingo.json")), "bingo")));
-  const lotto649 = sortDesc(dedupeRows(normalizeRows(readJsonSafe(path.join(DATA_DIR, "lotto649.json")), "lotto649")));
-  const superlotto638 = sortDesc(dedupeRows(normalizeRows(readJsonSafe(path.join(DATA_DIR, "superlotto638.json")), "superlotto638")));
-  const dailycash = sortDesc(dedupeRows(normalizeRows(readJsonSafe(path.join(DATA_DIR, "dailycash.json")), "dailycash")));
-
-  writeJson(path.join(DATA_DIR, "bingo.json"), bingo);
-  writeJson(path.join(DATA_DIR, "lotto649.json"), lotto649);
-  writeJson(path.join(DATA_DIR, "superlotto638.json"), superlotto638);
-  writeJson(path.join(DATA_DIR, "dailycash.json"), dailycash);
+  const bingo = sortDesc(readJsonSafe(path.join(DATA_DIR, "bingo.json"), []));
+  const lotto649 = sortDesc(readJsonSafe(path.join(DATA_DIR, "lotto649.json"), []));
+  const superlotto638 = sortDesc(readJsonSafe(path.join(DATA_DIR, "superlotto638.json"), []));
+  const dailycash = sortDesc(readJsonSafe(path.join(DATA_DIR, "dailycash.json"), []));
 
   const latest = {
-    version: "V74.2",
+    version: "V74.3",
     updatedAt: new Date().toISOString(),
     games: {
       bingo: latestFive(bingo),
