@@ -8,10 +8,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "parse:downloads": "node parse_downloads.js",
-    "convert:json": "node convert_to_json.js",
-    "update:official": "node update_official.js",
-    "fetch:latest": "node fetch_latest_official.js",
+    "parse:downloads": "node scripts/parse_downloads.js",
+    "convert:json": "node scripts/convert_to_json.js",
+    "fetch:latest": "node scripts/fetch_latest_official.js",
+    "update:official": "node scripts/update_official.js",
     "build:data": "npm run parse:downloads && npm run convert:json && npm run fetch:latest && npm run update:official"
   }
 }
