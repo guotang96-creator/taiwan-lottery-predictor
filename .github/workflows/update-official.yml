@@ -33,9 +33,6 @@ jobs:
           mkdir -p data/official
           mkdir -p scripts
 
-      - name: Fetch official data
-        run: node scripts/fetch_official.js
-
       - name: Run updater
         run: node scripts/update_official.js
 
@@ -59,6 +56,6 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: update official lottery data (V67.1)"
+          git commit -m "chore: update official lottery data (V67.1 stable)"
           git pull --rebase origin main
           git push origin main
