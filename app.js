@@ -809,3 +809,84 @@
 
   document.addEventListener("DOMContentLoaded", init);
 })();
+function formatNums(arr) {
+  return (arr || []).map(n => String(n).padStart(2, "0")).join(" ");
+}
+
+function renderPrediction(title, data) {
+  const box = document.getElementById("predictionResult");
+  if (!box) return;
+
+  let html = `<h3>${title}</h3>`;
+
+  if (data.best) {
+    html += `<p><strong>主推薦：</strong> ${formatNums(data.best)}</p>`;
+  }
+
+  if (data.zone1) {
+    html += `<p><strong>第一區：</strong> ${formatNums(data.zone1)}</p>`;
+    html += `<p><strong>第二區：</strong> ${String(data.zone2).padStart(2, "0")}</p>`;
+  }
+
+  if (data.sets?.length) {
+    html += `<div><strong>多組推薦：</strong>`;
+    html += data.sets.map((set, i) => {
+      if (Array.isArray(set)) {
+        return `<p>第 ${i + 1} 組：${formatNums(set)}</p>`;
+      }
+      return `<p>第 ${i + 1} 組：${formatNums(set.zone1)} + ${String(set.zone2).padStart(2, "0")}</p>`;
+    }).join("");
+    html += `</div>`;
+  }
+
+  if (data.hot) {
+    html += `<p><strong>熱號：</strong> ${formatNums(data.hot)}</p>`;
+  }
+
+  if (data.cold) {
+    html += `<p><strong>冷號：</strong> ${formatNums(data.cold)}</p>`;
+  }
+
+  if (data.latest) {
+    html += `<p><strong>上期：</strong> ${formatNums(data.latest)}</p>`;
+  }
+
+  box.innerHTML = html;
+}
+
+async function fetchJsonSafe(url) {
+  const res = await fetch(url);
+  return await res.json();
+}
+
+async function runPrediction(gameType) {
+  const setCountEl = document.getElementById("setCount");
+  const bingoCountEl = document.getElementById("bingoCount");
+
+  const setCount = setCountEl ? parseInt(setCountEl.value, 10) || 3 : 3;
+  const bingoCount = bingoCountEl ? parseInt(bingoCountEl.value, 10) || 10 : 10;
+
+  if (gameType === "539") {
+    const data = await fetchJsonSafe("data/official/dailycash.json");
+    const result = window.LotteryPredictor.predict539(data, setCount);
+    renderPrediction("今彩539 預測結果", result);
+  }
+
+  if (gameType === "649") {
+    const data = await fetchJsonSafe("data/official/lotto649.json");
+    const result = window.LotteryPredictor.predict649(data, setCount);
+    renderPrediction("大樂透 預測結果", result);
+  }
+
+  if (gameType === "638") {
+    const data = await fetchJsonSafe("data/official/superlotto638.json");
+    const result = window.LotteryPredictor.predict638(data, setCount);
+    renderPrediction("威力彩 預測結果", result);
+  }
+
+  if (gameType === "bingo") {
+    const data = await fetchJsonSafe("data/official/bingo.json");
+    const result = window.LotteryPredictor.predictBingo(data, bingoCount, setCount);
+    renderPrediction("Bingo Bingo 預測結果", result);
+  }
+}
