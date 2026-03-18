@@ -129,42 +129,8 @@ function normalizeIssue(issue, rowIndex) {
   return `unknown-${String(rowIndex + 1).padStart(6, "0")}`;
 }
 
-function extractBingoNumbers(row) {
-  const numbers = [];
-
-  for (let i = 1; i <= 20; i++) {
-    const n = safeInt(row[`n${i}`]);
-    if (n !== null && n >= 1 && n <= 80) {
-      numbers.push(n);
-    }
-  }
-
-  return numbers;
-}
-
 function hasDuplicateNumbers(arr) {
   return new Set(arr).size !== arr.length;
-}
-
-function normalizeBingoRows(records) {
-  const result = [];
-
-  for (let i = 0; i < records.length; i++) {
-    const row = records[i];
-
-    const issue = normalizeIssue(row.issue, i);
-    const date = normalizeDate(row.date);
-    const numbers = extractBingoNumbers(row);
-
-    if (!issue) continue;
-    if (!date) continue;
-    if (numbers.length !== 20) continue;
-    if (hasDuplicateNumbers(numbers)) continue;
-
-    result.push({ issue, date, numbers });
-  }
-
-  return result;
 }
 
 function sortRowsDesc(rows) {
@@ -184,7 +150,7 @@ function sortRowsDesc(rows) {
   });
 }
 
-function dedupeBingoRows(rows) {
+function dedupeRowsByIssue(rows) {
   const map = new Map();
 
   for (const row of rows) {
@@ -199,11 +165,15 @@ function dedupeBingoRows(rows) {
 
     const prevScore =
       (prev.date ? 1 : 0) +
-      (Array.isArray(prev.numbers) ? prev.numbers.length : 0);
+      (Array.isArray(prev.numbers) ? prev.numbers.length : 0) +
+      (prev.special ? 1 : 0) +
+      (prev.zone2 ? 1 : 0);
 
     const currScore =
       (row.date ? 1 : 0) +
-      (Array.isArray(row.numbers) ? row.numbers.length : 0);
+      (Array.isArray(row.numbers) ? row.numbers.length : 0) +
+      (row.special ? 1 : 0) +
+      (row.zone2 ? 1 : 0);
 
     if (currScore > prevScore) {
       map.set(key, row);
@@ -232,30 +202,71 @@ function syncToPublic(fileName) {
   }
 }
 
-function updateLatestJson(bingoRows) {
-  const latestPath = path.join(DATA_DIR, "latest.json");
-  const existing = readJsonSafe(latestPath, {});
+function extractNumbers(row, count, min, max) {
+  const numbers = [];
 
-  const latest = {
-    ...existing,
-    version: "bingo-fix-2",
-    updatedAt: new Date().toISOString(),
-    games: {
-      ...(existing && existing.games ? existing.games : {}),
-      bingo: bingoRows.slice(0, 5)
+  for (let i = 1; i <= count; i++) {
+    const n = safeInt(row[`n${i}`]);
+    if (n !== null && n >= min && n <= max) {
+      numbers.push(n);
     }
-  };
+  }
 
-  writeJson(latestPath, latest);
+  return numbers;
 }
 
-function convertBingo() {
-  ensureDir(DATA_DIR);
-  ensureDir(PUBLIC_DIR);
+function normalizeBingoRows(records) {
+  const result = [];
 
-  const csvPath = path.join(RAW_DIR, "bingo.csv");
+  for (let i = 0; i < records.length; i++) {
+    const row = records[i];
+    const issue = normalizeIssue(row.issue, i);
+    const date = normalizeDate(row.date);
+    const numbers = extractNumbers(row, 20, 1, 80);
+
+    if (!issue) continue;
+    if (!date) continue;
+    if (numbers.length !== 20) continue;
+    if (hasDuplicateNumbers(numbers)) continue;
+
+    result.push({ issue, date, numbers });
+  }
+
+  return result;
+}
+
+function normalizeDailycashRows(records) {
+  const result = [];
+
+  for (let i = 0; i < records.length; i++) {
+    const row = records[i];
+    const issue = normalizeIssue(row.issue, i);
+    const date = normalizeDate(row.date);
+    const numbers = extractNumbers(row, 5, 1, 39);
+
+    if (!issue) continue;
+    if (!date) continue;
+    if (numbers.length !== 5) continue;
+    if (hasDuplicateNumbers(numbers)) continue;
+
+    result.push({ issue, date, numbers });
+  }
+
+  return result;
+}
+
+function convertCsvFile(options) {
+  const {
+    csvFile,
+    jsonFile,
+    latestKey,
+    normalizer
+  } = options;
+
+  const csvPath = path.join(RAW_DIR, csvFile);
   if (!fs.existsSync(csvPath)) {
-    throw new Error(`找不到檔案: ${csvPath}`);
+    console.warn(`⚠️ 找不到 ${csvFile}，略過`);
+    return [];
   }
 
   const csvText = readText(csvPath);
@@ -263,24 +274,81 @@ function convertBingo() {
   const records = toObjects(parsedRows);
 
   if (records.length === 0) {
-    throw new Error("bingo.csv 解析後沒有任何資料列");
+    console.warn(`⚠️ ${csvFile} 解析後沒有任何資料列`);
+    writeJson(path.join(DATA_DIR, jsonFile), []);
+    return [];
   }
 
-  const normalized = normalizeBingoRows(records);
-  const deduped = dedupeBingoRows(normalized);
+  const normalized = normalizer(records);
+  const deduped = dedupeRowsByIssue(normalized);
   const finalRows = sortRowsDesc(deduped);
 
-  writeJson(path.join(DATA_DIR, "bingo.json"), finalRows);
-  updateLatestJson(finalRows);
+  writeJson(path.join(DATA_DIR, jsonFile), finalRows);
 
-  syncToPublic("bingo.json");
-  syncToPublic("latest.json");
+  console.log(`✅ ${csvFile} → ${jsonFile}`);
+  console.log(`   原始筆數: ${records.length}`);
+  console.log(`   有效筆數: ${normalized.length}`);
+  console.log(`   去重後筆數: ${finalRows.length}`);
+  console.log(`   最新五期: ${finalRows.slice(0, 5).map(x => x.issue).join(", ")}`);
 
-  console.log("✅ bingo CSV → JSON 轉換完成");
-  console.log(`原始筆數: ${records.length}`);
-  console.log(`有效筆數: ${normalized.length}`);
-  console.log(`去重後筆數: ${finalRows.length}`);
-  console.log(`最新五期: ${finalRows.slice(0, 5).map(x => x.issue).join(", ")}`);
+  return {
+    key: latestKey,
+    rows: finalRows
+  };
 }
 
-convertBingo();
+function updateLatestJson(results) {
+  const latestPath = path.join(DATA_DIR, "latest.json");
+  const existing = readJsonSafe(latestPath, {});
+
+  const latest = {
+    ...existing,
+    version: "csv-fix-2",
+    updatedAt: new Date().toISOString(),
+    games: {
+      ...(existing && existing.games ? existing.games : {})
+    }
+  };
+
+  for (const item of results) {
+    if (!item || !item.key) continue;
+    latest.games[item.key] = Array.isArray(item.rows) ? item.rows.slice(0, 5) : [];
+  }
+
+  writeJson(latestPath, latest);
+}
+
+function main() {
+  ensureDir(DATA_DIR);
+  ensureDir(PUBLIC_DIR);
+
+  const results = [];
+
+  results.push(
+    convertCsvFile({
+      csvFile: "bingo.csv",
+      jsonFile: "bingo.json",
+      latestKey: "bingo",
+      normalizer: normalizeBingoRows
+    })
+  );
+
+  results.push(
+    convertCsvFile({
+      csvFile: "539.csv",
+      jsonFile: "dailycash.json",
+      latestKey: "dailycash",
+      normalizer: normalizeDailycashRows
+    })
+  );
+
+  updateLatestJson(results);
+
+  syncToPublic("bingo.json");
+  syncToPublic("dailycash.json");
+  syncToPublic("latest.json");
+
+  console.log("✅ convert_to_json 完成");
+}
+
+main();
