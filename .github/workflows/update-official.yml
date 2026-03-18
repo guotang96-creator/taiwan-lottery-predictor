@@ -83,19 +83,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add package.json
-          git add data/official/*.json
-          git add data/downloads/*.zip
-          git add data/extracted
-          git add public/data/*.json
-          git add public/data/latest.json
-          git add public/data/official/*.json
+          git add package.json || true
+          git add data/official/*.json || true
+          git add data/downloads/*.zip || true
+          git add data/extracted || true
+          git add public/data/*.json || true
+          git add public/data/latest.json || true
+          git add public/data/official/*.json || true
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "chore: update official lottery data (V68.8 convert json)"
+          git commit -m "chore: update official lottery data (V72.4 fixed)"
           git pull --rebase origin main
           git push origin main
