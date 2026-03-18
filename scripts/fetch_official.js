@@ -1,56 +1,46 @@
 const fs = require("fs");
-const path = require("path");
 
-const OUT_DIR = path.join(process.cwd(), "data", "official");
+async function fetchJSON(url) {
+  try {
+    const res = await fetch(url);
+    return await res.json();
+  } catch (e) {
+    console.error("Fetch failed:", url);
+    return null;
+  }
+}
 
-async function fetch539() {
-  const url = "https://www.taiwanlottery.com.tw/lotto/DailyCash/history.aspx";
+function save(name, data) {
+  fs.writeFileSync(`data/official/${name}.json`, JSON.stringify(data || [], null, 2));
+}
 
-  const res = await fetch(url);
-  const html = await res.text();
+// 台彩官方來源（公開接口）
+const APIs = {
+  bingo: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Bingo/BingoResult",
+  lotto649: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649/Lotto649Result",
+  superlotto638: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/SuperLotto638/SuperLotto638Result",
+  dailycash: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/DailyCash/DailyCashResult"
+};
 
-  const rows = [...html.matchAll(/<tr>(.*?)<\/tr>/gs)];
+(async () => {
+  console.log("Fetching official lottery data...");
 
-  const results = [];
+  for (const key of Object.keys(APIs)) {
+    const data = await fetchJSON(APIs[key]);
 
-  for (const row of rows) {
-    const text = row[1].replace(/<[^>]+>/g, " ").trim();
-
-    const match = text.match(/(\d{3}\/\d{2}\/\d{2}).*?(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})/);
-
-    if (match) {
-      results.push({
-        game: "dailycash",
-        issue: "",
-        drawDate: match[1].replace(/\//g, "-"),
-        numbers: [
-          Number(match[2]),
-          Number(match[3]),
-          Number(match[4]),
-          Number(match[5]),
-          Number(match[6])
-        ]
-      });
+    if (!data) {
+      console.log(`${key}: ❌ fetch failed`);
+      save(key, []);
+      continue;
     }
+
+    // 根據 API 結構抓資料（核心）
+    let list = data?.content || data?.result || data?.data || [];
+
+    console.log(`${key}:`, Array.isArray(list) ? list.length : 0);
+
+    save(key, list);
   }
 
-  return results.slice(0, 100);
-}
-
-async function main() {
-  if (!fs.existsSync(OUT_DIR)) {
-    fs.mkdirSync(OUT_DIR, { recursive: true });
-  }
-
-  console.log("抓 539 資料...");
-  const data539 = await fetch539();
-
-  fs.writeFileSync(
-    path.join(OUT_DIR, "dailycash.json"),
-    JSON.stringify(data539, null, 2)
-  );
-
-  console.log("完成 ✔");
-}
-
-main();
+  console.log("Done fetch.");
+})();
