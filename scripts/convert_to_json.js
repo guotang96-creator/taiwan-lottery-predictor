@@ -11,26 +11,28 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-function writeJson(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-}
-
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");
+}
+
+function readJsonSafe(filePath, fallback = null) {
+  try {
+    if (!fs.existsSync(filePath)) return fallback;
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (err) {
+    console.warn(`⚠️ JSON 讀取失敗: ${filePath} - ${err.message}`);
+    return fallback;
+  }
+}
+
+function writeJson(filePath, data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
 function normalizeLineEndings(text) {
   return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 }
 
-/**
- * 簡易 CSV 解析器
- * 支援:
- * - 逗號分隔
- * - 雙引號包住欄位
- * - 欄位內有逗號
- * - 欄位內雙引號轉義 ""
- */
 function parseCSV(text) {
   const rows = [];
   const input = normalizeLineEndings(text);
@@ -77,7 +79,6 @@ function parseCSV(text) {
     cell += ch;
   }
 
-  // 最後一格
   if (cell.length > 0 || row.length > 0) {
     row.push(cell);
     rows.push(row);
@@ -92,9 +93,7 @@ function toObjects(rows) {
   if (!Array.isArray(rows) || rows.length === 0) return [];
 
   const header = rows[0].map((h) => String(h || "").trim());
-  const body = rows.slice(1);
-
-  return body.map((r) => {
+  return rows.slice(1).map((r) => {
     const obj = {};
     for (let i = 0; i < header.length; i++) {
       obj[header[i]] = String(r[i] ?? "").trim();
@@ -112,16 +111,9 @@ function normalizeDate(dateStr) {
   const s = String(dateStr || "").trim();
   if (!s) return "";
 
-  // 已是 YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-
-  // YYYY/MM/DD -> YYYY-MM-DD
   if (/^\d{4}\/\d{2}\/\d{2}$/.test(s)) return s.replace(/\//g, "-");
-
-  // YYYYMMDD -> YYYY-MM-DD
-  if (/^\d{8}$/.test(s)) {
-    return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
-  }
+  if (/^\d{8}$/.test(s)) return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
 
   return s;
 }
@@ -131,11 +123,9 @@ function normalizeIssue(issue, rowIndex) {
 
   if (/^\d+$/.test(s)) return s;
 
-  // 只保留數字，避免 weird 字元
   const digits = s.replace(/\D/g, "");
   if (digits) return digits;
 
-  // 真的沒有才 fallback，但正常 bingo.csv 不該走到這裡
   return `unknown-${String(rowIndex + 1).padStart(6, "0")}`;
 }
 
@@ -143,9 +133,7 @@ function extractBingoNumbers(row) {
   const numbers = [];
 
   for (let i = 1; i <= 20; i++) {
-    const key = `n${i}`;
-    const n = safeInt(row[key]);
-
+    const n = safeInt(row[`n${i}`]);
     if (n !== null && n >= 1 && n <= 80) {
       numbers.push(n);
     }
@@ -168,26 +156,17 @@ function normalizeBingoRows(records) {
     const date = normalizeDate(row.date);
     const numbers = extractBingoNumbers(row);
 
-    // 基本資料不完整就跳過
     if (!issue) continue;
     if (!date) continue;
     if (numbers.length !== 20) continue;
     if (hasDuplicateNumbers(numbers)) continue;
 
-    result.push({
-      issue,
-      date,
-      numbers
-    });
+    result.push({ issue, date, numbers });
   }
 
   return result;
 }
 
-/**
- * 以 issue 優先，date 次之
- * issue 是 202401010001 這種格式，直接比數字即可
- */
 function sortRowsDesc(rows) {
   return [...rows].sort((a, b) => {
     const ai = Number(String(a.issue).replace(/\D/g, ""));
@@ -205,11 +184,6 @@ function sortRowsDesc(rows) {
   });
 }
 
-/**
- * 去重策略：
- * 先用 issue 去重，保留較完整的一筆
- * 若 issue 相同且 numbers 相同，視為同筆
- */
 function dedupeBingoRows(rows) {
   const map = new Map();
 
@@ -223,15 +197,19 @@ function dedupeBingoRows(rows) {
 
     const prev = map.get(key);
 
-    const prevScore = (prev.date ? 1 : 0) + (Array.isArray(prev.numbers) ? prev.numbers.length : 0);
-    const currScore = (row.date ? 1 : 0) + (Array.isArray(row.numbers) ? row.numbers.length : 0);
+    const prevScore =
+      (prev.date ? 1 : 0) +
+      (Array.isArray(prev.numbers) ? prev.numbers.length : 0);
+
+    const currScore =
+      (row.date ? 1 : 0) +
+      (Array.isArray(row.numbers) ? row.numbers.length : 0);
 
     if (currScore > prevScore) {
       map.set(key, row);
       continue;
     }
 
-    // 若完整度相同，保留 issue/date 較新的結構穩定資料
     if (currScore === prevScore) {
       const prevDate = String(prev.date || "");
       const currDate = String(row.date || "");
@@ -244,16 +222,6 @@ function dedupeBingoRows(rows) {
   return [...map.values()];
 }
 
-function buildLatestFile(bingoRows) {
-  return {
-    version: "bingo-fix-1",
-    updatedAt: new Date().toISOString(),
-    games: {
-      bingo: sortRowsDesc(bingoRows).slice(0, 5)
-    }
-  };
-}
-
 function syncToPublic(fileName) {
   const src = path.join(DATA_DIR, fileName);
   const dest = path.join(PUBLIC_DIR, fileName);
@@ -262,6 +230,23 @@ function syncToPublic(fileName) {
     fs.copyFileSync(src, dest);
     console.log(`📁 同步到 public: ${fileName}`);
   }
+}
+
+function updateLatestJson(bingoRows) {
+  const latestPath = path.join(DATA_DIR, "latest.json");
+  const existing = readJsonSafe(latestPath, {});
+
+  const latest = {
+    ...existing,
+    version: "bingo-fix-2",
+    updatedAt: new Date().toISOString(),
+    games: {
+      ...(existing && existing.games ? existing.games : {}),
+      bingo: bingoRows.slice(0, 5)
+    }
+  };
+
+  writeJson(latestPath, latest);
 }
 
 function convertBingo() {
@@ -285,31 +270,8 @@ function convertBingo() {
   const deduped = dedupeBingoRows(normalized);
   const finalRows = sortRowsDesc(deduped);
 
-  const outPath = path.join(DATA_DIR, "bingo.json");
-  writeJson(outPath, finalRows);
-
-  // 若 latest.json 已存在，先讀進來再覆蓋 bingo 區塊
-  const latestPath = path.join(DATA_DIR, "latest.json");
-  let latest = {
-    version: "bingo-fix-1",
-    updatedAt: new Date().toISOString(),
-    games: {}
-  };
-
-  if (fs.existsSync(latestPath)) {
-    try {
-      latest = JSON.parse(fs.readFileSync(latestPath, "utf8"));
-    } catch (err) {
-      console.warn("⚠️ 既有 latest.json 讀取失敗，將重建");
-    }
-  }
-
-  latest.version = "bingo-fix-1";
-  latest.updatedAt = new Date().toISOString();
-  latest.games = latest.games || {};
-  latest.games.bingo = finalRows.slice(0, 5);
-
-  writeJson(latestPath, latest);
+  writeJson(path.join(DATA_DIR, "bingo.json"), finalRows);
+  updateLatestJson(finalRows);
 
   syncToPublic("bingo.json");
   syncToPublic("latest.json");
@@ -318,7 +280,7 @@ function convertBingo() {
   console.log(`原始筆數: ${records.length}`);
   console.log(`有效筆數: ${normalized.length}`);
   console.log(`去重後筆數: ${finalRows.length}`);
-  console.log("最新五期 issue:", finalRows.slice(0, 5).map((x) => x.issue).join(", "));
+  console.log(`最新五期: ${finalRows.slice(0, 5).map(x => x.issue).join(", ")}`);
 }
 
 convertBingo();
