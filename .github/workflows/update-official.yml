@@ -15,7 +15,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -27,6 +27,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browser
+        run: npx playwright install chromium --with-deps
 
       - name: Ensure folders
         run: |
@@ -55,6 +61,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          git add package.json
           git add data/official/*.json
 
           if git diff --staged --quiet; then
@@ -62,6 +69,6 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: update official lottery data (V68.1 manifest)"
+          git commit -m "chore: update official lottery data (V68.5 playwright)"
           git pull --rebase origin main
           git push origin main
