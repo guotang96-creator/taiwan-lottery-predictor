@@ -1,10 +1,9 @@
-/* V68.2 官方下載端點探測版 */
+/* V68.3 掃描 result_download bundle 內關鍵片段 */
 const fs = require("fs");
 const path = require("path");
 
 const OUT_DIR = path.join(process.cwd(), "data", "official");
-const PAGE_URL = "https://www.taiwanlottery.com/lotto/history/result_download/";
-const API_URL = "https://www.taiwanlottery.com/Lottery/ResultDownload";
+const BUNDLE_URL = "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js";
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -14,91 +13,108 @@ function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
 }
 
-async function fetchText(url, options = {}) {
+function uniq(arr) {
+  return [...new Set(arr)];
+}
+
+async function fetchText(url) {
   const res = await fetch(url, {
     headers: {
       "user-agent": "Mozilla/5.0",
-      "accept": "*/*",
-      ...options.headers
-    },
-    method: options.method || "GET",
-    body: options.body
+      "accept": "*/*"
+    }
   });
 
-  const text = await res.text();
-  return {
-    ok: res.ok,
-    status: res.status,
-    url,
-    headers: Object.fromEntries(res.headers.entries()),
-    text
-  };
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} @ ${url}`);
+  }
+
+  return res.text();
 }
 
-async function tryRequest(name, options) {
-  try {
-    const result = await fetchText(API_URL, options);
-    return {
-      name,
-      ok: result.ok,
-      status: result.status,
-      contentType: result.headers["content-type"] || "",
-      location: result.headers["location"] || "",
-      preview: result.text.slice(0, 1000)
-    };
-  } catch (err) {
-    return {
-      name,
-      ok: false,
-      error: err.message
-    };
+function getSnippet(text, index, radius = 220) {
+  const start = Math.max(0, index - radius);
+  const end = Math.min(text.length, index + radius);
+  return text.slice(start, end);
+}
+
+function collectKeywordSnippets(text, keywords) {
+  const results = [];
+
+  for (const keyword of keywords) {
+    let idx = 0;
+    while (true) {
+      idx = text.indexOf(keyword, idx);
+      if (idx === -1) break;
+
+      results.push({
+        keyword,
+        index: idx,
+        snippet: getSnippet(text, idx)
+      });
+
+      idx += keyword.length;
+    }
   }
+
+  return results;
+}
+
+function extractUrls(text) {
+  const urls = [];
+
+  for (const m of text.matchAll(/https?:\/\/[^\s"'`()<>]+/gi)) {
+    urls.push(m[0]);
+  }
+
+  for (const m of text.matchAll(/\/[A-Za-z0-9_\-/.?=&%]+/g)) {
+    const s = m[0];
+    if (
+      s.includes("Lottery") ||
+      s.includes("download") ||
+      s.includes("result") ||
+      s.includes("history") ||
+      s.includes("api")
+    ) {
+      urls.push(`https://www.taiwanlottery.com${s}`);
+    }
+  }
+
+  return uniq(urls);
 }
 
 async function main() {
   ensureDir(OUT_DIR);
 
-  const page = await fetchText(PAGE_URL);
+  console.log("Fetching bundle:", BUNDLE_URL);
+  const jsText = await fetchText(BUNDLE_URL);
 
-  const probes = [];
+  const keywords = [
+    "ResultDownload",
+    "Lottery",
+    "download",
+    "history",
+    "fetch(",
+    "axios",
+    "114",
+    "113",
+    "csv",
+    "xlsx",
+    "xls",
+    "zip"
+  ];
 
-  probes.push(await tryRequest("GET plain", {
-    method: "GET"
-  }));
-
-  probes.push(await tryRequest("GET json accept", {
-    method: "GET",
-    headers: {
-      accept: "application/json,text/plain,*/*"
-    }
-  }));
-
-  probes.push(await tryRequest("POST empty json", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      accept: "application/json,text/plain,*/*"
-    },
-    body: JSON.stringify({})
-  }));
-
-  probes.push(await tryRequest("POST empty form", {
-    method: "POST",
-    headers: {
-      "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
-    },
-    body: ""
-  }));
+  const snippets = collectKeywordSnippets(jsText, keywords).slice(0, 120);
+  const urls = extractUrls(jsText);
 
   const manifest = {
-    version: "V68.2-endpoint-probe",
+    version: "V68.3-bundle-debug",
     fetchedAt: new Date().toISOString(),
-    sourcePage: PAGE_URL,
-    endpoint: API_URL,
-    pageStatus: page.status,
-    pageContentType: page.headers["content-type"] || "",
-    pagePreview: page.text.slice(0, 500),
-    probes
+    bundleUrl: BUNDLE_URL,
+    jsLength: jsText.length,
+    matchedKeywordCount: snippets.length,
+    urlsFound: urls,
+    snippets
   };
 
   writeJson(path.join(OUT_DIR, "download_manifest.json"), manifest);
