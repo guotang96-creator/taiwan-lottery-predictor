@@ -62,8 +62,9 @@ async function main() {
   ensureDir(OFFICIAL_DIR);
   ensureDir(DOWNLOAD_DIR);
 
+  const currentYear = new Date().getFullYear();
   const years = [];
-  for (let y = 2026; y >= 2007; y -= 1) {
+  for (let y = currentYear; y >= 2007; y -= 1) {
     years.push(y);
   }
 
@@ -76,12 +77,13 @@ async function main() {
 
     try {
       const data = await fetchJson(apiUrl);
+      const content = data?.content || {};
 
-      const fileName =
-        data?.fileName ||
-        `${year}.zip`;
+      const fileName = content.fileName
+        ? `${String(content.fileName).replace(/\.zip$/i, "")}.zip`
+        : `${year}.zip`;
 
-      const downloadUrl = normalizeDownloadUrl(data?.path, year);
+      const downloadUrl = normalizeDownloadUrl(content.path, year);
       const outFile = path.join(DOWNLOAD_DIR, fileName);
 
       console.log(`year=${year} -> ${fileName}`);
@@ -93,7 +95,6 @@ async function main() {
         year,
         ok: true,
         apiUrl,
-        apiResponse: data,
         downloadUrl,
         fileName,
         savedAs: outFile.replace(process.cwd() + path.sep, "").replace(/\\/g, "/"),
@@ -111,7 +112,7 @@ async function main() {
   }
 
   const manifest = {
-    version: "V68.6-download-zips",
+    version: "download-zips-v2",
     fetchedAt: new Date().toISOString(),
     yearsTried: years,
     successCount: results.filter(r => r.ok).length,
@@ -119,8 +120,8 @@ async function main() {
     results
   };
 
-  writeJson(path.join(OFFICIAL_DIR, "download_manifest.json"), manifest);
-  console.log("Saved: data/official/download_manifest.json");
+  writeJson(path.join(DOWNLOAD_DIR, "download_manifest.json"), manifest);
+  console.log("Saved: data/downloads/download_manifest.json");
 }
 
 main().catch(err => {
