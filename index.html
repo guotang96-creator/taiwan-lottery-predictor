@@ -1,72 +1,90 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台灣彩券 AI 預測系統</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>台灣彩券 AI 預測系統 V73</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-
-  <div class="container">
-
-    <header class="header">
-      <h1>🎯 台灣彩券 AI 預測系統</h1>
-      <p>V72.9｜官方資料版｜最新五期 + AI分析</p>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>🎯 台灣彩券 AI 預測系統</h1>
+        <p class="subtitle">V73｜真實資料版｜官方歷史資料 + 最新五期</p>
+      </div>
     </header>
 
-    <div class="main-grid">
-
-      <!-- 左側 -->
-      <div class="panel">
-
+    <main class="main-wrap">
+      <section class="panel control-panel">
         <h2>預測設定</h2>
 
-        <label>推薦組數</label>
-        <select id="setCount">
-          <option>1</option>
-          <option selected>3</option>
-          <option>5</option>
-        </select>
+        <div class="form-grid">
+          <div class="field">
+            <label for="setCount">推薦組數</label>
+            <select id="setCount">
+              <option value="1">1組</option>
+              <option value="2">2組</option>
+              <option value="3" selected>3組</option>
+              <option value="5">5組</option>
+            </select>
+          </div>
 
-        <label>分析期數</label>
-        <select id="historyPeriods">
-          <option>20</option>
-          <option selected>50</option>
-          <option>100</option>
-        </select>
+          <div class="field">
+            <label for="historyPeriods">分析歷史期數</label>
+            <select id="historyPeriods">
+              <option value="30">近30期</option>
+              <option value="50" selected>近50期</option>
+              <option value="80">近80期</option>
+              <option value="100">近100期</option>
+              <option value="150">近150期</option>
+              <option value="200">近200期</option>
+            </select>
+          </div>
 
-        <label>Bingo 選球數</label>
-        <select id="bingoCount">
-          <option>5</option>
-          <option selected>10</option>
-          <option>20</option>
-        </select>
-
-        <div class="btn-group">
-          <button onclick="runPrediction('bingo')">🎱 Bingo</button>
-          <button onclick="runPrediction('649')">💰 大樂透</button>
-          <button onclick="runPrediction('638')">⚡ 威力彩</button>
-          <button onclick="runPrediction('539')">🍀 539</button>
+          <div class="field">
+            <label for="bingoCount">Bingo 選幾顆</label>
+            <select id="bingoCount">
+              <option value="1">1顆</option>
+              <option value="2">2顆</option>
+              <option value="3">3顆</option>
+              <option value="4">4顆</option>
+              <option value="5">5顆</option>
+              <option value="6">6顆</option>
+              <option value="7">7顆</option>
+              <option value="8">8顆</option>
+              <option value="9">9顆</option>
+              <option value="10" selected>10顆</option>
+            </select>
+          </div>
         </div>
 
-      </div>
+        <div class="action-row">
+          <button class="lottery-btn" onclick="runPrediction('bingo')">預測 Bingo</button>
+          <button class="lottery-btn" onclick="runPrediction('649')">預測大樂透</button>
+          <button class="lottery-btn" onclick="runPrediction('638')">預測威力彩</button>
+          <button class="lottery-btn" onclick="runPrediction('539')">預測 539</button>
+        </div>
+      </section>
 
-      <!-- 右側 -->
-      <div class="panel result-panel">
-
+      <section class="panel result-panel">
         <div class="result-header">
-          <h2 id="resultGameName">尚未預測</h2>
-          <span id="resultBadge">待預測</span>
+          <div>
+            <h2>預測結果</h2>
+            <p id="resultGameName" class="result-subtitle">請先選擇彩種並開始預測</p>
+          </div>
+          <span id="resultBadge" class="badge">待預測</span>
         </div>
 
-        <div id="predictionResult"></div>
-
-      </div>
-
-    </div>
-
+        <div id="predictionResult" class="prediction-result">
+          <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <div class="empty-title">尚未產生預測</div>
+            <div class="empty-text">按上方按鈕後，這裡會顯示主推薦、熱號、冷號、連號、尾數分析與最新五期。</div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
   <script src="app.js"></script>
