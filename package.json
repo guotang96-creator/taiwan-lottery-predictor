@@ -4,9 +4,10 @@
   "scripts": {
     "fetch:official": "node scripts/fetch_official.js",
     "parse:downloads": "node scripts/parse_downloads.js",
+    "convert:json": "node scripts/convert_to_json.js",
     "update:official": "node scripts/update_official.js"
   },
-  "devDependencies": {
+  "dependencies": {
     "adm-zip": "^0.5.16"
   }
 }
