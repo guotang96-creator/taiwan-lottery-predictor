@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券 AI 預測系統 V69.3</title>
+  <title>台灣彩券 AI 預測系統 V69.4</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,7 +11,7 @@
     <header class="topbar">
       <div>
         <h1>🎯 台灣彩券 AI 預測系統</h1>
-        <p class="subtitle">官方資料版｜Bingo・大樂透・威力彩・539</p>
+        <p class="subtitle">官方資料版｜Bingo・大樂透・威力彩・539｜V69.4</p>
       </div>
     </header>
 
@@ -73,7 +73,10 @@
             <h2>預測結果</h2>
             <p id="resultGameName" class="result-subtitle">請先選擇彩種並開始預測</p>
           </div>
-          <span id="resultBadge" class="badge">待預測</span>
+          <div class="badge-group">
+            <span id="resultBadge" class="badge">待預測</span>
+            <span id="confidenceBadge" class="badge confidence-badge confidence-normal">可信度：待分析</span>
+          </div>
         </div>
 
         <div id="predictionResult" class="prediction-result">
@@ -89,7 +92,7 @@
         <div class="result-header">
           <div>
             <h2>命中追蹤</h2>
-            <p class="result-subtitle">自動比對上一筆預測與最新開獎結果</p>
+            <p class="result-subtitle">自動比對上一筆預測與本機模擬開獎結果</p>
           </div>
           <span id="hitBadge" class="badge">待比對</span>
         </div>
@@ -98,7 +101,25 @@
           <div class="empty-state">
             <div class="empty-icon">🎯</div>
             <div class="empty-title">尚無命中資料</div>
-            <div class="empty-text">產生預測後，系統會記住上一筆資料，之後可用來比對命中結果。</div>
+            <div class="empty-text">每次產生預測時，系統會保存一筆紀錄，供後續命中統計使用。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel stats-panel">
+        <div class="result-header">
+          <div>
+            <h2>命中統計面板</h2>
+            <p class="result-subtitle">近 10 次表現、平均命中、最佳紀錄、彩種排行榜</p>
+          </div>
+          <span id="statsBadge" class="badge">統計中</span>
+        </div>
+
+        <div id="statsPanelContent" class="prediction-result">
+          <div class="empty-state">
+            <div class="empty-icon">📈</div>
+            <div class="empty-title">尚無統計資料</div>
+            <div class="empty-text">開始預測後，這裡會累積你的歷史命中表現。</div>
           </div>
         </div>
       </section>
