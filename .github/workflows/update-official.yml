@@ -28,14 +28,21 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Ensure folders
         run: |
           mkdir -p data/official
           mkdir -p data/downloads
+          mkdir -p data/extracted
           mkdir -p scripts
 
       - name: Fetch official zip files
         run: node scripts/fetch_official.js
+
+      - name: Parse downloaded zip files
+        run: node scripts/parse_downloads.js
 
       - name: Run updater
         run: node scripts/update_official.js
@@ -45,11 +52,17 @@ jobs:
           echo "---- download_manifest.json ----"
           cat data/official/download_manifest.json || true
           echo
+          echo "---- zip_inventory.json ----"
+          cat data/official/zip_inventory.json || true
+          echo
           echo "---- meta.json ----"
           cat data/official/meta.json || true
           echo
           echo "---- downloads ----"
           ls -lah data/downloads || true
+          echo
+          echo "---- extracted ----"
+          find data/extracted -maxdepth 2 -type f | sort || true
           echo
           echo "---- files ----"
           ls -lah data/official || true
@@ -59,14 +72,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          git add package.json
           git add data/official/*.json
           git add data/downloads/*.zip
+          git add data/extracted
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "chore: update official lottery data (V68.6 downloads)"
+          git commit -m "chore: update official lottery data (V68.7 inventory)"
           git pull --rebase origin main
           git push origin main
