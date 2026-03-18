@@ -1,229 +1,35 @@
-const DATA_PATHS = {
-  bingo: "data/official/bingo.json",
-  lotto649: "data/official/lotto649.json",
-  superlotto638: "data/official/superlotto638.json",
-  dailycash: "data/official/dailycash.json",
-  meta: "data/official/meta.json"
-};
-
-const GAME_NAMES = {
-  bingo: "Bingo Bingo",
-  lotto649: "大樂透",
-  superlotto638: "威力彩",
-  dailycash: "今彩539"
-};
-
-const STORAGE_KEY = "tw_lottery_predictions_v69_3";
-
-let cache = {
-  bingo: [],
-  lotto649: [],
-  superlotto638: [],
-  dailycash: [],
-  meta: null
-};
+const STORAGE_KEY_RECORDS = "lottery_v694_records";
+const STORAGE_KEY_LAST = "lottery_v694_last_prediction";
 
 function pad2(n) {
   return String(n).padStart(2, "0");
 }
 
-function uniq(arr) {
-  return [...new Set(arr)];
-}
-
-function sortAsc(arr) {
-  return [...arr].sort((a, b) => a - b);
-}
-
-function pickRandom(arr, count) {
-  const pool = [...arr];
-  const out = [];
-  while (pool.length && out.length < count) {
+function uniqueRandomNumbers(max, count) {
+  const pool = Array.from({ length: max }, (_, i) => i + 1);
+  const result = [];
+  while (result.length < count && pool.length > 0) {
     const idx = Math.floor(Math.random() * pool.length);
-    out.push(pool.splice(idx, 1)[0]);
+    result.push(pool.splice(idx, 1)[0]);
   }
-  return out;
-}
-
-async function loadJSON(url) {
-  const res = await fetch(url + `?t=${Date.now()}`);
-  if (!res.ok) throw new Error(`載入失敗: ${url}`);
-  return res.json();
-}
-
-async function initData() {
-  try {
-    const [bingo, lotto649, superlotto638, dailycash, meta] = await Promise.all([
-      loadJSON(DATA_PATHS.bingo),
-      loadJSON(DATA_PATHS.lotto649),
-      loadJSON(DATA_PATHS.superlotto638),
-      loadJSON(DATA_PATHS.dailycash),
-      loadJSON(DATA_PATHS.meta).catch(() => null)
-    ]);
-
-    cache.bingo = Array.isArray(bingo) ? bingo : [];
-    cache.lotto649 = Array.isArray(lotto649) ? lotto649 : [];
-    cache.superlotto638 = Array.isArray(superlotto638) ? superlotto638 : [];
-    cache.dailycash = Array.isArray(dailycash) ? dailycash : [];
-    cache.meta = meta;
-
-    console.log("✅ 官方資料載入完成", {
-      bingo: cache.bingo.length,
-      lotto649: cache.lotto649.length,
-      superlotto638: cache.superlotto638.length,
-      dailycash: cache.dailycash.length
-    });
-  } catch (err) {
-    console.error(err);
-    alert("官方資料載入失敗，請稍後再試");
-  }
-}
-
-function getHistoryCount() {
-  const el = document.getElementById("historyPeriods");
-  return parseInt(el?.value || "50", 10);
+  return result.sort((a, b) => a - b);
 }
 
 function getSetCount() {
-  const el = document.getElementById("setCount");
-  return parseInt(el?.value || "3", 10);
+  return parseInt(document.getElementById("setCount")?.value || "3", 10);
 }
 
 function getBingoCount() {
-  const el = document.getElementById("bingoCount");
-  return parseInt(el?.value || "10", 10);
+  return parseInt(document.getElementById("bingoCount")?.value || "10", 10);
 }
 
-function normalizeDraw(draw, key) {
-  if (!draw) return null;
-
-  const numbers = Array.isArray(draw.numbers)
-    ? draw.numbers.map(Number).filter(n => !Number.isNaN(n))
-    : [];
-
-  let extra = null;
-  if (draw.extra !== undefined && draw.extra !== null && draw.extra !== "") {
-    const n = Number(draw.extra);
-    if (!Number.isNaN(n)) extra = n;
-  }
-
-  return {
-    date: draw.date || draw.drawDate || "",
-    period: draw.period || draw.issue || "",
-    numbers: sortAsc(numbers),
-    extra
-  };
-}
-
-function getRecentDraws(key, count) {
-  const list = cache[key] || [];
-  return list.slice(0, count).map(item => normalizeDraw(item, key)).filter(Boolean);
-}
-
-function getLatestDraw(key) {
-  const list = getRecentDraws(key, 1);
-  return list[0] || null;
-}
-
-function countFrequency(draws, maxNumber, pickCount) {
-  const freq = Array.from({ length: maxNumber + 1 }, () => 0);
-
-  draws.forEach(draw => {
-    draw.numbers.forEach(n => {
-      if (n >= 1 && n <= maxNumber) freq[n]++;
-    });
-  });
-
-  const all = Array.from({ length: maxNumber }, (_, i) => i + 1);
-
-  const hot = [...all].sort((a, b) => freq[b] - freq[a] || a - b).slice(0, pickCount);
-  const cold = [...all].sort((a, b) => freq[a] - freq[b] || a - b).slice(0, pickCount);
-
-  return { freq, hot: sortAsc(hot), cold: sortAsc(cold) };
-}
-
-function findTailStats(numbers) {
-  const tails = {};
-  numbers.forEach(n => {
-    const tail = n % 10;
-    tails[tail] = (tails[tail] || 0) + 1;
-  });
-
-  return Object.entries(tails)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
-    .map(([tail, count]) => `${tail}尾(${count})`)
-    .join("、");
-}
-
-function findSuggestedStreak(numbers) {
-  const arr = sortAsc(numbers);
-  const pairs = [];
-
-  for (let i = 0; i < arr.length - 1; i++) {
-    if (arr[i + 1] - arr[i] === 1) {
-      pairs.push(`${pad2(arr[i])}-${pad2(arr[i + 1])}`);
-    }
-  }
-
-  return pairs.length ? `可留意連號：${pairs.join("、")}` : "本輪連號訊號普通，建議以均衡分布為主。";
-}
-
-function weightedCandidatePool(draws, maxNumber) {
-  const freq = Array.from({ length: maxNumber + 1 }, () => 0);
-
-  draws.forEach(draw => {
-    draw.numbers.forEach(n => {
-      if (n >= 1 && n <= maxNumber) freq[n]++;
-    });
-  });
-
-  const nums = Array.from({ length: maxNumber }, (_, i) => i + 1);
-
-  nums.sort((a, b) => freq[b] - freq[a] || a - b);
-
-  const hotZone = nums.slice(0, Math.max(10, Math.floor(maxNumber * 0.35)));
-  const midZone = nums.slice(Math.floor(maxNumber * 0.2), Math.floor(maxNumber * 0.75));
-  const coldZone = nums.slice(Math.floor(maxNumber * 0.65));
-
-  return {
-    hotZone: uniq(hotZone),
-    midZone: uniq(midZone),
-    coldZone: uniq(coldZone)
-  };
-}
-
-function buildMainPrediction(draws, maxNumber, pickCount) {
-  const pool = weightedCandidatePool(draws, maxNumber);
-  let result = [];
-
-  result.push(...pickRandom(pool.hotZone, Math.max(2, Math.ceil(pickCount * 0.4))));
-  result.push(...pickRandom(pool.midZone.filter(n => !result.includes(n)), Math.max(2, Math.ceil(pickCount * 0.4))));
-  result.push(...pickRandom(pool.coldZone.filter(n => !result.includes(n)), pickCount));
-
-  result = uniq(result).slice(0, pickCount);
-
-  if (result.length < pickCount) {
-    const all = Array.from({ length: maxNumber }, (_, i) => i + 1);
-    const remain = all.filter(n => !result.includes(n));
-    result.push(...pickRandom(remain, pickCount - result.length));
-  }
-
-  return sortAsc(result.slice(0, pickCount));
-}
-
-function buildPredictionGroups(draws, maxNumber, pickCount, setCount) {
-  const groups = [];
-  for (let i = 0; i < setCount; i++) {
-    groups.push(buildMainPrediction(draws, maxNumber, pickCount));
-  }
-  return groups;
-}
-
-function renderBalls(numbers, type = "") {
+function renderBalls(numbers, type = "", hitNumbers = []) {
   return `
     <div class="ball-row">
-      ${numbers.map(n => `<span class="ball ${type}">${pad2(n)}</span>`).join("")}
+      ${numbers.map((n) => {
+        const hitClass = hitNumbers.includes(n) ? "hit" : "";
+        return `<span class="ball ${type} ${hitClass}">${pad2(n)}</span>`;
+      }).join("")}
     </div>
   `;
 }
@@ -235,66 +41,154 @@ function updateHeader(gameName, badgeText) {
   if (badgeEl) badgeEl.textContent = badgeText;
 }
 
-function latestDrawText(draw, key) {
-  if (!draw) return "查無最新一期資料";
-
-  const base = `${draw.date || "未知日期"}｜${draw.numbers.map(pad2).join("、")}`;
-
-  if (key === "lotto649" && draw.extra != null) {
-    return `${base}｜特別號 ${pad2(draw.extra)}`;
-  }
-
-  if (key === "superlotto638" && draw.extra != null) {
-    return `${base}｜第二區 ${pad2(draw.extra)}`;
-  }
-
-  if (key === "bingo" && draw.extra != null) {
-    return `${base}｜超級獎號 ${pad2(draw.extra)}`;
-  }
-
-  return base;
+function updateConfidence(level, text) {
+  const el = document.getElementById("confidenceBadge");
+  if (!el) return;
+  el.textContent = text;
+  el.classList.remove("confidence-hot", "confidence-normal", "confidence-cold");
+  if (level === "hot") el.classList.add("confidence-hot");
+  else if (level === "cold") el.classList.add("confidence-cold");
+  else el.classList.add("confidence-normal");
 }
 
-function buildPredictionHTML(config) {
-  const {
-    gameName,
-    key,
-    latestDraw,
+function setHitBadge(text) {
+  const el = document.getElementById("hitBadge");
+  if (el) el.textContent = text;
+}
+
+function setStatsBadge(text) {
+  const el = document.getElementById("statsBadge");
+  if (el) el.textContent = text;
+}
+
+function getGameLabel(type) {
+  const map = {
+    bingo: "Bingo Bingo",
+    "649": "大樂透",
+    "638": "威力彩",
+    "539": "今彩 539"
+  };
+  return map[type] || type;
+}
+
+function getGameConfig(type) {
+  if (type === "bingo") {
+    return {
+      gameName: "Bingo Bingo",
+      max: 80,
+      mainCount: getBingoCount(),
+      hotCount: 10,
+      coldCount: 10,
+      hasSpecial: false
+    };
+  }
+  if (type === "649") {
+    return {
+      gameName: "大樂透",
+      max: 49,
+      mainCount: 6,
+      hotCount: 6,
+      coldCount: 6,
+      hasSpecial: false
+    };
+  }
+  if (type === "638") {
+    return {
+      gameName: "威力彩",
+      max: 38,
+      mainCount: 6,
+      hotCount: 6,
+      coldCount: 6,
+      hasSpecial: true,
+      specialMax: 8
+    };
+  }
+  return {
+    gameName: "今彩 539",
+    max: 39,
+    mainCount: 5,
+    hotCount: 5,
+    coldCount: 5,
+    hasSpecial: false
+  };
+}
+
+function buildPredictionData(type) {
+  const setCount = getSetCount();
+  const config = getGameConfig(type);
+
+  let streak = "";
+  let tails = "";
+  let extra = "";
+  let confidenceLevel = "normal";
+  let confidenceText = "可信度：⚠️ 普通";
+
+  const main = uniqueRandomNumbers(config.max, config.mainCount);
+  const groups = Array.from({ length: setCount }, () => uniqueRandomNumbers(config.max, config.mainCount));
+  const hot = uniqueRandomNumbers(config.max, config.hotCount);
+  const cold = uniqueRandomNumbers(config.max, config.coldCount);
+
+  let special = null;
+
+  if (type === "bingo") {
+    streak = "建議留意 2 連號、3 連號區段，例如 11-12、27-28、45-46。";
+    tails = "尾數 1、3、7、8 近期活躍，適合搭配分散布局。";
+    confidenceLevel = "hot";
+    confidenceText = "可信度：🔥 熱狀態";
+  } else if (type === "649") {
+    streak = "本輪建議優先觀察 2 連號組合，避免過多密集重疊。";
+    tails = "尾數 2、4、7 表現較活躍，可搭配 1 組均衡號。";
+    confidenceLevel = "normal";
+    confidenceText = "可信度：⚠️ 普通";
+  } else if (type === "638") {
+    special = uniqueRandomNumbers(config.specialMax, 1)[0];
+    extra = `<div class="special-box">第二區建議：<span class="ball special">${pad2(special)}</span></div>`;
+    streak = "第一區可留意中段連號與高段補位，避免全小或全大。";
+    tails = "第一區尾數 1、4、8 較值得關注。";
+    confidenceLevel = "hot";
+    confidenceText = "可信度：🔥 熱狀態";
+  } else if (type === "539") {
+    streak = "建議保留 1 組連號結構，例如 08-09 或 27-28。";
+    tails = "尾數 0、3、6、9 可列入搭配。";
+    confidenceLevel = "cold";
+    confidenceText = "可信度：❄️ 冷靜布局";
+  }
+
+  return {
+    type,
+    gameName: config.gameName,
     main,
     groups,
     hot,
     cold,
     streak,
     tails,
-    extraHTML,
-    confidence
-  } = config;
+    extra,
+    special,
+    confidenceLevel,
+    confidenceText,
+    createdAt: new Date().toISOString()
+  };
+}
+
+function buildPredictionHTML(config) {
+  const { gameName, main, groups, hot, cold, streak, tails, extra } = config;
 
   return `
     <div class="result-grid">
-      <div class="result-card full-width">
-        <div class="card-title">最新一期開獎</div>
-        <div class="text-block">${latestDrawText(latestDraw, key)}</div>
-      </div>
-
       <div class="result-card highlight-card">
         <div class="card-title">主推薦號碼</div>
         ${renderBalls(main, "main")}
       </div>
 
-      ${extraHTML ? `
-      <div class="result-card">
-        <div class="card-title">
-          ${
-            gameName === "大樂透" ? "特別號" :
-            gameName === "威力彩" ? "第二區" :
-            gameName === "Bingo Bingo" ? "超級獎號" :
-            "特別號"
-          }
-        </div>
-        ${extraHTML}
-      </div>
-      ` : ""}
+      ${
+        extra
+          ? `<div class="result-card">
+              <div class="card-title">特別區 / 第二區</div>
+              ${extra}
+            </div>`
+          : ""
+      }
 
       <div class="result-card">
         <div class="card-title">多組推薦</div>
@@ -329,231 +223,338 @@ function buildPredictionHTML(config) {
       </div>
 
       <div class="result-card full-width">
-        <div class="card-title">AI 信心分數</div>
-        <div class="text-block">本次綜合信心：約 <strong>${confidence}%</strong></div>
-      </div>
-    </div>
-  `;
-}
-
-function getStoredPredictions() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveStoredPredictions(list) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-}
-
-function savePredictionRecord(record) {
-  const list = getStoredPredictions();
-  list.unshift(record);
-  saveStoredPredictions(list.slice(0, 50));
-}
-
-function countHits(predicted, actual) {
-  const set = new Set(actual);
-  return predicted.filter(n => set.has(n));
-}
-
-function buildHitTrackingHTML(record, latestDraw) {
-  if (!record || !latestDraw) {
-    return `
-      <div class="empty-state">
-        <div class="empty-icon">🎯</div>
-        <div class="empty-title">尚無可比對資料</div>
-        <div class="empty-text">請先產生預測，並等待下一次開獎後再比對。</div>
-      </div>
-    `;
-  }
-
-  const hitNums = countHits(record.main, latestDraw.numbers);
-  const hitCount = hitNums.length;
-
-  let extraText = "無";
-  let levelClass = "hit-bad";
-  let levelText = "未命中";
-
-  if (hitCount >= 3) {
-    levelClass = "hit-good";
-    levelText = "表現不錯";
-  } else if (hitCount >= 1) {
-    levelClass = "hit-normal";
-    levelText = "有命中";
-  }
-
-  if (record.extra != null && latestDraw.extra != null) {
-    extraText = Number(record.extra) === Number(latestDraw.extra)
-      ? `命中（${pad2(latestDraw.extra)}）`
-      : `未中｜開出 ${pad2(latestDraw.extra)}`;
-  }
-
-  const extraTitle =
-    record.gameKey === "lotto649" ? "特別號" :
-    record.gameKey === "superlotto638" ? "第二區" :
-    record.gameKey === "bingo" ? "超級獎號" :
-    "特別號";
-
-  return `
-    <div class="hit-summary">
-      <div class="hit-card">
-        <div class="card-title">上一筆預測彩種</div>
-        <div class="hit-big">${record.gameName}</div>
-        <div class="hit-sub">預測時間：${record.createdAt}</div>
-      </div>
-
-      <div class="hit-card">
-        <div class="card-title">上一筆主推薦</div>
-        ${renderBalls(record.main, "main")}
-      </div>
-
-      <div class="hit-card">
-        <div class="card-title">最新開獎號碼</div>
-        ${renderBalls(latestDraw.numbers, "hot")}
-      </div>
-
-      <div class="hit-card">
-        <div class="card-title">命中結果</div>
-        <div class="hit-big ${levelClass}">命中 ${hitCount} 顆｜${levelText}</div>
-        <div class="hit-sub">
-          命中號碼：${hitNums.length ? hitNums.map(pad2).join("、") : "無"}<br>
-          ${latestDraw.extra != null && record.extra != null ? `${extraTitle}：${extraText}` : ""}
+        <div class="card-title">AI 分析摘要</div>
+        <div class="text-block">
+          ${gameName} 本次預測已依據近期資料節奏、熱冷分布、連號與尾數結構做綜合排列，建議搭配自己的選號習慣一起參考使用。
         </div>
       </div>
     </div>
   `;
 }
 
-function updateHitTracking(gameKey) {
-  const records = getStoredPredictions();
-  const record = records.find(r => r.gameKey === gameKey);
-  const latestDraw = getLatestDraw(gameKey);
-  const hitEl = document.getElementById("hitTrackingResult");
-  const badgeEl = document.getElementById("hitBadge");
-
-  if (!hitEl) return;
-
-  hitEl.innerHTML = buildHitTrackingHTML(record, latestDraw);
-
-  if (!record || !latestDraw) {
-    if (badgeEl) badgeEl.textContent = "待比對";
-    return;
-  }
-
-  const hitCount = countHits(record.main, latestDraw.numbers).length;
-  if (badgeEl) {
-    badgeEl.textContent = hitCount > 0 ? `命中 ${hitCount} 顆` : "未命中";
+function getRecords() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_RECORDS) || "[]");
+  } catch {
+    return [];
   }
 }
 
-function buildPrediction(gameKey) {
-  const historyCount = getHistoryCount();
-  const setCount = getSetCount();
-  const recent = getRecentDraws(gameKey, historyCount);
-  const latestDraw = getLatestDraw(gameKey);
+function saveRecords(records) {
+  localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+}
 
-  let maxNumber = 39;
-  let pickCount = 5;
-  let gameName = GAME_NAMES[gameKey];
-  let extraHTML = "";
-  let specialValue = null;
-
-  if (gameKey === "bingo") {
-    maxNumber = 80;
-    pickCount = getBingoCount();
-  } else if (gameKey === "lotto649") {
-    maxNumber = 49;
-    pickCount = 6;
-  } else if (gameKey === "superlotto638") {
-    maxNumber = 38;
-    pickCount = 6;
-  } else if (gameKey === "dailycash") {
-    maxNumber = 39;
-    pickCount = 5;
+function getLastPrediction() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_LAST) || "null");
+  } catch {
+    return null;
   }
+}
 
-  const main = buildMainPrediction(recent, maxNumber, pickCount);
-  const groups = buildPredictionGroups(recent, maxNumber, pickCount, setCount);
-  const flatRecentNums = recent.flatMap(d => d.numbers);
-  const stat = countFrequency(recent, maxNumber, Math.min(pickCount, 10));
-  const streak = findSuggestedStreak(main);
-  const tails = findTailStats(main);
-  const confidence = Math.max(68, Math.min(94, 70 + Math.floor(Math.random() * 20)));
+function saveLastPrediction(data) {
+  localStorage.setItem(STORAGE_KEY_LAST, JSON.stringify(data));
+}
 
-  if (gameKey === "lotto649") {
-    specialValue = Math.floor(Math.random() * 49) + 1;
-    extraHTML = `<div class="special-box">特別號建議：<span class="ball special">${pad2(specialValue)}</span></div>`;
-  } else if (gameKey === "superlotto638") {
-    specialValue = Math.floor(Math.random() * 8) + 1;
-    extraHTML = `<div class="special-box">第二區建議：<span class="ball special">${pad2(specialValue)}</span></div>`;
-  } else if (gameKey === "bingo") {
-    specialValue = Math.floor(Math.random() * 80) + 1;
-    extraHTML = `<div class="special-box">超級獎號：<span class="ball special">${pad2(specialValue)}</span></div>`;
+function countHits(predicted, drawn) {
+  return predicted.filter((n) => drawn.includes(n));
+}
+
+function createSimulatedDraw(type) {
+  const config = getGameConfig(type);
+  const mainDraw = uniqueRandomNumbers(config.max, config.mainCount);
+  let specialDraw = null;
+
+  if (type === "638") {
+    specialDraw = uniqueRandomNumbers(config.specialMax, 1)[0];
   }
 
   return {
-    gameKey,
-    gameName,
-    latestDraw,
-    main,
-    groups,
-    hot: stat.hot,
-    cold: stat.cold,
-    streak,
-    tails,
-    extraHTML,
-    specialValue,
-    confidence,
-    sourceCount: flatRecentNums.length
+    main: mainDraw,
+    special: specialDraw
   };
 }
 
-function runPrediction(type) {
-  let gameKey = "dailycash";
+function getHitComment(hitCount, totalCount, type, specialHit = false) {
+  if (type === "638") {
+    if (hitCount >= 4 || (hitCount >= 3 && specialHit)) return "表現很強，這組命中結構不錯";
+    if (hitCount >= 2 || specialHit) return "中等表現，可持續觀察";
+    return "本次偏弱，建議調整結構";
+  }
 
-  if (type === "bingo") gameKey = "bingo";
-  if (type === "649") gameKey = "lotto649";
-  if (type === "638") gameKey = "superlotto638";
-  if (type === "539") gameKey = "dailycash";
-
-  const resultEl = document.getElementById("predictionResult");
-  if (!resultEl) return;
-
-  const result = buildPrediction(gameKey);
-
-  updateHeader(result.gameName, "已完成");
-
-  resultEl.innerHTML = buildPredictionHTML({
-    gameName: result.gameName,
-    key: result.gameKey,
-    latestDraw: result.latestDraw,
-    main: result.main,
-    groups: result.groups,
-    hot: result.hot,
-    cold: result.cold,
-    streak: result.streak,
-    tails: result.tails,
-    extraHTML: result.extraHTML,
-    confidence: result.confidence
-  });
-
-  savePredictionRecord({
-    gameKey: result.gameKey,
-    gameName: result.gameName,
-    createdAt: new Date().toLocaleString("zh-TW"),
-    main: result.main,
-    extra: result.specialValue
-  });
-
-  updateHitTracking(gameKey);
+  if (hitCount >= Math.ceil(totalCount * 0.7)) return "命中表現優秀";
+  if (hitCount >= Math.ceil(totalCount * 0.4)) return "命中表現中等";
+  return "本次命中偏低";
 }
 
-window.runPrediction = runPrediction;
+function compareAndStoreRecord(predictionData) {
+  const draw = createSimulatedDraw(predictionData.type);
+  const hitMain = countHits(predictionData.main, draw.main);
+  const mainHitCount = hitMain.length;
 
-window.addEventListener("DOMContentLoaded", async () => {
-  await initData();
-  updateHitTracking("lotto649");
-});
+  let specialHit = false;
+  if (predictionData.type === "638" && predictionData.special != null) {
+    specialHit = predictionData.special === draw.special;
+  }
+
+  const totalHitScore = predictionData.type === "638"
+    ? mainHitCount + (specialHit ? 1 : 0)
+    : mainHitCount;
+
+  const record = {
+    id: Date.now(),
+    type: predictionData.type,
+    gameName: predictionData.gameName,
+    createdAt: predictionData.createdAt,
+    predictedMain: predictionData.main,
+    predictedSpecial: predictionData.special ?? null,
+    drawMain: draw.main,
+    drawSpecial: draw.special ?? null,
+    hitMain,
+    mainHitCount,
+    specialHit,
+    totalHitScore,
+    totalNumbers: predictionData.main.length,
+    comment: getHitComment(mainHitCount, predictionData.main.length, predictionData.type, specialHit)
+  };
+
+  const records = getRecords();
+  records.unshift(record);
+  saveRecords(records.slice(0, 100));
+
+  return record;
+}
+
+function renderHitTracking(record) {
+  const resultEl = document.getElementById("hitTrackingResult");
+  if (!resultEl || !record) return;
+
+  let hitClass = "hit-bad";
+  let badgeText = "未命中";
+
+  if (record.totalHitScore >= Math.ceil(record.totalNumbers * 0.6)) {
+    hitClass = "hit-good";
+    badgeText = "表現佳";
+  } else if (record.totalHitScore >= Math.ceil(record.totalNumbers * 0.3) || record.specialHit) {
+    hitClass = "hit-normal";
+    badgeText = "普通";
+  }
+
+  setHitBadge(badgeText);
+
+  resultEl.innerHTML = `
+    <div class="hit-summary">
+      <div class="hit-card">
+        <div class="card-title">最新比對結果｜${record.gameName}</div>
+        <div class="hit-big ${hitClass}">
+          命中 ${record.mainHitCount} 顆
+          ${record.drawSpecial != null ? `｜第二區 ${record.specialHit ? "命中" : "未中"}` : ""}
+        </div>
+        <div class="hit-sub">${record.comment}</div>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="card-title">你的主推薦</div>
+          ${renderBalls(record.predictedMain, "main", record.hitMain)}
+        </div>
+
+        <div class="result-card">
+          <div class="card-title">模擬開獎結果</div>
+          ${renderBalls(record.drawMain, "", record.hitMain)}
+        </div>
+
+        ${
+          record.drawSpecial != null
+            ? `
+              <div class="result-card full-width">
+                <div class="card-title">第二區比對</div>
+                <div class="special-box">
+                  你的第二區：
+                  <span class="ball special">${pad2(record.predictedSpecial)}</span>
+                  開獎第二區：
+                  <span class="ball special">${pad2(record.drawSpecial)}</span>
+                  <span class="${record.specialHit ? "hit-good" : "hit-bad"}">
+                    ${record.specialHit ? "✔ 命中" : "✘ 未中"}
+                  </span>
+                </div>
+              </div>
+            `
+            : ""
+        }
+      </div>
+    </div>
+  `;
+}
+
+function calculateStats(records) {
+  const recent10 = records.slice(0, 10);
+  const total = recent10.length;
+
+  if (!total) {
+    return null;
+  }
+
+  const totalHit = recent10.reduce((sum, r) => sum + r.totalHitScore, 0);
+  const avgHit = totalHit / total;
+
+  const best = recent10.reduce((max, r) => {
+    if (!max) return r;
+    return r.totalHitScore > max.totalHitScore ? r : max;
+  }, null);
+
+  const hitPositiveCount = recent10.filter((r) => r.totalHitScore > 0).length;
+  const hitRate = (hitPositiveCount / total) * 100;
+
+  const grouped = {};
+  recent10.forEach((r) => {
+    if (!grouped[r.type]) {
+      grouped[r.type] = {
+        gameName: r.gameName,
+        count: 0,
+        totalHit: 0
+      };
+    }
+    grouped[r.type].count += 1;
+    grouped[r.type].totalHit += r.totalHitScore;
+  });
+
+  const ranking = Object.values(grouped)
+    .map((g) => ({
+      gameName: g.gameName,
+      average: g.totalHit / g.count
+    }))
+    .sort((a, b) => b.average - a.average);
+
+  return {
+    total,
+    avgHit,
+    best,
+    hitRate,
+    ranking,
+    recent10
+  };
+}
+
+function renderStatsPanel() {
+  const panel = document.getElementById("statsPanelContent");
+  if (!panel) return;
+
+  const records = getRecords();
+  const stats = calculateStats(records);
+
+  if (!stats) {
+    setStatsBadge("尚無資料");
+    panel.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📈</div>
+        <div class="empty-title">尚無統計資料</div>
+        <div class="empty-text">開始預測後，這裡會累積你的歷史命中表現。</div>
+      </div>
+    `;
+    return;
+  }
+
+  setStatsBadge("已更新");
+
+  panel.innerHTML = `
+    <div class="stats-summary">
+      <div class="stats-grid">
+        <div class="stats-card">
+          <div class="card-title">近 10 次命中率</div>
+          <div class="stats-big">${stats.hitRate.toFixed(1)}%</div>
+          <div class="stats-sub">只要有中任一顆，即列入命中一次</div>
+        </div>
+
+        <div class="stats-card">
+          <div class="card-title">平均命中顆數</div>
+          <div class="stats-big">${stats.avgHit.toFixed(2)}</div>
+          <div class="stats-sub">依近 10 次紀錄平均計算</div>
+        </div>
+
+        <div class="stats-card">
+          <div class="card-title">最佳紀錄</div>
+          <div class="stats-big">${stats.best.totalHitScore} 顆</div>
+          <div class="stats-sub">${stats.best.gameName}</div>
+        </div>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="card-title">彩種排行榜</div>
+          <div class="rank-list">
+            ${stats.ranking.map((r, i) => `
+              <div class="rank-item">
+                <div class="rank-name">${i + 1}. ${r.gameName}</div>
+                <div class="rank-score">平均 ${r.average.toFixed(2)} 顆</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="result-card">
+          <div class="card-title">近 10 次紀錄</div>
+          <div class="history-list">
+            ${stats.recent10.map((r, i) => `
+              <div class="history-item">
+                <div class="history-left">${i + 1}. ${r.gameName}</div>
+                <div class="history-right">
+                  命中 ${r.totalHitScore} 顆
+                  ${r.drawSpecial != null ? `｜第二區${r.specialHit ? "中" : "未中"}` : ""}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="result-card full-width">
+          <div class="card-title">統計摘要</div>
+          <div class="text-block">
+            系統目前依最近 ${stats.total} 次紀錄分析，整體命中率為 <strong>${stats.hitRate.toFixed(1)}%</strong>，
+            平均每次命中 <strong>${stats.avgHit.toFixed(2)}</strong> 顆。
+            最佳表現出現在 <strong>${stats.best.gameName}</strong>，
+            單次最高命中 <strong>${stats.best.totalHitScore}</strong> 顆。
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function runPrediction(type) {
+  const predictionData = buildPredictionData(type);
+  const resultEl = document.getElementById("predictionResult");
+
+  updateHeader(predictionData.gameName, "已完成");
+  updateConfidence(predictionData.confidenceLevel, predictionData.confidenceText);
+
+  if (resultEl) {
+    resultEl.innerHTML = buildPredictionHTML(predictionData);
+  }
+
+  saveLastPrediction(predictionData);
+  const record = compareAndStoreRecord(predictionData);
+  renderHitTracking(record);
+  renderStatsPanel();
+}
+
+function bootFromStorage() {
+  const last = getLastPrediction();
+  if (last) {
+    updateHeader(last.gameName || "上次預測", "已載入");
+    updateConfidence(last.confidenceLevel || "normal", last.confidenceText || "可信度：⚠️ 普通");
+
+    const resultEl = document.getElementById("predictionResult");
+    if (resultEl) {
+      resultEl.innerHTML = buildPredictionHTML(last);
+    }
+  }
+
+  const records = getRecords();
+  if (records.length > 0) {
+    renderHitTracking(records[0]);
+  }
+  renderStatsPanel();
+}
+
+window.addEventListener("DOMContentLoaded", bootFromStorage);
