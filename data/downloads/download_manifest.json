@@ -1,0 +1,210 @@
+{
+  "version": "download-zips-v2",
+  "fetchedAt": "2026-03-18T15:21:11.857Z",
+  "yearsTried": [
+    2026,
+    2025,
+    2024,
+    2023,
+    2022,
+    2021,
+    2020,
+    2019,
+    2018,
+    2017,
+    2016,
+    2015,
+    2014,
+    2013,
+    2012,
+    2011,
+    2010,
+    2009,
+    2008,
+    2007
+  ],
+  "successCount": 20,
+  "failCount": 0,
+  "results": [
+    {
+      "year": 2026,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2026",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2026.zip",
+      "fileName": "2026.zip",
+      "savedAs": "data/downloads/2026.zip",
+      "size": 394769
+    },
+    {
+      "year": 2025,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2025",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2025.zip",
+      "fileName": "2025.zip",
+      "savedAs": "data/downloads/2025.zip",
+      "size": 2363494
+    },
+    {
+      "year": 2024,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2024",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2024.zip",
+      "fileName": "2024.zip",
+      "savedAs": "data/downloads/2024.zip",
+      "size": 2364829
+    },
+    {
+      "year": 2023,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2023",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2023.zip",
+      "fileName": "2023.zip",
+      "savedAs": "data/downloads/2023.zip",
+      "size": 2417977
+    },
+    {
+      "year": 2022,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2022",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2022.zip",
+      "fileName": "2022.zip",
+      "savedAs": "data/downloads/2022.zip",
+      "size": 2503694
+    },
+    {
+      "year": 2021,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2021",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2021.zip",
+      "fileName": "2021.zip",
+      "savedAs": "data/downloads/2021.zip",
+      "size": 2489517
+    },
+    {
+      "year": 2020,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2020",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2020.zip",
+      "fileName": "2020.zip",
+      "savedAs": "data/downloads/2020.zip",
+      "size": 2507892
+    },
+    {
+      "year": 2019,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2019",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2019.zip",
+      "fileName": "2019.zip",
+      "savedAs": "data/downloads/2019.zip",
+      "size": 2499003
+    },
+    {
+      "year": 2018,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2018",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2018.zip",
+      "fileName": "2018.zip",
+      "savedAs": "data/downloads/2018.zip",
+      "size": 2489077
+    },
+    {
+      "year": 2017,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2017",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2017.zip",
+      "fileName": "2017.zip",
+      "savedAs": "data/downloads/2017.zip",
+      "size": 2326563
+    },
+    {
+      "year": 2016,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2016",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2016.zip",
+      "fileName": "2016.zip",
+      "savedAs": "data/downloads/2016.zip",
+      "size": 2320352
+    },
+    {
+      "year": 2015,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2015",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2015.zip",
+      "fileName": "2015.zip",
+      "savedAs": "data/downloads/2015.zip",
+      "size": 2305658
+    },
+    {
+      "year": 2014,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2014",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2014.zip",
+      "fileName": "2014.zip",
+      "savedAs": "data/downloads/2014.zip",
+      "size": 2303498
+    },
+    {
+      "year": 2013,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2013",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2013.zip",
+      "fileName": "2013.zip",
+      "savedAs": "data/downloads/2013.zip",
+      "size": 2314482
+    },
+    {
+      "year": 2012,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2012",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2012.zip",
+      "fileName": "2012.zip",
+      "savedAs": "data/downloads/2012.zip",
+      "size": 2323002
+    },
+    {
+      "year": 2011,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2011",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2011.zip",
+      "fileName": "2011.zip",
+      "savedAs": "data/downloads/2011.zip",
+      "size": 2311052
+    },
+    {
+      "year": 2010,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2010",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2010.zip",
+      "fileName": "2010.zip",
+      "savedAs": "data/downloads/2010.zip",
+      "size": 1801180
+    },
+    {
+      "year": 2009,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2009",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2009.zip",
+      "fileName": "2009.zip",
+      "savedAs": "data/downloads/2009.zip",
+      "size": 1645688
+    },
+    {
+      "year": 2008,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2008",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2008.zip",
+      "fileName": "2008.zip",
+      "savedAs": "data/downloads/2008.zip",
+      "size": 1128114
+    },
+    {
+      "year": 2007,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2007",
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2007.zip",
+      "fileName": "2007.zip",
+      "savedAs": "data/downloads/2007.zip",
+      "size": 29164
+    }
+  ]
+}
