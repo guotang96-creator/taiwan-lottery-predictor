@@ -1,9 +1,10 @@
-/* V68.3 掃描 result_download bundle 內關鍵片段 */
+/* V68.4 官方下載端點實測版 */
 const fs = require("fs");
 const path = require("path");
 
 const OUT_DIR = path.join(process.cwd(), "data", "official");
-const BUNDLE_URL = "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js";
+const BASE = "https://www.taiwanlottery.com";
+const API = `${BASE}/Lottery/ResultDownload`;
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -13,108 +14,64 @@ function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
 }
 
-function uniq(arr) {
-  return [...new Set(arr)];
-}
+async function fetchProbe(year) {
+  const url = `${API}?year=${year}`;
 
-async function fetchText(url) {
-  const res = await fetch(url, {
-    headers: {
-      "user-agent": "Mozilla/5.0",
-      "accept": "*/*"
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "user-agent": "Mozilla/5.0",
+        "accept": "application/json,text/plain,*/*"
+      }
+    });
+
+    const text = await res.text();
+
+    let json = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = null;
     }
-  });
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} @ ${url}`);
+    return {
+      year,
+      url,
+      ok: res.ok,
+      status: res.status,
+      contentType: res.headers.get("content-type") || "",
+      textPreview: text.slice(0, 1000),
+      json
+    };
+  } catch (err) {
+    return {
+      year,
+      url,
+      ok: false,
+      error: err.message
+    };
   }
-
-  return res.text();
-}
-
-function getSnippet(text, index, radius = 220) {
-  const start = Math.max(0, index - radius);
-  const end = Math.min(text.length, index + radius);
-  return text.slice(start, end);
-}
-
-function collectKeywordSnippets(text, keywords) {
-  const results = [];
-
-  for (const keyword of keywords) {
-    let idx = 0;
-    while (true) {
-      idx = text.indexOf(keyword, idx);
-      if (idx === -1) break;
-
-      results.push({
-        keyword,
-        index: idx,
-        snippet: getSnippet(text, idx)
-      });
-
-      idx += keyword.length;
-    }
-  }
-
-  return results;
-}
-
-function extractUrls(text) {
-  const urls = [];
-
-  for (const m of text.matchAll(/https?:\/\/[^\s"'`()<>]+/gi)) {
-    urls.push(m[0]);
-  }
-
-  for (const m of text.matchAll(/\/[A-Za-z0-9_\-/.?=&%]+/g)) {
-    const s = m[0];
-    if (
-      s.includes("Lottery") ||
-      s.includes("download") ||
-      s.includes("result") ||
-      s.includes("history") ||
-      s.includes("api")
-    ) {
-      urls.push(`https://www.taiwanlottery.com${s}`);
-    }
-  }
-
-  return uniq(urls);
 }
 
 async function main() {
   ensureDir(OUT_DIR);
 
-  console.log("Fetching bundle:", BUNDLE_URL);
-  const jsText = await fetchText(BUNDLE_URL);
+  const years = [2026, 2025, 2024, 2023];
+  const probes = [];
 
-  const keywords = [
-    "ResultDownload",
-    "Lottery",
-    "download",
-    "history",
-    "fetch(",
-    "axios",
-    "114",
-    "113",
-    "csv",
-    "xlsx",
-    "xls",
-    "zip"
-  ];
+  console.log("Probing official ResultDownload endpoint...");
 
-  const snippets = collectKeywordSnippets(jsText, keywords).slice(0, 120);
-  const urls = extractUrls(jsText);
+  for (const year of years) {
+    const result = await fetchProbe(year);
+    probes.push(result);
+    console.log(`year=${year} status=${result.status || "ERR"}`);
+  }
 
   const manifest = {
-    version: "V68.3-bundle-debug",
+    version: "V68.4-resultdownload-probe",
     fetchedAt: new Date().toISOString(),
-    bundleUrl: BUNDLE_URL,
-    jsLength: jsText.length,
-    matchedKeywordCount: snippets.length,
-    urlsFound: urls,
-    snippets
+    endpoint: API,
+    probes
   };
 
   writeJson(path.join(OUT_DIR, "download_manifest.json"), manifest);
