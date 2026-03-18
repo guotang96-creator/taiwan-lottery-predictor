@@ -33,7 +33,7 @@ jobs:
           mkdir -p data/official
           mkdir -p scripts
 
-      - name: Fetch official data
+- name: Fetch official data
   run: node scripts/fetch_official.js
 
 - name: Run updater
