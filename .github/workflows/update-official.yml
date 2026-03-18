@@ -32,6 +32,7 @@ jobs:
 
       - name: Parse downloaded zip files into raw CSV
         run: node scripts/parse_downloads.js
+
       - name: Fetch latest official incremental data
         run: node scripts/fetch_latest_official.js
 
@@ -53,6 +54,7 @@ jobs:
           git add public/data/official/*.json
           git add scripts/fetch_official.js
           git add scripts/parse_downloads.js
+          git add scripts/fetch_latest_official.js
           git add scripts/convert_to_json.js
           git add scripts/update_official.js
           git add package.json package-lock.json
