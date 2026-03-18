@@ -1,25 +1,191 @@
 {
-  "generatedAt": "2026-03-18T17:46:52.672Z",
+  "generatedAt": "2026-03-18T19:39:09.788Z",
   "source": "merged-official-data",
   "bingo": {
-    "latestOfficial": null,
-    "latest": null,
+    "latestOfficial": {
+      "period": "",
+      "drawDate": "",
+      "redeemableDate": "",
+      "numbers": [],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
+    "latest": {
+      "period": "",
+      "drawDate": "",
+      "redeemableDate": "",
+      "numbers": [],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
     "game": "bingo"
   },
   "daily539": {
-    "latestOfficial": null,
-    "latest": null,
+    "latestOfficial": {
+      "period": "115000069",
+      "drawDate": "2026-03-18T00:00:00",
+      "redeemableDate": "2026-06-18T00:00:00",
+      "numbers": [
+        21,
+        22,
+        31,
+        32,
+        35
+      ],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
+    "latest": {
+      "period": "115000069",
+      "drawDate": "2026-03-18T00:00:00",
+      "redeemableDate": "2026-06-18T00:00:00",
+      "numbers": [
+        21,
+        22,
+        31,
+        32,
+        35
+      ],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
     "game": "daily539"
   },
   "lotto649": {
-    "latestOfficial": null,
-    "latest": null,
+    "latestOfficial": {
+      "period": "115000036",
+      "drawDate": "2026-03-17T00:00:00",
+      "redeemableDate": "2026-06-17T00:00:00",
+      "numbers": [
+        2,
+        6,
+        10,
+        22,
+        40,
+        45,
+        17
+      ],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
+    "latest": {
+      "period": "115000036",
+      "drawDate": "2026-03-17T00:00:00",
+      "redeemableDate": "2026-06-17T00:00:00",
+      "numbers": [
+        2,
+        6,
+        10,
+        22,
+        40,
+        45,
+        17
+      ],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
     "game": "lotto649"
   },
   "superLotto638": {
-    "latestOfficial": null,
-    "latest": null,
+    "latestOfficial": {
+      "period": "115000022",
+      "drawDate": "2026-03-16T00:00:00",
+      "redeemableDate": "2026-06-16T00:00:00",
+      "numbers": [
+        14,
+        26,
+        28,
+        31,
+        32,
+        34,
+        1
+      ],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
+    "latest": {
+      "period": "115000022",
+      "drawDate": "2026-03-16T00:00:00",
+      "redeemableDate": "2026-06-16T00:00:00",
+      "numbers": [
+        14,
+        26,
+        28,
+        31,
+        32,
+        34,
+        1
+      ],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
     "game": "superLotto638"
   },
-  "officialLatest": {}
+  "officialLatest": {
+    "bingo": {
+      "game": "bingo",
+      "period": "",
+      "drawDate": "",
+      "numbers": [],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
+    "daily539": {
+      "game": "daily539",
+      "period": "115000069",
+      "drawDate": "2026-03-18T00:00:00",
+      "redeemableDate": "2026-06-18T00:00:00",
+      "numbers": [
+        21,
+        22,
+        31,
+        32,
+        35
+      ],
+      "source": "official-api"
+    },
+    "lotto649": {
+      "game": "lotto649",
+      "period": "115000036",
+      "drawDate": "2026-03-17T00:00:00",
+      "redeemableDate": "2026-06-17T00:00:00",
+      "numbers": [
+        2,
+        6,
+        10,
+        22,
+        40,
+        45,
+        17
+      ],
+      "specialNumber": null,
+      "source": "official-api"
+    },
+    "superLotto638": {
+      "game": "superLotto638",
+      "period": "115000022",
+      "drawDate": "2026-03-16T00:00:00",
+      "redeemableDate": "2026-06-16T00:00:00",
+      "numbers": [
+        14,
+        26,
+        28,
+        31,
+        32,
+        34,
+        1
+      ],
+      "specialNumber": null,
+      "source": "official-api"
+    }
+  }
 }

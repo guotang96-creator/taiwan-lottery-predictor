@@ -1,0 +1,63 @@
+{
+  "generatedAt": "2026-03-18T19:39:08.406Z",
+  "source": "official-api",
+  "officialLatest": {
+    "bingo": {
+      "game": "bingo",
+      "period": "",
+      "drawDate": "",
+      "numbers": [],
+      "orderNumbers": [],
+      "specialNumber": null,
+      "source": "official-api"
+    },
+    "daily539": {
+      "game": "daily539",
+      "period": "115000069",
+      "drawDate": "2026-03-18T00:00:00",
+      "redeemableDate": "2026-06-18T00:00:00",
+      "numbers": [
+        21,
+        22,
+        31,
+        32,
+        35
+      ],
+      "source": "official-api"
+    },
+    "lotto649": {
+      "game": "lotto649",
+      "period": "115000036",
+      "drawDate": "2026-03-17T00:00:00",
+      "redeemableDate": "2026-06-17T00:00:00",
+      "numbers": [
+        2,
+        6,
+        10,
+        22,
+        40,
+        45,
+        17
+      ],
+      "specialNumber": null,
+      "source": "official-api"
+    },
+    "superLotto638": {
+      "game": "superLotto638",
+      "period": "115000022",
+      "drawDate": "2026-03-16T00:00:00",
+      "redeemableDate": "2026-06-16T00:00:00",
+      "numbers": [
+        14,
+        26,
+        28,
+        31,
+        32,
+        34,
+        1
+      ],
+      "specialNumber": null,
+      "source": "official-api"
+    }
+  }
+}
