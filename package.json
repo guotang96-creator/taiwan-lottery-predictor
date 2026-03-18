@@ -1,14 +1,17 @@
 {
   "name": "taiwan-lottery-predictor",
+  "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "fetch:official": "node scripts/fetch_official.js",
-    "parse:downloads": "node scripts/parse_downloads.js",
-    "fetch:latest": "node scripts/fetch_latest_official.js",
-    "convert:json": "node scripts/convert_to_json.js",
-    "update:official": "node scripts/update_official.js"
+  "description": "Taiwan Lottery Predictor with official data parser and latest official API updater",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
   },
-  "dependencies": {
-    "adm-zip": "^0.5.16"
+  "scripts": {
+    "parse:downloads": "node parse_downloads.js",
+    "convert:json": "node convert_to_json.js",
+    "update:official": "node update_official.js",
+    "fetch:latest": "node fetch_latest_official.js",
+    "build:data": "npm run parse:downloads && npm run convert:json && npm run update:official && npm run fetch:latest"
   }
 }
