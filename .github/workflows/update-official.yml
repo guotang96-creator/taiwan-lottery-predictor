@@ -44,6 +44,9 @@ jobs:
       - name: Parse downloaded zip files
         run: node scripts/parse_downloads.js
 
+      - name: Convert extracted csv to official json
+        run: node scripts/convert_to_json.js
+
       - name: Run updater
         run: node scripts/update_official.js
 
@@ -82,6 +85,6 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: update official lottery data (V68.7 inventory)"
+          git commit -m "chore: update official lottery data (V68.8 convert json)"
           git pull --rebase origin main
           git push origin main
