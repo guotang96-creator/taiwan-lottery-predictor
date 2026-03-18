@@ -1,203 +1,257 @@
-const OFFICIAL_LATEST_URL =
-  "https://guotang96-creator.github.io/taiwan-lottery-predictor/data/official/latest.json";
+const DATA_BASE =
+  "https://guotang96-creator.github.io/taiwan-lottery-predictor/data/official";
 
-let officialLatestData = null;
+const GAME_CONFIG = {
+  bingo: {
+    name: "Bingo Bingo",
+    latestKey: "bingo",
+    file: "bingo.json",
+    max: 80,
+    pickDefault: () => parseInt(document.getElementById("bingoCount").value, 10) || 10,
+    specialField: null
+  },
+  "649": {
+    name: "大樂透",
+    latestKey: "lotto649",
+    file: "lotto649.json",
+    max: 49,
+    pickDefault: () => 6,
+    specialField: "special"
+  },
+  "638": {
+    name: "威力彩",
+    latestKey: "superlotto638",
+    file: "superlotto638.json",
+    max: 38,
+    pickDefault: () => 6,
+    specialField: "zone2"
+  },
+  "539": {
+    name: "今彩 539",
+    latestKey: "dailycash",
+    file: "dailycash.json",
+    max: 39,
+    pickDefault: () => 5,
+    specialField: null
+  }
+};
 
-/* -----------------------------
-   基本工具
------------------------------ */
+const cacheStore = {
+  latest: null,
+  history: {}
+};
+
 function pad2(n) {
   return String(n).padStart(2, "0");
 }
 
-function toNum(v) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
+function uniqSorted(arr) {
+  return [...new Set(arr.map(Number).filter(n => Number.isFinite(n) && n > 0))].sort((a, b) => a - b);
 }
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+function setHeader(gameName, badgeText) {
+  const titleEl = document.getElementById("resultGameName");
+  const badgeEl = document.getElementById("resultBadge");
+  if (titleEl) titleEl.textContent = gameName;
+  if (badgeEl) badgeEl.textContent = badgeText;
+}
+
+function renderBalls(numbers, cls = "") {
+  return `
+    <div class="ball-row">
+      ${numbers.map(n => `<span class="ball ${cls}">${pad2(n)}</span>`).join("")}
+    </div>
+  `;
+}
+
+function showLoading(text = "資料分析中，請稍候...") {
+  const resultEl = document.getElementById("predictionResult");
+  if (!resultEl) return;
+  resultEl.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⏳</div>
+      <div class="empty-title">載入中</div>
+      <div class="empty-text">${text}</div>
+    </div>
+  `;
+}
+
+function showError(text = "資料讀取失敗") {
+  const resultEl = document.getElementById("predictionResult");
+  if (!resultEl) return;
+  resultEl.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">❌</div>
+      <div class="empty-title">發生錯誤</div>
+      <div class="empty-text">${text}</div>
+    </div>
+  `;
+}
+
+async function fetchJson(url) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} - ${url}`);
   }
-  return a;
+  return res.json();
 }
 
-function uniqueSorted(nums) {
-  return [...new Set(nums.map(toNum).filter(n => n > 0))].sort((a, b) => a - b);
+async function loadLatestJson() {
+  if (cacheStore.latest) return cacheStore.latest;
+  const data = await fetchJson(`${DATA_BASE}/latest.json`);
+  cacheStore.latest = data;
+  return data;
 }
 
-function pickRandom(arr, count) {
-  return shuffle(arr).slice(0, count).sort((a, b) => a - b);
+async function loadHistoryJson(type) {
+  if (cacheStore.history[type]) return cacheStore.history[type];
+  const config = GAME_CONFIG[type];
+  const data = await fetchJson(`${DATA_BASE}/${config.file}`);
+  const rows = Array.isArray(data) ? data : [];
+  cacheStore.history[type] = rows;
+  return rows;
 }
 
-function getEl(id) {
-  return document.getElementById(id);
+function normalizeHistoryRow(row) {
+  const numbers = uniqSorted(row.numbers || []);
+  return {
+    issue: row.issue ? String(row.issue) : "",
+    date: row.date || "",
+    numbers,
+    special: row.special ?? null,
+    zone2: row.zone2 ?? row.second ?? null
+  };
 }
 
-function setText(id, text) {
-  const el = getEl(id);
-  if (el) el.textContent = text;
+function normalizeHistoryRows(rows) {
+  return (rows || [])
+    .map(normalizeHistoryRow)
+    .filter(r => r.issue && r.numbers.length > 0);
 }
 
-function setHtml(id, html) {
-  const el = getEl(id);
-  if (el) el.innerHTML = html;
+function getLatestRows(type, latestJson) {
+  const key = GAME_CONFIG[type].latestKey;
+  const rows = latestJson?.games?.[key];
+  return Array.isArray(rows) ? rows.map(normalizeHistoryRow) : [];
 }
 
-/* -----------------------------
-   官方資料讀取
------------------------------ */
-async function loadOfficialLatest() {
-  try {
-    const res = await fetch(OFFICIAL_LATEST_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    if (!data || !data.games) throw new Error("latest.json 格式錯誤");
-
-    officialLatestData = data;
-    console.log("✅ latest.json 載入成功", data);
-    return data;
-  } catch (err) {
-    console.error("❌ latest.json 載入失敗", err);
-    officialLatestData = null;
-    return null;
-  }
-}
-
-function getGameData(type) {
-  if (!officialLatestData || !officialLatestData.games) return [];
-
-  if (type === "bingo") return officialLatestData.games.bingo || [];
-  if (type === "649") return officialLatestData.games.lotto649 || [];
-  if (type === "638") return officialLatestData.games.superlotto638 || [];
-  if (type === "539") return officialLatestData.games.dailycash || [];
-
-  return [];
-}
-
-/* -----------------------------
-   分析邏輯
------------------------------ */
-function analyzeMainZone(records, maxNum, pickCount, historyLimit) {
-  const rows = (records || []).slice(0, historyLimit);
-
-  const freq = Array(maxNum + 1).fill(0);
-
+function countFrequencies(rows, max) {
+  const freq = Array(max + 1).fill(0);
   rows.forEach(row => {
-    const nums = uniqueSorted(row.numbers || []);
-    nums.forEach(n => {
-      if (n >= 1 && n <= maxNum) freq[n]++;
+    row.numbers.forEach(n => {
+      if (n >= 1 && n <= max) freq[n] += 1;
     });
   });
+  return freq;
+}
 
-  const allNums = Array.from({ length: maxNum }, (_, i) => i + 1);
-
-  const hot = [...allNums]
+function pickHotNumbers(freq, count, max) {
+  return Array.from({ length: max }, (_, i) => i + 1)
     .sort((a, b) => {
       if (freq[b] !== freq[a]) return freq[b] - freq[a];
       return a - b;
     })
-    .slice(0, Math.max(pickCount, Math.min(10, maxNum)));
+    .slice(0, count);
+}
 
-  const cold = [...allNums]
+function pickColdNumbers(freq, count, max) {
+  return Array.from({ length: max }, (_, i) => i + 1)
     .sort((a, b) => {
       if (freq[a] !== freq[b]) return freq[a] - freq[b];
       return a - b;
     })
-    .slice(0, Math.max(pickCount, Math.min(10, maxNum)));
-
-  const main = hot.slice(0, pickCount).sort((a, b) => a - b);
-
-  return { rows, freq, hot, cold, main };
+    .slice(0, count);
 }
 
-function buildGroupsFromHotCold(hot, cold, setCount, pickCount) {
+function buildMainPrediction(hot, cold, pickCount) {
+  const merged = [];
+  const hotNeed = Math.ceil(pickCount * 0.7);
+  const coldNeed = pickCount - hotNeed;
+
+  merged.push(...hot.slice(0, hotNeed));
+  merged.push(...cold.slice(0, coldNeed));
+
+  return uniqSorted(merged).slice(0, pickCount);
+}
+
+function rotateArray(arr, step) {
+  const len = arr.length;
+  if (!len) return [];
+  const s = step % len;
+  return [...arr.slice(s), ...arr.slice(0, s)];
+}
+
+function buildGroups(hot, cold, setCount, pickCount, max) {
+  const pool = uniqSorted([...hot, ...cold]);
+  const allNums = Array.from({ length: max }, (_, i) => i + 1);
+  const finalPool = uniqSorted([...pool, ...allNums]);
+
   const groups = [];
-  const basePool = uniqueSorted([...hot, ...cold]);
-
   for (let i = 0; i < setCount; i++) {
-    let pool = shuffle(basePool);
-    if (pool.length < pickCount) {
-      const extra = Array.from({ length: 80 }, (_, idx) => idx + 1);
-      pool = uniqueSorted([...pool, ...extra]);
-    }
-    groups.push(pool.slice(0, pickCount).sort((a, b) => a - b));
+    const rotated = rotateArray(finalPool, i * 3);
+    groups.push(rotated.slice(0, pickCount).sort((a, b) => a - b));
   }
-
   return groups;
 }
 
-function findStreakText(records) {
-  if (!records || !records.length) return "目前無官方歷史資料可分析。";
+function analyzeStreak(rows) {
+  const map = new Map();
 
-  const sample = records.slice(0, 12);
-  const found = [];
-
-  sample.forEach(row => {
-    const nums = uniqueSorted(row.numbers || []);
+  rows.forEach(row => {
+    const nums = row.numbers;
     for (let i = 0; i < nums.length - 1; i++) {
       if (nums[i + 1] === nums[i] + 1) {
-        found.push(`${pad2(nums[i])}-${pad2(nums[i + 1])}`);
+        const key = `${pad2(nums[i])}-${pad2(nums[i + 1])}`;
+        map.set(key, (map.get(key) || 0) + 1);
       }
     }
   });
 
-  const uniq = [...new Set(found)].slice(0, 6);
-  if (!uniq.length) return "近期連號偏少，建議以分散配置為主。";
+  const result = [...map.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([k, v]) => `${k}（${v}次）`);
 
-  return `近期常見連號：${uniq.join("、")}。`;
+  return result.length ? `近期常見連號：${result.join("、")}` : "近期連號偏少，建議分散配置。";
 }
 
-function tailAnalysisText(records) {
-  if (!records || !records.length) return "目前無官方歷史資料可分析。";
-
-  const tailCount = Array(10).fill(0);
-
-  records.slice(0, 30).forEach(row => {
-    (row.numbers || []).forEach(n => {
-      tailCount[n % 10]++;
+function analyzeTails(rows) {
+  const tails = Array(10).fill(0);
+  rows.forEach(row => {
+    row.numbers.forEach(n => {
+      tails[n % 10] += 1;
     });
   });
 
-  const tails = Array.from({ length: 10 }, (_, i) => i)
-    .sort((a, b) => tailCount[b] - tailCount[a])
+  const top = Array.from({ length: 10 }, (_, i) => i)
+    .sort((a, b) => tails[b] - tails[a])
     .slice(0, 4);
 
-  return `近期較活躍尾數：${tails.join("、")}。`;
+  return `近期較活躍尾數：${top.join("、")}`;
 }
 
-function specialSuggestionText(type, records) {
+function analyzeSpecial(type, rows) {
   if (type === "649") {
-    const specials = records
-      .map(r => toNum(r.special))
-      .filter(n => n > 0);
-    const pick = specials.length ? specials[0] : Math.floor(Math.random() * 49) + 1;
-    return `<div class="special-box">特別號建議：<span class="ball special">${pad2(pick)}</span></div>`;
+    const vals = rows.map(r => Number(r.special)).filter(n => Number.isFinite(n) && n > 0);
+    if (!vals.length) return "";
+    return `<div class="special-box">特別號建議：<span class="ball special">${pad2(vals[0])}</span></div>`;
   }
 
   if (type === "638") {
-    const zones = records
-      .map(r => toNum(r.zone2 || r.second))
-      .filter(n => n >= 1 && n <= 8);
-    const pick = zones.length ? zones[0] : Math.floor(Math.random() * 8) + 1;
-    return `<div class="special-box">第二區建議：<span class="ball special">${pad2(pick)}</span></div>`;
+    const vals = rows.map(r => Number(r.zone2)).filter(n => Number.isFinite(n) && n > 0);
+    if (!vals.length) return "";
+    return `<div class="special-box">第二區建議：<span class="ball special">${pad2(vals[0])}</span></div>`;
   }
 
   return "";
 }
 
-/* -----------------------------
-   最新五期 UI
------------------------------ */
-function renderLatestFiveSection(title, records, type) {
-  if (!records || !records.length) {
+function renderLatestFive(type, rows) {
+  if (!rows.length) {
     return `
       <div class="result-card full-width">
         <div class="card-title">最新五期號碼</div>
-        <div class="text-block">目前尚無 ${title} 最新五期資料。</div>
+        <div class="text-block">目前沒有最新五期資料。</div>
       </div>
     `;
   }
@@ -206,22 +260,21 @@ function renderLatestFiveSection(title, records, type) {
     <div class="result-card full-width">
       <div class="card-title">最新五期號碼</div>
       <div class="latest-five-list">
-        ${records.slice(0, 5).map(row => {
-          const extraText =
-            type === "649" && row.special
-              ? `｜特別號 ${pad2(row.special)}`
-              : type === "638" && (row.zone2 || row.second)
-              ? `｜第二區 ${pad2(row.zone2 || row.second)}`
-              : "";
+        ${rows.slice(0, 5).map(row => {
+          let extra = "";
+
+          if (type === "649" && row.special) {
+            extra = `｜特別號 ${pad2(row.special)}`;
+          } else if (type === "638" && row.zone2) {
+            extra = `｜第二區 ${pad2(row.zone2)}`;
+          }
 
           return `
             <div class="latest-five-item">
-              <div class="latest-five-issue">第 ${row.issue} 期${row.date ? `｜${row.date}` : ""}${extraText}</div>
-              <div class="ball-row">
-                ${(row.numbers || [])
-                  .map(n => `<span class="ball">${pad2(n)}</span>`)
-                  .join("")}
+              <div class="latest-five-issue">
+                第 ${row.issue} 期${row.date ? `｜${row.date}` : ""}${extra}
               </div>
+              ${renderBalls(row.numbers)}
             </div>
           `;
         }).join("")}
@@ -230,36 +283,18 @@ function renderLatestFiveSection(title, records, type) {
   `;
 }
 
-/* -----------------------------
-   畫面渲染
------------------------------ */
-function renderBalls(numbers, type = "") {
-  return `
-    <div class="ball-row">
-      ${numbers.map(n => `<span class="ball ${type}">${pad2(n)}</span>`).join("")}
-    </div>
-  `;
-}
-
-function updateHeader(gameName, badgeText) {
-  setText("resultGameName", gameName);
-  setText("resultBadge", badgeText);
-}
-
-function buildPredictionHTML(config) {
-  const {
-    type,
-    gameName,
-    main,
-    groups,
-    hot,
-    cold,
-    streak,
-    tails,
-    extra,
-    latestFive
-  } = config;
-
+function buildResultHtml({
+  type,
+  gameName,
+  main,
+  groups,
+  hot,
+  cold,
+  streak,
+  tails,
+  extra,
+  latestFive
+}) {
   return `
     <div class="result-grid">
       <div class="result-card highlight-card">
@@ -268,10 +303,10 @@ function buildPredictionHTML(config) {
       </div>
 
       ${extra ? `
-        <div class="result-card">
-          <div class="card-title">${type === "649" ? "特別號" : type === "638" ? "第二區" : "附加建議"}</div>
-          ${extra}
-        </div>
+      <div class="result-card">
+        <div class="card-title">${type === "649" ? "特別號" : "第二區"}</div>
+        ${extra}
+      </div>
       ` : ""}
 
       <div class="result-card">
@@ -306,157 +341,71 @@ function buildPredictionHTML(config) {
         <div class="text-block">${tails}</div>
       </div>
 
-      ${renderLatestFiveSection(gameName, latestFive, type)}
+      ${renderLatestFive(type, latestFive)}
 
       <div class="result-card full-width">
         <div class="card-title">AI 分析摘要</div>
         <div class="text-block">
-          ${gameName} 本次預測依據最新五期與近期官方開獎分布，綜合熱冷號、連號、尾數節奏做排序，建議搭配自己的投注習慣交叉參考。
+          ${gameName} 本次預測依據官方歷史資料與最新五期真實開獎結果，綜合熱號、冷號、連號與尾數節奏進行排序，建議搭配自己的習慣交叉參考。
         </div>
       </div>
     </div>
   `;
 }
 
-function showEmptyState(message = "請先選擇彩種並開始預測") {
-  const resultEl = getEl("predictionResult");
-  if (!resultEl) return;
-
-  resultEl.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">📊</div>
-      <div class="empty-title">尚未預測</div>
-      <div class="empty-text">${message}</div>
-    </div>
-  `;
-}
-
-/* -----------------------------
-   預測主流程
------------------------------ */
 async function runPrediction(type) {
-  const resultEl = getEl("predictionResult");
-  if (!resultEl) return;
+  const config = GAME_CONFIG[type];
+  const resultEl = document.getElementById("predictionResult");
+  const setCount = parseInt(document.getElementById("setCount").value, 10) || 3;
+  const historyPeriods = parseInt(document.getElementById("historyPeriods").value, 10) || 50;
+  const pickCount = config.pickDefault();
 
-  resultEl.innerHTML = `<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">資料分析中</div><div class="empty-text">正在讀取最新官方資料...</div></div>`;
+  setHeader(config.name, "分析中");
+  showLoading(`正在讀取 ${config.name} 官方資料...`);
 
-  if (!officialLatestData) {
-    await loadOfficialLatest();
+  try {
+    const [latestJson, historyRaw] = await Promise.all([
+      loadLatestJson(),
+      loadHistoryJson(type)
+    ]);
+
+    const latestRows = getLatestRows(type, latestJson);
+    const historyRows = normalizeHistoryRows(historyRaw).sort((a, b) => String(b.issue).localeCompare(String(a.issue)));
+
+    const analysisRows = historyRows.slice(0, historyPeriods);
+    const freq = countFrequencies(analysisRows, config.max);
+
+    const hot = pickHotNumbers(freq, Math.max(pickCount, 10), config.max);
+    const cold = pickColdNumbers(freq, Math.max(pickCount, 10), config.max);
+    const main = buildMainPrediction(hot, cold, pickCount);
+    const groups = buildGroups(hot, cold, setCount, pickCount, config.max);
+    const streak = analyzeStreak(analysisRows);
+    const tails = analyzeTails(analysisRows);
+    const extra = analyzeSpecial(type, latestRows.length ? latestRows : analysisRows);
+
+    setHeader(config.name, "已完成");
+
+    resultEl.innerHTML = buildResultHtml({
+      type,
+      gameName: config.name,
+      main,
+      groups,
+      hot,
+      cold,
+      streak,
+      tails,
+      extra,
+      latestFive: latestRows
+    });
+  } catch (err) {
+    console.error(err);
+    setHeader(config.name, "失敗");
+    showError(`讀取 ${config.name} 官方資料失敗，請確認 data/official/*.json 已更新。`);
   }
-
-  const setCount = parseInt(getEl("setCount")?.value || "3", 10);
-  const historyPeriods = parseInt(getEl("historyPeriods")?.value || "50", 10);
-  const bingoCount = parseInt(getEl("bingoCount")?.value || "10", 10);
-
-  let gameName = "";
-  let maxNum = 0;
-  let pickCount = 0;
-
-  if (type === "bingo") {
-    gameName = "Bingo Bingo";
-    maxNum = 80;
-    pickCount = bingoCount;
-  } else if (type === "649") {
-    gameName = "大樂透";
-    maxNum = 49;
-    pickCount = 6;
-  } else if (type === "638") {
-    gameName = "威力彩";
-    maxNum = 38;
-    pickCount = 6;
-  } else if (type === "539") {
-    gameName = "今彩 539";
-    maxNum = 39;
-    pickCount = 5;
-  } else {
-    showEmptyState("未知彩種");
-    return;
-  }
-
-  const records = getGameData(type);
-
-  let main = [];
-  let hot = [];
-  let cold = [];
-  let groups = [];
-  let streak = "";
-  let tails = "";
-  let extra = "";
-
-  if (records && records.length) {
-    const analysis = analyzeMainZone(records, maxNum, pickCount, historyPeriods);
-
-    hot = analysis.hot;
-    cold = analysis.cold;
-    main = analysis.main;
-    groups = buildGroupsFromHotCold(hot, cold, setCount, pickCount).map(g =>
-      g.map(n => (n > maxNum ? ((n - 1) % maxNum) + 1 : n)).sort((a, b) => a - b)
-    );
-
-    if (!groups.length) {
-      groups = Array.from({ length: setCount }, () =>
-        pickRandom(Array.from({ length: maxNum }, (_, i) => i + 1), pickCount)
-      );
-    }
-
-    streak = findStreakText(records);
-    tails = tailAnalysisText(records);
-    extra = specialSuggestionText(type, records);
-  } else {
-    const pool = Array.from({ length: maxNum }, (_, i) => i + 1);
-    main = pickRandom(pool, pickCount);
-    hot = pickRandom(pool, Math.max(pickCount, 5));
-    cold = pickRandom(pool, Math.max(pickCount, 5));
-    groups = Array.from({ length: setCount }, () => pickRandom(pool, pickCount));
-    streak = "目前尚未讀到官方完整歷史資料，先以示意結果顯示。";
-    tails = "目前尚未讀到官方完整歷史資料，尾數分析暫以示意顯示。";
-    extra = type === "649"
-      ? `<div class="special-box">特別號建議：<span class="ball special">${pad2(Math.floor(Math.random() * 49) + 1)}</span></div>`
-      : type === "638"
-      ? `<div class="special-box">第二區建議：<span class="ball special">${pad2(Math.floor(Math.random() * 8) + 1)}</span></div>`
-      : "";
-  }
-
-  updateHeader(gameName, "已完成");
-
-  resultEl.innerHTML = buildPredictionHTML({
-    type,
-    gameName,
-    main,
-    groups,
-    hot,
-    cold,
-    streak,
-    tails,
-    extra,
-    latestFive: records.slice(0, 5)
-  });
 }
 
-/* -----------------------------
-   初始化
------------------------------ */
 window.runPrediction = runPrediction;
 
-window.addEventListener("DOMContentLoaded", async () => {
-  setText("resultGameName", "請先選擇彩種並開始預測");
-  setText("resultBadge", "待預測");
-  showEmptyState("按上方按鈕後，這裡會顯示主推薦、熱號、冷號、連號、尾數分析與最新五期號碼。");
-
-  await loadOfficialLatest();
-
-  if (!officialLatestData) {
-    const resultEl = getEl("predictionResult");
-    if (resultEl) {
-      resultEl.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">❌</div>
-          <div class="empty-title">抓不到 latest.json</div>
-          <div class="empty-text">
-            目前無法讀取官方最新五期資料，請稍後重整，或確認 GitHub Pages / latest.json 是否已更新。
-          </div>
-        </div>
-      `;
-    }
-  }
+window.addEventListener("DOMContentLoaded", () => {
+  setHeader("請先選擇彩種並開始預測", "待預測");
 });
