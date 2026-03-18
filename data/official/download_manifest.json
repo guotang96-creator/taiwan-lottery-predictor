@@ -1,43 +1,142 @@
 {
-  "version": "V68.2-endpoint-probe",
-  "fetchedAt": "2026-03-18T03:24:29.311Z",
-  "sourcePage": "https://www.taiwanlottery.com/lotto/history/result_download/",
-  "endpoint": "https://www.taiwanlottery.com/Lottery/ResultDownload",
-  "pageStatus": 200,
-  "pageContentType": "text/html",
-  "pagePreview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<title>台灣彩券-各期開獎結果資料下載</title>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script s",
-  "probes": [
+  "version": "V68.3-bundle-debug",
+  "fetchedAt": "2026-03-18T03:43:32.022Z",
+  "bundleUrl": "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js",
+  "jsLength": 2713,
+  "matchedKeywordCount": 26,
+  "urlsFound": [
+    "https://www.taiwanlottery.com/Lottery/ResultDownload"
+  ],
+  "snippets": [
     {
-      "name": "GET plain",
-      "ok": true,
-      "status": 200,
-      "contentType": "text/html",
-      "location": "",
-      "preview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script src=\"/assets/supporting_file/pdf.mjs\" type=\"module\"></script>\n<script src=\"/assets/supporting_file/pdf.worker.mjs\" type=\"module\"></script>\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N6HP9ZR');</script><link rel=\"modulepreload\" as=\"script\" c"
+      "keyword": "ResultDownload",
+      "index": 1058,
+      "snippet": "nt-bold mb-[10px]\"},K={class:\"grid-style\"},M=[\"onClick\"],Q={class:\"card\"},X={class:\"font-bold mb-[10px]\"},Z={class:\"grid-style\"},oo=[\"onClick\"],to=b({__name:\"result_download\",setup(l){const i=async t=>{await D(\"/Lottery/ResultDownload\",{method:\"GET\",params:{year:t+1911}}).then(m=>{S(m.path,m.fileName)})},{t:v}=k();L({title:v(\"head_title\")+\"-\"+v(\"lotto_history_result_download\")});const c=new Date,_=c.getFullYear()-($(c).isAfter(c.getFull"
     },
     {
-      "name": "GET json accept",
-      "ok": true,
-      "status": 200,
-      "contentType": "text/html",
-      "location": "",
-      "preview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script src=\"/assets/supporting_file/pdf.mjs\" type=\"module\"></script>\n<script src=\"/assets/supporting_file/pdf.worker.mjs\" type=\"module\"></script>\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N6HP9ZR');</script><link rel=\"modulepreload\" as=\"script\" c"
+      "keyword": "Lottery",
+      "index": 1050,
+      "snippet": "lass:\"font-bold mb-[10px]\"},K={class:\"grid-style\"},M=[\"onClick\"],Q={class:\"card\"},X={class:\"font-bold mb-[10px]\"},Z={class:\"grid-style\"},oo=[\"onClick\"],to=b({__name:\"result_download\",setup(l){const i=async t=>{await D(\"/Lottery/ResultDownload\",{method:\"GET\",params:{year:t+1911}}).then(m=>{S(m.path,m.fileName)})},{t:v}=k();L({title:v(\"head_title\")+\"-\"+v(\"lotto_history_result_download\")});const c=new Date,_=c.getFullYear()-($(c).isAfter(c"
     },
     {
-      "name": "POST empty json",
-      "ok": true,
-      "status": 200,
-      "contentType": "text/html",
-      "location": "",
-      "preview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script src=\"/assets/supporting_file/pdf.mjs\" type=\"module\"></script>\n<script src=\"/assets/supporting_file/pdf.worker.mjs\" type=\"module\"></script>\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N6HP9ZR');</script><link rel=\"modulepreload\" as=\"script\" c"
+      "keyword": "download",
+      "index": 1003,
+      "snippet": "rid-style\"},U=[\"onClick\"],z={class:\"card\"},J={class:\"font-bold mb-[10px]\"},K={class:\"grid-style\"},M=[\"onClick\"],Q={class:\"card\"},X={class:\"font-bold mb-[10px]\"},Z={class:\"grid-style\"},oo=[\"onClick\"],to=b({__name:\"result_download\",setup(l){const i=async t=>{await D(\"/Lottery/ResultDownload\",{method:\"GET\",params:{year:t+1911}}).then(m=>{S(m.path,m.fileName)})},{t:v}=k();L({title:v(\"head_title\")+\"-\"+v(\"lotto_history_result_download\")});con"
     },
     {
-      "name": "POST empty form",
-      "ok": true,
-      "status": 200,
-      "contentType": "text/html",
-      "location": "",
-      "preview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script src=\"/assets/supporting_file/pdf.mjs\" type=\"module\"></script>\n<script src=\"/assets/supporting_file/pdf.worker.mjs\" type=\"module\"></script>\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N6HP9ZR');</script><link rel=\"modulepreload\" as=\"script\" c"
+      "keyword": "download",
+      "index": 1207,
+      "snippet": "{__name:\"result_download\",setup(l){const i=async t=>{await D(\"/Lottery/ResultDownload\",{method:\"GET\",params:{year:t+1911}}).then(m=>{S(m.path,m.fileName)})},{t:v}=k();L({title:v(\"head_title\")+\"-\"+v(\"lotto_history_result_download\")});const c=new Date,_=c.getFullYear()-($(c).isAfter(c.getFullYear()+\"-02-01 05:59:59\")?1911:1912),r=[];if(_>=113){let t=_>122?122:_;for(t;t>=113;t--)r.push(t)}return(t,m)=>{const g=f,h=I;return d(),n(\"div\",B,[a"
+    },
+    {
+      "keyword": "download",
+      "index": 1459,
+      "snippet": "c.getFullYear()-($(c).isAfter(c.getFullYear()+\"-02-01 05:59:59\")?1911:1912),r=[];if(_>=113){let t=_>122?122:_;for(t;t>=113;t--)r.push(t)}return(t,m)=>{const g=f,h=I;return d(),n(\"div\",B,[a(g,{title:\"lotto_history_result_download\",marquee:\"DRAW RESULT DATA DOWNLOAD\"}),o(\"div\",P,[T,o(\"div\",V,[o(\"h4\",E,s(t.$t(\"Lotto.download_subtitle\")),1),o(\"h2\",O,s(t.$t(\"Lotto.download_title_web\")),1),o(\"h2\",R,s(t.$t(\"Lotto.download_title_mobile\")),1)]),"
+    },
+    {
+      "keyword": "download",
+      "index": 1554,
+      "snippet": " t=_>122?122:_;for(t;t>=113;t--)r.push(t)}return(t,m)=>{const g=f,h=I;return d(),n(\"div\",B,[a(g,{title:\"lotto_history_result_download\",marquee:\"DRAW RESULT DATA DOWNLOAD\"}),o(\"div\",P,[T,o(\"div\",V,[o(\"h4\",E,s(t.$t(\"Lotto.download_subtitle\")),1),o(\"h2\",O,s(t.$t(\"Lotto.download_title_web\")),1),o(\"h2\",R,s(t.$t(\"Lotto.download_title_mobile\")),1)]),o(\"div\",Y,[o(\"ul\",j,[o(\"li\",q,s(t.$t(\"Lotto.download_ill1\")),1),o(\"li\",null,s(t.$t(\"Lotto.downl"
+    },
+    {
+      "keyword": "download",
+      "index": 1601,
+      "snippet": "n(t,m)=>{const g=f,h=I;return d(),n(\"div\",B,[a(g,{title:\"lotto_history_result_download\",marquee:\"DRAW RESULT DATA DOWNLOAD\"}),o(\"div\",P,[T,o(\"div\",V,[o(\"h4\",E,s(t.$t(\"Lotto.download_subtitle\")),1),o(\"h2\",O,s(t.$t(\"Lotto.download_title_web\")),1),o(\"h2\",R,s(t.$t(\"Lotto.download_title_mobile\")),1)]),o(\"div\",Y,[o(\"ul\",j,[o(\"li\",q,s(t.$t(\"Lotto.download_ill1\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill2\")),1),o(\"li\",null,s(t.$t(\"Lotto.downlo"
+    },
+    {
+      "keyword": "download",
+      "index": 1649,
+      "snippet": ",{title:\"lotto_history_result_download\",marquee:\"DRAW RESULT DATA DOWNLOAD\"}),o(\"div\",P,[T,o(\"div\",V,[o(\"h4\",E,s(t.$t(\"Lotto.download_subtitle\")),1),o(\"h2\",O,s(t.$t(\"Lotto.download_title_web\")),1),o(\"h2\",R,s(t.$t(\"Lotto.download_title_mobile\")),1)]),o(\"div\",Y,[o(\"ul\",j,[o(\"li\",q,s(t.$t(\"Lotto.download_ill1\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill2\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill3\")),1)]),r.length>0?(d(),n(\"div\",W,[o(\"di"
+    },
+    {
+      "keyword": "download",
+      "index": 1723,
+      "snippet": "\"}),o(\"div\",P,[T,o(\"div\",V,[o(\"h4\",E,s(t.$t(\"Lotto.download_subtitle\")),1),o(\"h2\",O,s(t.$t(\"Lotto.download_title_web\")),1),o(\"h2\",R,s(t.$t(\"Lotto.download_title_mobile\")),1)]),o(\"div\",Y,[o(\"ul\",j,[o(\"li\",q,s(t.$t(\"Lotto.download_ill1\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill2\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill3\")),1)]),r.length>0?(d(),n(\"div\",W,[o(\"div\",G,s(t.$t(\"Lotto.download_section1\")),1),o(\"div\",H,[(d(),n(p,null,u(r,e="
+    },
+    {
+      "keyword": "download",
+      "index": 1769,
+      "snippet": "otto.download_subtitle\")),1),o(\"h2\",O,s(t.$t(\"Lotto.download_title_web\")),1),o(\"h2\",R,s(t.$t(\"Lotto.download_title_mobile\")),1)]),o(\"div\",Y,[o(\"ul\",j,[o(\"li\",q,s(t.$t(\"Lotto.download_ill1\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill2\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill3\")),1)]),r.length>0?(d(),n(\"div\",W,[o(\"div\",G,s(t.$t(\"Lotto.download_section1\")),1),o(\"div\",H,[(d(),n(p,null,u(r,e=>o(\"div\",{class:\"download-butoon\",key:e,onClic"
+    },
+    {
+      "keyword": "download",
+      "index": 1815,
+      "snippet": "Lotto.download_title_web\")),1),o(\"h2\",R,s(t.$t(\"Lotto.download_title_mobile\")),1)]),o(\"div\",Y,[o(\"ul\",j,[o(\"li\",q,s(t.$t(\"Lotto.download_ill1\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill2\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill3\")),1)]),r.length>0?(d(),n(\"div\",W,[o(\"div\",G,s(t.$t(\"Lotto.download_section1\")),1),o(\"div\",H,[(d(),n(p,null,u(r,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(e)},[a(h,{src:\"/images/icon/PDF.svg\",al"
+    },
+    {
+      "keyword": "download",
+      "index": 1888,
+      "snippet": "le\")),1)]),o(\"div\",Y,[o(\"ul\",j,[o(\"li\",q,s(t.$t(\"Lotto.download_ill1\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill2\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill3\")),1)]),r.length>0?(d(),n(\"div\",W,[o(\"div\",G,s(t.$t(\"Lotto.download_section1\")),1),o(\"div\",H,[(d(),n(p,null,u(r,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(e)+s(t.$t(\"Lotto.download_year\")),1)],8,U)),64))])])):x(\"\""
+    },
+    {
+      "keyword": "download",
+      "index": 1960,
+      "snippet": "1),o(\"li\",null,s(t.$t(\"Lotto.download_ill2\")),1),o(\"li\",null,s(t.$t(\"Lotto.download_ill3\")),1)]),r.length>0?(d(),n(\"div\",W,[o(\"div\",G,s(t.$t(\"Lotto.download_section1\")),1),o(\"div\",H,[(d(),n(p,null,u(r,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(e)+s(t.$t(\"Lotto.download_year\")),1)],8,U)),64))])])):x(\"\",!0),o(\"div\",z,[o(\"div\",J,s(t.$t(\"Lotto.download_section2\")),1),o(\"div\","
+    },
+    {
+      "keyword": "download",
+      "index": 2067,
+      "snippet": "?(d(),n(\"div\",W,[o(\"div\",G,s(t.$t(\"Lotto.download_section1\")),1),o(\"div\",H,[(d(),n(p,null,u(r,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(e)+s(t.$t(\"Lotto.download_year\")),1)],8,U)),64))])])):x(\"\",!0),o(\"div\",z,[o(\"div\",J,s(t.$t(\"Lotto.download_section2\")),1),o(\"div\",K,[(d(),n(p,null,u(10,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(113-e)},[a(h,{src:\"/images/ico"
+    },
+    {
+      "keyword": "download",
+      "index": 2148,
+      "snippet": "n(p,null,u(r,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(e)+s(t.$t(\"Lotto.download_year\")),1)],8,U)),64))])])):x(\"\",!0),o(\"div\",z,[o(\"div\",J,s(t.$t(\"Lotto.download_section2\")),1),o(\"div\",K,[(d(),n(p,null,u(10,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(113-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(113-e)+s(t.$t(\"Lotto.download_year\")),1)],8,M)),64))]"
+    },
+    {
+      "keyword": "download",
+      "index": 2221,
+      "snippet": "a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(e)+s(t.$t(\"Lotto.download_year\")),1)],8,U)),64))])])):x(\"\",!0),o(\"div\",z,[o(\"div\",J,s(t.$t(\"Lotto.download_section2\")),1),o(\"div\",K,[(d(),n(p,null,u(10,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(113-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(113-e)+s(t.$t(\"Lotto.download_year\")),1)],8,M)),64))])]),o(\"div\",Q,[o(\"div\",X,s(t.$t(\"Lotto.download_section3\")),1),o(\"div\",Z,"
+    },
+    {
+      "keyword": "download",
+      "index": 2336,
+      "snippet": "div\",z,[o(\"div\",J,s(t.$t(\"Lotto.download_section2\")),1),o(\"div\",K,[(d(),n(p,null,u(10,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(113-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(113-e)+s(t.$t(\"Lotto.download_year\")),1)],8,M)),64))])]),o(\"div\",Q,[o(\"div\",X,s(t.$t(\"Lotto.download_section3\")),1),o(\"div\",Z,[(d(),n(p,null,u(7,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(103-e)},[a(h,{src:\"/images/icon/PDF.svg\","
+    },
+    {
+      "keyword": "download",
+      "index": 2407,
+      "snippet": ",n(p,null,u(10,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(113-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(113-e)+s(t.$t(\"Lotto.download_year\")),1)],8,M)),64))])]),o(\"div\",Q,[o(\"div\",X,s(t.$t(\"Lotto.download_section3\")),1),o(\"div\",Z,[(d(),n(p,null,u(7,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(103-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(103-e)+s(t.$t(\"Lotto.download_year\")),1)],8,oo)),64))]"
+    },
+    {
+      "keyword": "download",
+      "index": 2479,
+      "snippet": "3-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(113-e)+s(t.$t(\"Lotto.download_year\")),1)],8,M)),64))])]),o(\"div\",Q,[o(\"div\",X,s(t.$t(\"Lotto.download_section3\")),1),o(\"div\",Z,[(d(),n(p,null,u(7,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(103-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(103-e)+s(t.$t(\"Lotto.download_year\")),1)],8,oo)),64))])])])])])}}});const lo=N(to,[[\"__scopeId\",\"data-v-16562902\"]]);export{lo"
+    },
+    {
+      "keyword": "download",
+      "index": 2594,
+      "snippet": "\"div\",Q,[o(\"div\",X,s(t.$t(\"Lotto.download_section3\")),1),o(\"div\",Z,[(d(),n(p,null,u(7,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(103-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(103-e)+s(t.$t(\"Lotto.download_year\")),1)],8,oo)),64))])])])])])}}});const lo=N(to,[[\"__scopeId\",\"data-v-16562902\"]]);export{lo as default};\n"
+    },
+    {
+      "keyword": "history",
+      "index": 1192,
+      "snippet": "onClick\"],to=b({__name:\"result_download\",setup(l){const i=async t=>{await D(\"/Lottery/ResultDownload\",{method:\"GET\",params:{year:t+1911}}).then(m=>{S(m.path,m.fileName)})},{t:v}=k();L({title:v(\"head_title\")+\"-\"+v(\"lotto_history_result_download\")});const c=new Date,_=c.getFullYear()-($(c).isAfter(c.getFullYear()+\"-02-01 05:59:59\")?1911:1912),r=[];if(_>=113){let t=_>122?122:_;for(t;t>=113;t--)r.push(t)}return(t,m)=>{const g=f,h=I;return d"
+    },
+    {
+      "keyword": "history",
+      "index": 1444,
+      "snippet": "t c=new Date,_=c.getFullYear()-($(c).isAfter(c.getFullYear()+\"-02-01 05:59:59\")?1911:1912),r=[];if(_>=113){let t=_>122?122:_;for(t;t>=113;t--)r.push(t)}return(t,m)=>{const g=f,h=I;return d(),n(\"div\",B,[a(g,{title:\"lotto_history_result_download\",marquee:\"DRAW RESULT DATA DOWNLOAD\"}),o(\"div\",P,[T,o(\"div\",V,[o(\"h4\",E,s(t.$t(\"Lotto.download_subtitle\")),1),o(\"h2\",O,s(t.$t(\"Lotto.download_title_web\")),1),o(\"h2\",R,s(t.$t(\"Lotto.download_title_"
+    },
+    {
+      "keyword": "113",
+      "index": 1326,
+      "snippet": "1}}).then(m=>{S(m.path,m.fileName)})},{t:v}=k();L({title:v(\"head_title\")+\"-\"+v(\"lotto_history_result_download\")});const c=new Date,_=c.getFullYear()-($(c).isAfter(c.getFullYear()+\"-02-01 05:59:59\")?1911:1912),r=[];if(_>=113){let t=_>122?122:_;for(t;t>=113;t--)r.push(t)}return(t,m)=>{const g=f,h=I;return d(),n(\"div\",B,[a(g,{title:\"lotto_history_result_download\",marquee:\"DRAW RESULT DATA DOWNLOAD\"}),o(\"div\",P,[T,o(\"div\",V,[o(\"h4\",E,s(t.$t"
+    },
+    {
+      "keyword": "113",
+      "index": 1358,
+      "snippet": "e)})},{t:v}=k();L({title:v(\"head_title\")+\"-\"+v(\"lotto_history_result_download\")});const c=new Date,_=c.getFullYear()-($(c).isAfter(c.getFullYear()+\"-02-01 05:59:59\")?1911:1912),r=[];if(_>=113){let t=_>122?122:_;for(t;t>=113;t--)r.push(t)}return(t,m)=>{const g=f,h=I;return d(),n(\"div\",B,[a(g,{title:\"lotto_history_result_download\",marquee:\"DRAW RESULT DATA DOWNLOAD\"}),o(\"div\",P,[T,o(\"div\",V,[o(\"h4\",E,s(t.$t(\"Lotto.download_subtitle\")),1),"
+    },
+    {
+      "keyword": "113",
+      "index": 2257,
+      "snippet": "\"\"}),w(\" \"+s(e)+s(t.$t(\"Lotto.download_year\")),1)],8,U)),64))])])):x(\"\",!0),o(\"div\",z,[o(\"div\",J,s(t.$t(\"Lotto.download_section2\")),1),o(\"div\",K,[(d(),n(p,null,u(10,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(113-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(113-e)+s(t.$t(\"Lotto.download_year\")),1)],8,M)),64))])]),o(\"div\",Q,[o(\"div\",X,s(t.$t(\"Lotto.download_section3\")),1),o(\"div\",Z,[(d(),n(p,null,u(7,e=>o(\"div\",{class"
+    },
+    {
+      "keyword": "113",
+      "index": 2315,
+      "snippet": "4))])])):x(\"\",!0),o(\"div\",z,[o(\"div\",J,s(t.$t(\"Lotto.download_section2\")),1),o(\"div\",K,[(d(),n(p,null,u(10,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(113-e)},[a(h,{src:\"/images/icon/PDF.svg\",alt:\"\"}),w(\" \"+s(113-e)+s(t.$t(\"Lotto.download_year\")),1)],8,M)),64))])]),o(\"div\",Q,[o(\"div\",X,s(t.$t(\"Lotto.download_section3\")),1),o(\"div\",Z,[(d(),n(p,null,u(7,e=>o(\"div\",{class:\"download-butoon\",key:e,onClick:y=>i(103-e)},[a(h,{src:\"/"
     }
   ]
 }
