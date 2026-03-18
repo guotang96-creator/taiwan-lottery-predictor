@@ -1,6 +1,6 @@
 async function fetchMeta() {
   try {
-    const res = await fetch("https://你的帳號.github.io/你的repo/data/official/meta.json");
+    const res = await fetch("https://guotang96-creator.github.io/taiwan-lottery-predictor/data/official/meta.json");
     return await res.json();
   } catch {
     return null;
