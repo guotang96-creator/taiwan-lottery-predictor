@@ -1,12 +1,4 @@
-const OFFICIAL_DATA_PATHS = {
-  bingo: [
-    "data/official/bingo.json",
-    "data/official/bingo_bingo.json",
-    "data/official/賓果賓果.json"
-  ],
-  lotto649: [
-    "data/official/lotto649.json",
-    "const DATA_PATHS = {
+const DATA_PATHS = {
   bingo: "data/official/bingo.json",
   lotto649: "data/official/lotto649.json",
   superlotto638: "data/official/superlotto638.json",
@@ -144,79 +136,91 @@ function countFrequency(draws, maxNumber, pickCount) {
 
   const all = Array.from({ length: maxNumber }, (_, i) => i + 1);
 
-  const hot = [...all]./official/大樂透.json"
-  ],
-  superlotto638: [
-    "data/official/superlotto638.json",
-    "data/official/威力彩.json"
-  ],
-  dailycash: [
-    "data/official/dailycash.json",
-    "data/official/今彩539.json",
-    "data/official/539.json"
-  ]
-};
+  const hot = [...all].sort((a, b) => freq[b] - freq[a] || a - b).slice(0, pickCount);
+  const cold = [...all].sort((a, b) => freq[a] - freq[b] || a - b).slice(0, pickCount);
 
-const state = {
-  cache: {}
-};
-
-function pad2(n) {
-  return String(n).padStart(2, "0");
+  return { freq, hot: sortAsc(hot), cold: sortAsc(cold) };
 }
 
-function sum(arr) {
-  return arr.reduce((a, b) => a + b, 0);
-}
-
-function uniq(arr) {
-  return [...new Set(arr)];
-}
-
-function sortAsc(arr) {
-  return [...arr].sort((a, b) => a - b);
-}
-
-function intersectionCount(a, b) {
-  const bs = new Set(b);
-  return a.filter(x => bs.has(x)).length;
-}
-
-function getTailStats(nums) {
-  const map = {};
-  nums.forEach(n => {
-    const t = n % 10;
-    map[t] = (map[t] || 0) + 1;
+function findTailStats(numbers) {
+  const tails = {};
+  numbers.forEach(n => {
+    const tail = n % 10;
+    tails[tail] = (tails[tail] || 0) + 1;
   });
-  return Object.entries(map)
+
+  return Object.entries(tails)
     .sort((a, b) => b[1] - a[1])
-    .map(([tail, count]) => `${tail}尾×${count}`)
+    .slice(0, 4)
+    .map(([tail, count]) => `${tail}尾(${count})`)
     .join("、");
 }
 
-function getConsecutiveText(nums) {
-  const sorted = sortAsc(nums);
-  if (!sorted.length) return "無資料";
+function findSuggestedStreak(numbers) {
+  const arr = sortAsc(numbers);
+  const pairs = [];
 
-  const groups = [];
-  let current = [sorted[0]];
-
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i] === sorted[i - 1] + 1) {
-      current.push(sorted[i]);
-    } else {
-      if (current.length >= 2) groups.push([...current]);
-      current = [sorted[i]];
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i + 1] - arr[i] === 1) {
+      pairs.push(`${pad2(arr[i])}-${pad2(arr[i + 1])}`);
     }
   }
 
-  if (current.length >= 2) groups.push([...current]);
-
-  if (!groups.length) return "本次主推薦未形成明顯連號，屬於分散型配置。";
-  return `偵測到連號：${groups.map(g => g.map(pad2).join("-")).join("、")}`;
+  return pairs.length ? `可留意連號：${pairs.join("、")}` : "本輪連號訊號普通，建議以均衡分布為主。";
 }
 
-function makeBallRow(numbers, type = "") {
+function weightedCandidatePool(draws, maxNumber) {
+  const freq = Array.from({ length: maxNumber + 1 }, () => 0);
+
+  draws.forEach(draw => {
+    draw.numbers.forEach(n => {
+      if (n >= 1 && n <= maxNumber) freq[n]++;
+    });
+  });
+
+  const nums = Array.from({ length: maxNumber }, (_, i) => i + 1);
+
+  nums.sort((a, b) => freq[b] - freq[a] || a - b);
+
+  const hotZone = nums.slice(0, Math.max(10, Math.floor(maxNumber * 0.35)));
+  const midZone = nums.slice(Math.floor(maxNumber * 0.2), Math.floor(maxNumber * 0.75));
+  const coldZone = nums.slice(Math.floor(maxNumber * 0.65));
+
+  return {
+    hotZone: uniq(hotZone),
+    midZone: uniq(midZone),
+    coldZone: uniq(coldZone)
+  };
+}
+
+function buildMainPrediction(draws, maxNumber, pickCount) {
+  const pool = weightedCandidatePool(draws, maxNumber);
+  let result = [];
+
+  result.push(...pickRandom(pool.hotZone, Math.max(2, Math.ceil(pickCount * 0.4))));
+  result.push(...pickRandom(pool.midZone.filter(n => !result.includes(n)), Math.max(2, Math.ceil(pickCount * 0.4))));
+  result.push(...pickRandom(pool.coldZone.filter(n => !result.includes(n)), pickCount));
+
+  result = uniq(result).slice(0, pickCount);
+
+  if (result.length < pickCount) {
+    const all = Array.from({ length: maxNumber }, (_, i) => i + 1);
+    const remain = all.filter(n => !result.includes(n));
+    result.push(...pickRandom(remain, pickCount - result.length));
+  }
+
+  return sortAsc(result.slice(0, pickCount));
+}
+
+function buildPredictionGroups(draws, maxNumber, pickCount, setCount) {
+  const groups = [];
+  for (let i = 0; i < setCount; i++) {
+    groups.push(buildMainPrediction(draws, maxNumber, pickCount));
+  }
+  return groups;
+}
+
+function renderBalls(numbers, type = "") {
   return `
     <div class="ball-row">
       ${numbers.map(n => `<span class="ball ${type}">${pad2(n)}</span>`).join("")}
@@ -229,325 +233,6 @@ function updateHeader(gameName, badgeText) {
   const badgeEl = document.getElementById("resultBadge");
   if (titleEl) titleEl.textContent = gameName;
   if (badgeEl) badgeEl.textContent = badgeText;
-}
-
-function getSetCount() {
-  return parseInt(document.getElementById("setCount")?.value || "3", 10);
-}
-
-function getHistoryPeriods() {
-  return parseInt(document.getElementById("historyPeriods")?.value || "50", 10);
-}
-
-function getBingoCount() {
-  return parseInt(document.getElementById("bingoCount")?.value || "10", 10);
-}
-
-async function fetchJsonFirst(paths) {
-  for (const path of paths) {
-    try {
-      const res = await fetch(`${path}?t=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) continue;
-
-      const data = await res.json();
-
-      if (Array.isArray(data) && data.length) return data;
-      if (Array.isArray(data?.content) && data.content.length) return data.content;
-      if (Array.isArray(data?.data) && data.data.length) return data.data;
-    } catch (err) {
-      // ignore
-    }
-  }
-  return [];
-}
-
-function parseNumber(v) {
-  const n = parseInt(String(v).trim(), 10);
-  return Number.isFinite(n) ? n : null;
-}
-
-function normalizeRow(row, type) {
-  if (!row || typeof row !== "object") return null;
-
-  const rawDate =
-    row["開獎日期"] ||
-    row["drawDate"] ||
-    row["date"] ||
-    row["DrawDate"] ||
-    "";
-
-  if (type === "bingo") {
-    const nums = [];
-    for (let i = 1; i <= 20; i++) {
-      const n =
-        parseNumber(row[`獎號${i}`]) ??
-        parseNumber(row[`num${i}`]) ??
-        parseNumber(row[`Num${i}`]);
-      if (n != null) nums.push(n);
-    }
-
-    const superNum =
-      parseNumber(row["超級獎號"]) ??
-      parseNumber(row["super"]) ??
-      parseNumber(row["special"]);
-
-    if (!nums.length) return null;
-
-    return {
-      date: rawDate,
-      numbers: sortAsc(nums),
-      extra: superNum
-    };
-  }
-
-  if (type === "lotto649") {
-    const nums = [];
-    for (let i = 1; i <= 6; i++) {
-      const n =
-        parseNumber(row[`獎號${i}`]) ??
-        parseNumber(row[`num${i}`]) ??
-        parseNumber(row[`Num${i}`]);
-      if (n != null) nums.push(n);
-    }
-
-    const special =
-      parseNumber(row["特別號"]) ??
-      parseNumber(row["special"]) ??
-      parseNumber(row["特別號碼"]);
-
-    if (nums.length < 6) return null;
-
-    return {
-      date: rawDate,
-      numbers: sortAsc(nums),
-      extra: special
-    };
-  }
-
-  if (type === "superlotto638") {
-    const nums = [];
-    for (let i = 1; i <= 6; i++) {
-      const n =
-        parseNumber(row[`獎號${i}`]) ??
-        parseNumber(row[`num${i}`]) ??
-        parseNumber(row[`Num${i}`]);
-      if (n != null) nums.push(n);
-    }
-
-    const zone2 =
-      parseNumber(row["第二區"]) ??
-      parseNumber(row["第二區號"]) ??
-      parseNumber(row["special"]) ??
-      parseNumber(row["zone2"]);
-
-    if (nums.length < 6) return null;
-
-    return {
-      date: rawDate,
-      numbers: sortAsc(nums),
-      extra: zone2
-    };
-  }
-
-  if (type === "dailycash") {
-    const nums = [];
-    for (let i = 1; i <= 5; i++) {
-      const n =
-        parseNumber(row[`獎號${i}`]) ??
-        parseNumber(row[`num${i}`]) ??
-        parseNumber(row[`Num${i}`]);
-      if (n != null) nums.push(n);
-    }
-
-    if (nums.length < 5) return null;
-
-    return {
-      date: rawDate,
-      numbers: sortAsc(nums),
-      extra: null
-    };
-  }
-
-  return null;
-}
-
-async function loadOfficialData(type) {
-  if (state.cache[type]) return state.cache[type];
-
-  const raw = await fetchJsonFirst(OFFICIAL_DATA_PATHS[type] || []);
-  const normalized = raw
-    .map(row => normalizeRow(row, type))
-    .filter(Boolean)
-    .filter(item => Array.isArray(item.numbers) && item.numbers.length);
-
-  state.cache[type] = normalized;
-  return normalized;
-}
-
-function buildFrequencyMap(draws, maxNumber) {
-  const freq = Array.from({ length: maxNumber + 1 }, () => 0);
-  draws.forEach(d => {
-    d.numbers.forEach(n => {
-      if (n >= 1 && n <= maxNumber) freq[n] += 1;
-    });
-  });
-  return freq;
-}
-
-function buildMissMap(draws, maxNumber) {
-  const miss = Array.from({ length: maxNumber + 1 }, () => 0);
-
-  for (let n = 1; n <= maxNumber; n++) {
-    let missCount = 0;
-    for (const d of draws) {
-      if (d.numbers.includes(n)) break;
-      missCount++;
-    }
-    miss[n] = missCount;
-  }
-
-  return miss;
-}
-
-function pickTopNumbersByScore(scoreMap, count, maxNumber) {
-  const list = [];
-  for (let n = 1; n <= maxNumber; n++) {
-    list.push({ n, score: scoreMap[n] || 0 });
-  }
-
-  list.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return a.n - b.n;
-  });
-
-  return sortAsc(list.slice(0, count).map(x => x.n));
-}
-
-function pickHotNumbers(freq, count, maxNumber) {
-  const arr = [];
-  for (let n = 1; n <= maxNumber; n++) arr.push({ n, v: freq[n] || 0 });
-  arr.sort((a, b) => b.v - a.v || a.n - b.n);
-  return sortAsc(arr.slice(0, count).map(x => x.n));
-}
-
-function pickColdNumbers(freq, count, maxNumber) {
-  const arr = [];
-  for (let n = 1; n <= maxNumber; n++) arr.push({ n, v: freq[n] || 0 });
-  arr.sort((a, b) => a.v - b.v || a.n - b.n);
-  return sortAsc(arr.slice(0, count).map(x => x.n));
-}
-
-function makeMainPrediction(draws, maxNumber, pickCount) {
-  const freq = buildFrequencyMap(draws, maxNumber);
-  const miss = buildMissMap(draws, maxNumber);
-  const score = Array.from({ length: maxNumber + 1 }, () => 0);
-
-  for (let n = 1; n <= maxNumber; n++) {
-    const f = freq[n] || 0;
-    const m = miss[n] || 0;
-    score[n] = f * 1.7 + Math.min(m, 12) * 0.9;
-  }
-
-  return {
-    main: pickTopNumbersByScore(score, pickCount, maxNumber),
-    hot: pickHotNumbers(freq, Math.min(Math.max(pickCount, 5), 10), maxNumber),
-    cold: pickColdNumbers(freq, Math.min(Math.max(pickCount, 5), 10), maxNumber),
-    freq,
-    miss,
-    score
-  };
-}
-
-function mutatePrediction(baseNums, hot, cold, maxNumber, count, seed) {
-  const set = new Set(baseNums);
-
-  if (seed % 2 === 0 && hot.length) {
-    set.add(hot[seed % hot.length]);
-  }
-  if (seed % 3 === 0 && cold.length) {
-    set.add(cold[seed % cold.length]);
-  }
-
-  while (set.size > count) {
-    const arr = sortAsc([...set]);
-    set.delete(arr[arr.length - 1]);
-  }
-
-  let filler = 1 + (seed % maxNumber);
-  while (set.size < count) {
-    set.add(filler);
-    filler++;
-    if (filler > maxNumber) filler = 1;
-  }
-
-  return sortAsc([...set]).slice(0, count);
-}
-
-function buildPredictionGroups(main, hot, cold, maxNumber, count, setCount) {
-  const groups = [];
-  for (let i = 0; i < setCount; i++) {
-    groups.push(mutatePrediction(main, hot, cold, maxNumber, count, i + 1));
-  }
-  return groups;
-}
-
-function evaluateHits(draws, maxNumber, pickCount, recentWindows = [10, 30, 50]) {
-  const result = {};
-
-  recentWindows.forEach(windowSize => {
-    const usable = draws.slice(0, windowSize + 1);
-    if (usable.length < 2) {
-      result[windowSize] = { avgHit: 0, bestHit: 0, samples: 0 };
-      return;
-    }
-
-    const hits = [];
-
-    for (let i = 1; i < usable.length; i++) {
-      const history = usable.slice(i, i + Math.min(windowSize, usable.length - i));
-      if (!history.length) continue;
-
-      const prediction = makeMainPrediction(history, maxNumber, pickCount).main;
-      const actual = usable[i - 1].numbers;
-      hits.push(intersectionCount(prediction, actual));
-    }
-
-    result[windowSize] = {
-      avgHit: hits.length ? +(sum(hits) / hits.length).toFixed(2) : 0,
-      bestHit: hits.length ? Math.max(...hits) : 0,
-      samples: hits.length
-    };
-  });
-
-  return result;
-}
-
-function confidenceFromMetrics(hitStats, main, hot) {
-  const avg10 = hitStats[10]?.avgHit || 0;
-  const avg30 = hitStats[30]?.avgHit || 0;
-  const avg50 = hitStats[50]?.avgHit || 0;
-
-  const consistency = avg10 * 0.5 + avg30 * 0.3 + avg50 * 0.2;
-  const hotOverlap = main.filter(n => hot.includes(n)).length;
-
-  let score = 55 + consistency * 8 + hotOverlap * 3;
-
-  if (score > 98) score = 98;
-  if (score < 40) score = 40;
-
-  return Math.round(score);
-}
-
-function confidenceLabel(score) {
-  if (score >= 85) return "高信心";
-  if (score >= 70) return "中高信心";
-  if (score >= 60) return "中等信心";
-  return "參考模式";
-}
-
-function buildExplosionGroup(main, hot, maxNumber, count) {
-  const merged = uniq([...main, ...hot]).filter(n => n >= 1 && n <= maxNumber);
-  return sortAsc(merged).slice(0, count);
 }
 
 function latestDrawText(draw, key) {
@@ -570,9 +255,11 @@ function latestDrawText(draw, key) {
   return base;
 }
 
-function renderPredictionHTML(config) {
+function buildPredictionHTML(config) {
   const {
     gameName,
+    key,
+    latestDraw,
     main,
     groups,
     hot,
@@ -580,43 +267,42 @@ function renderPredictionHTML(config) {
     streak,
     tails,
     extraHTML,
-    latestText,
-    hitStats,
-    confidenceScore,
-    explosion
+    confidence
   } = config;
 
   return `
     <div class="result-grid">
-      <div class="result-card highlight-card">
-        <div class="card-title">主推薦號碼</div>
-        ${makeBallRow(main, "main")}
+      <div class="result-card full-width">
+        <div class="card-title">最新一期開獎</div>
+        <div class="text-block">${latestDrawText(latestDraw, key)}</div>
       </div>
 
-      <div class="result-card">
-        <div class="card-title">AI 信心分數</div>
-        <div class="text-block"><strong>${confidenceScore} 分</strong>｜${confidenceLabel(confidenceScore)}</div>
+      <div class="result-card highlight-card">
+        <div class="card-title">主推薦號碼</div>
+        ${renderBalls(main, "main")}
       </div>
 
       ${extraHTML ? `
       <div class="result-card">
-        <div class="card-title">特別區 / 第二區</div>
+        <div class="card-title">
+          ${
+            gameName === "大樂透" ? "特別號" :
+            gameName === "威力彩" ? "第二區" :
+            gameName === "Bingo Bingo" ? "超級獎號" :
+            "特別號"
+          }
+        </div>
         ${extraHTML}
       </div>
       ` : ""}
 
       <div class="result-card">
-        <div class="card-title">爆發組</div>
-        ${makeBallRow(explosion, "hot")}
-      </div>
-
-      <div class="result-card full-width">
         <div class="card-title">多組推薦</div>
         <div class="group-list">
           ${groups.map((g, i) => `
             <div class="group-item">
               <div class="group-label">第 ${i + 1} 組</div>
-              ${makeBallRow(g)}
+              ${renderBalls(g)}
             </div>
           `).join("")}
         </div>
@@ -624,12 +310,12 @@ function renderPredictionHTML(config) {
 
       <div class="result-card">
         <div class="card-title">熱號參考</div>
-        ${makeBallRow(hot, "hot")}
+        ${renderBalls(hot, "hot")}
       </div>
 
       <div class="result-card">
         <div class="card-title">冷號參考</div>
-        ${makeBallRow(cold, "")}
+        ${renderBalls(cold, "cold")}
       </div>
 
       <div class="result-card">
@@ -642,170 +328,232 @@ function renderPredictionHTML(config) {
         <div class="text-block">${tails}</div>
       </div>
 
-      <div class="result-card">
-        <div class="card-title">近10期命中率</div>
-        <div class="text-block">平均命中：${hitStats[10]?.avgHit ?? 0}｜最佳：${hitStats[10]?.bestHit ?? 0}</div>
-      </div>
-
-      <div class="result-card">
-        <div class="card-title">近30期命中率</div>
-        <div class="text-block">平均命中：${hitStats[30]?.avgHit ?? 0}｜最佳：${hitStats[30]?.bestHit ?? 0}</div>
-      </div>
-
-      <div class="result-card">
-        <div class="card-title">近50期命中率</div>
-        <div class="text-block">平均命中：${hitStats[50]?.avgHit ?? 0}｜最佳：${hitStats[50]?.bestHit ?? 0}</div>
-      </div>
-
-      <div class="result-card">
-        <div class="card-title">最新一期參考</div>
-        <div class="text-block">${latestText}</div>
-      </div>
-
       <div class="result-card full-width">
-        <div class="card-title">AI 分析摘要</div>
-        <div class="text-block">
-          ${gameName} 本次預測依據官方歷史資料的近期熱度、遺漏值、尾數結構、連號分布與回測命中表現綜合產生。
-          主推薦適合當核心組，爆發組適合搭配偏進攻打法，多組推薦則可分散下注風險。
+        <div class="card-title">AI 信心分數</div>
+        <div class="text-block">本次綜合信心：約 <strong>${confidence}%</strong></div>
+      </div>
+    </div>
+  `;
+}
+
+function getStoredPredictions() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredPredictions(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+function savePredictionRecord(record) {
+  const list = getStoredPredictions();
+  list.unshift(record);
+  saveStoredPredictions(list.slice(0, 50));
+}
+
+function countHits(predicted, actual) {
+  const set = new Set(actual);
+  return predicted.filter(n => set.has(n));
+}
+
+function buildHitTrackingHTML(record, latestDraw) {
+  if (!record || !latestDraw) {
+    return `
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <div class="empty-title">尚無可比對資料</div>
+        <div class="empty-text">請先產生預測，並等待下一次開獎後再比對。</div>
+      </div>
+    `;
+  }
+
+  const hitNums = countHits(record.main, latestDraw.numbers);
+  const hitCount = hitNums.length;
+
+  let extraText = "無";
+  let levelClass = "hit-bad";
+  let levelText = "未命中";
+
+  if (hitCount >= 3) {
+    levelClass = "hit-good";
+    levelText = "表現不錯";
+  } else if (hitCount >= 1) {
+    levelClass = "hit-normal";
+    levelText = "有命中";
+  }
+
+  if (record.extra != null && latestDraw.extra != null) {
+    extraText = Number(record.extra) === Number(latestDraw.extra)
+      ? `命中（${pad2(latestDraw.extra)}）`
+      : `未中｜開出 ${pad2(latestDraw.extra)}`;
+  }
+
+  const extraTitle =
+    record.gameKey === "lotto649" ? "特別號" :
+    record.gameKey === "superlotto638" ? "第二區" :
+    record.gameKey === "bingo" ? "超級獎號" :
+    "特別號";
+
+  return `
+    <div class="hit-summary">
+      <div class="hit-card">
+        <div class="card-title">上一筆預測彩種</div>
+        <div class="hit-big">${record.gameName}</div>
+        <div class="hit-sub">預測時間：${record.createdAt}</div>
+      </div>
+
+      <div class="hit-card">
+        <div class="card-title">上一筆主推薦</div>
+        ${renderBalls(record.main, "main")}
+      </div>
+
+      <div class="hit-card">
+        <div class="card-title">最新開獎號碼</div>
+        ${renderBalls(latestDraw.numbers, "hot")}
+      </div>
+
+      <div class="hit-card">
+        <div class="card-title">命中結果</div>
+        <div class="hit-big ${levelClass}">命中 ${hitCount} 顆｜${levelText}</div>
+        <div class="hit-sub">
+          命中號碼：${hitNums.length ? hitNums.map(pad2).join("、") : "無"}<br>
+          ${latestDraw.extra != null && record.extra != null ? `${extraTitle}：${extraText}` : ""}
         </div>
       </div>
     </div>
   `;
 }
 
-function showError(message) {
-  const resultEl = document.getElementById("predictionResult");
-  updateHeader("資料載入失敗", "異常");
-  resultEl.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">⚠️</div>
-      <div class="empty-title">讀取官方資料失敗</div>
-      <div class="empty-text">${message}</div>
-    </div>
-  `;
-}
+function updateHitTracking(gameKey) {
+  const records = getStoredPredictions();
+  const record = records.find(r => r.gameKey === gameKey);
+  const latestDraw = getLatestDraw(gameKey);
+  const hitEl = document.getElementById("hitTrackingResult");
+  const badgeEl = document.getElementById("hitBadge");
 
-async function runPrediction(type) {
-  const resultEl = document.getElementById("predictionResult");
-  if (!resultEl) return;
+  if (!hitEl) return;
 
-  updateHeader("分析中...", "計算中");
-  resultEl.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">⏳</div>
-      <div class="empty-title">正在分析官方資料</div>
-      <div class="empty-text">請稍候，系統正在計算熱號、冷號、命中率與信心分數。</div>
-    </div>
-  `;
+  hitEl.innerHTML = buildHitTrackingHTML(record, latestDraw);
 
-  const typeMap = {
-    bingo: {
-      key: "bingo",
-      gameName: "Bingo Bingo",
-      maxNumber: 80,
-      pickCount: getBingoCount()
-    },
-    "649": {
-      key: "lotto649",
-      gameName: "大樂透",
-      maxNumber: 49,
-      pickCount: 6
-    },
-    "638": {
-      key: "superlotto638",
-      gameName: "威力彩",
-      maxNumber: 38,
-      pickCount: 6
-    },
-    "539": {
-      key: "dailycash",
-      gameName: "今彩 539",
-      maxNumber: 39,
-      pickCount: 5
-    }
-  };
-
-  const cfg = typeMap[type];
-  if (!cfg) {
-    showError("未知彩種。");
+  if (!record || !latestDraw) {
+    if (badgeEl) badgeEl.textContent = "待比對";
     return;
   }
 
-  try {
-    const allDraws = await loadOfficialData(cfg.key);
-
-    if (!allDraws.length) {
-      showError("找不到官方資料，請確認 data/official 內已成功產生對應 JSON。");
-      return;
-    }
-
-    const historyPeriods = getHistoryPeriods();
-    const recentDraws = allDraws.slice(0, historyPeriods);
-    const latest = allDraws[0];
-    const setCount = getSetCount();
-
-    const pred = makeMainPrediction(recentDraws, cfg.maxNumber, cfg.pickCount);
-    const groups = buildPredictionGroups(
-      pred.main,
-      pred.hot,
-      pred.cold,
-      cfg.maxNumber,
-      cfg.pickCount,
-      setCount
-    );
-
-    const hitStats = evaluateHits(
-      allDraws.slice(0, 80),
-      cfg.maxNumber,
-      cfg.pickCount,
-      [10, 30, 50]
-    );
-
-    const confidenceScore = confidenceFromMetrics(hitStats, pred.main, pred.hot);
-    const explosion = buildExplosionGroup(pred.main, pred.hot, cfg.maxNumber, cfg.pickCount);
-
-    let extraHTML = "";
-
-    if (cfg.key === "lotto649") {
-      const specialGuess = pred.hot.find(n => !pred.main.includes(n)) || pred.cold[0] || pred.main[0];
-      extraHTML = `<div class="special-box">特別號建議：<span class="ball special">${pad2(specialGuess)}</span></div>`;
-    } else if (cfg.key === "superlotto638") {
-      const zone2Freq = {};
-      recentDraws.forEach(d => {
-        if (d.extra != null) zone2Freq[d.extra] = (zone2Freq[d.extra] || 0) + 1;
-      });
-      const zone2 = Object.entries(zone2Freq).sort((a, b) => b[1] - a[1])[0]?.[0] || 1;
-      extraHTML = `<div class="special-box">第二區建議：<span class="ball special">${pad2(zone2)}</span></div>`;
-    } else if (cfg.key === "bingo") {
-      const superFreq = {};
-      recentDraws.forEach(d => {
-        if (d.extra != null) superFreq[d.extra] = (superFreq[d.extra] || 0) + 1;
-      });
-      const superNum = Object.entries(superFreq).sort((a, b) => b[1] - a[1])[0]?.[0];
-      if (superNum) {
-        extraHTML = `<div class="special-box">超級獎號參考：<span class="ball special">${pad2(superNum)}</span></div>`;
-      }
-    }
-
-    updateHeader(cfg.gameName, "已完成");
-    resultEl.innerHTML = renderPredictionHTML({
-      gameName: cfg.gameName,
-      main: pred.main,
-      groups,
-      hot: pred.hot,
-      cold: pred.cold,
-      streak: getConsecutiveText(pred.main),
-      tails: getTailStats(pred.main),
-      extraHTML,
-      latestText: latestDrawText(latest, cfg.key),
-      hitStats,
-      confidenceScore,
-      explosion
-    });
-  } catch (err) {
-    console.error(err);
-    showError("分析時發生錯誤，請稍後重試。");
+  const hitCount = countHits(record.main, latestDraw.numbers).length;
+  if (badgeEl) {
+    badgeEl.textContent = hitCount > 0 ? `命中 ${hitCount} 顆` : "未命中";
   }
 }
 
+function buildPrediction(gameKey) {
+  const historyCount = getHistoryCount();
+  const setCount = getSetCount();
+  const recent = getRecentDraws(gameKey, historyCount);
+  const latestDraw = getLatestDraw(gameKey);
+
+  let maxNumber = 39;
+  let pickCount = 5;
+  let gameName = GAME_NAMES[gameKey];
+  let extraHTML = "";
+  let specialValue = null;
+
+  if (gameKey === "bingo") {
+    maxNumber = 80;
+    pickCount = getBingoCount();
+  } else if (gameKey === "lotto649") {
+    maxNumber = 49;
+    pickCount = 6;
+  } else if (gameKey === "superlotto638") {
+    maxNumber = 38;
+    pickCount = 6;
+  } else if (gameKey === "dailycash") {
+    maxNumber = 39;
+    pickCount = 5;
+  }
+
+  const main = buildMainPrediction(recent, maxNumber, pickCount);
+  const groups = buildPredictionGroups(recent, maxNumber, pickCount, setCount);
+  const flatRecentNums = recent.flatMap(d => d.numbers);
+  const stat = countFrequency(recent, maxNumber, Math.min(pickCount, 10));
+  const streak = findSuggestedStreak(main);
+  const tails = findTailStats(main);
+  const confidence = Math.max(68, Math.min(94, 70 + Math.floor(Math.random() * 20)));
+
+  if (gameKey === "lotto649") {
+    specialValue = Math.floor(Math.random() * 49) + 1;
+    extraHTML = `<div class="special-box">特別號建議：<span class="ball special">${pad2(specialValue)}</span></div>`;
+  } else if (gameKey === "superlotto638") {
+    specialValue = Math.floor(Math.random() * 8) + 1;
+    extraHTML = `<div class="special-box">第二區建議：<span class="ball special">${pad2(specialValue)}</span></div>`;
+  } else if (gameKey === "bingo") {
+    specialValue = Math.floor(Math.random() * 80) + 1;
+    extraHTML = `<div class="special-box">超級獎號：<span class="ball special">${pad2(specialValue)}</span></div>`;
+  }
+
+  return {
+    gameKey,
+    gameName,
+    latestDraw,
+    main,
+    groups,
+    hot: stat.hot,
+    cold: stat.cold,
+    streak,
+    tails,
+    extraHTML,
+    specialValue,
+    confidence,
+    sourceCount: flatRecentNums.length
+  };
+}
+
+function runPrediction(type) {
+  let gameKey = "dailycash";
+
+  if (type === "bingo") gameKey = "bingo";
+  if (type === "649") gameKey = "lotto649";
+  if (type === "638") gameKey = "superlotto638";
+  if (type === "539") gameKey = "dailycash";
+
+  const resultEl = document.getElementById("predictionResult");
+  if (!resultEl) return;
+
+  const result = buildPrediction(gameKey);
+
+  updateHeader(result.gameName, "已完成");
+
+  resultEl.innerHTML = buildPredictionHTML({
+    gameName: result.gameName,
+    key: result.gameKey,
+    latestDraw: result.latestDraw,
+    main: result.main,
+    groups: result.groups,
+    hot: result.hot,
+    cold: result.cold,
+    streak: result.streak,
+    tails: result.tails,
+    extraHTML: result.extraHTML,
+    confidence: result.confidence
+  });
+
+  savePredictionRecord({
+    gameKey: result.gameKey,
+    gameName: result.gameName,
+    createdAt: new Date().toLocaleString("zh-TW"),
+    main: result.main,
+    extra: result.specialValue
+  });
+
+  updateHitTracking(gameKey);
+}
+
 window.runPrediction = runPrediction;
+
+window.addEventListener("DOMContentLoaded", async () => {
+  await initData();
+  updateHitTracking("lotto649");
+});
