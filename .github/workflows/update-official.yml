@@ -62,6 +62,6 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: update official lottery data (V68 manifest)"
+          git commit -m "chore: update official lottery data (V68.1 manifest)"
           git pull --rebase origin main
           git push origin main
