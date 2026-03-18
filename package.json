@@ -6,6 +6,9 @@
     "parse:downloads": "node scripts/parse_downloads.js",
     "update:official": "node scripts/update_official.js"
   },
+  "dependencies": {
+    "iconv-lite": "^0.6.3"
+  },
   "devDependencies": {
     "adm-zip": "^0.5.16"
   }
