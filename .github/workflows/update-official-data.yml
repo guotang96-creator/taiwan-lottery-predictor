@@ -18,6 +18,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Show repo files
+        run: |
+          echo "===== ROOT FILES ====="
+          ls -la
+          echo "===== SCRIPTS ====="
+          ls -la scripts || true
+          echo "===== ALL JS FILES ====="
+          find . -name "*.js" | sort
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
