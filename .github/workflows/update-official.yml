@@ -36,7 +36,6 @@ jobs:
           mkdir -p data/official
           mkdir -p data/downloads
           mkdir -p data/extracted
-          mkdir -p public/data
           mkdir -p public/data/official
           mkdir -p scripts
 
@@ -54,51 +53,34 @@ jobs:
 
       - name: Show result
         run: |
-          echo "---- download_manifest.json ----"
-          cat data/official/download_manifest.json || true
+          echo "---- data/official/latest.json ----"
+          cat data/official/latest.json || true
           echo
-          echo "---- zip_inventory.json ----"
-          cat data/official/zip_inventory.json || true
+          echo "---- public/data/official/latest.json ----"
+          cat public/data/official/latest.json || true
           echo
-          echo "---- meta.json ----"
-          cat data/official/meta.json || true
+          echo "---- public/data/official files ----"
+          find public/data/official -maxdepth 1 -type f | sort || true
           echo
-          echo "---- public/data/latest.json ----"
-          cat public/data/latest.json || true
-          echo
-          echo "---- public/data ----"
-          find public/data -maxdepth 3 -type f | sort || true
-          echo
-          echo "---- downloads ----"
-          ls -lah data/downloads || true
-          echo
-          echo "---- extracted ----"
-          find data/extracted -maxdepth 2 -type f | sort || true
-          echo
-          echo "---- files ----"
-          ls -lah data/official || true
+          echo "---- data/official files ----"
+          find data/official -maxdepth 1 -type f | sort || true
 
-- name: Commit updated data
-  run: |
-    git config user.name "github-actions[bot]"
-    git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-    git add package.json || true
-    git add data/official/*.json || true
-    git add data/downloads/*.zip || true
-    git add data/extracted || true
-    git add public/data/*.json || true
-    git add public/data/latest.json || true
-    git add public/data/official/*.json || true
+          git add package.json || true
+          git add data/official/*.json || true
+          git add data/downloads/*.zip || true
+          git add data/extracted || true
+          git add public/data/official/*.json || true
 
-    if git diff --staged --quiet; then
-      echo "No changes to commit"
-      exit 0
-    fi
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
 
-    git commit -m "chore: update official lottery data (V72.5 auto merge)"
-
-    git fetch origin main
-    git pull --strategy-option theirs origin main --no-rebase || true
-
-    git push origin HEAD:main
+          git commit -m "chore: update official lottery data (V74.1 local fast)"
+          git pull --rebase origin main || true
+          git push origin main
