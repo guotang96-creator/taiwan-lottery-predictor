@@ -1,5 +1,8 @@
-const DATA_BASE =
-  "https://guotang96-creator.github.io/taiwan-lottery-predictor/data/official";
+const DATA_CANDIDATE_BASES = [
+  "./data/official",
+  "/data/official",
+  "https://guotang96-creator.github.io/taiwan-lottery-predictor/data/official"
+];
 
 const GAME_CONFIG = {
   bingo: {
@@ -7,36 +10,33 @@ const GAME_CONFIG = {
     latestKey: "bingo",
     file: "bingo.json",
     max: 80,
-    pickDefault: () => parseInt(document.getElementById("bingoCount").value, 10) || 10,
-    specialField: null
+    pickDefault: () => parseInt(document.getElementById("bingoCount").value, 10) || 10
   },
   "649": {
     name: "大樂透",
     latestKey: "lotto649",
     file: "lotto649.json",
     max: 49,
-    pickDefault: () => 6,
-    specialField: "special"
+    pickDefault: () => 6
   },
   "638": {
     name: "威力彩",
     latestKey: "superlotto638",
     file: "superlotto638.json",
     max: 38,
-    pickDefault: () => 6,
-    specialField: "zone2"
+    pickDefault: () => 6
   },
   "539": {
     name: "今彩 539",
     latestKey: "dailycash",
     file: "dailycash.json",
     max: 39,
-    pickDefault: () => 5,
-    specialField: null
+    pickDefault: () => 5
   }
 };
 
 const cacheStore = {
+  baseUrl: null,
   latest: null,
   history: {}
 };
@@ -88,17 +88,46 @@ function showError(text = "資料讀取失敗") {
   `;
 }
 
-async function fetchJson(url) {
+async function tryFetchJson(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status} - ${url}`);
+    throw new Error(`HTTP ${res.status}`);
   }
   return res.json();
 }
 
+async function detectWorkingBaseUrl() {
+  if (cacheStore.baseUrl) return cacheStore.baseUrl;
+
+  const logs = [];
+
+  for (const base of DATA_CANDIDATE_BASES) {
+    const testUrl = `${base}/latest.json`;
+    try {
+      const data = await tryFetchJson(testUrl);
+      if (data && data.games) {
+        cacheStore.baseUrl = base;
+        console.log("✅ 使用資料路徑:", base);
+        return base;
+      }
+      logs.push(`路徑可連但格式不符: ${testUrl}`);
+    } catch (err) {
+      logs.push(`失敗: ${testUrl} -> ${err.message}`);
+    }
+  }
+
+  console.error("❌ 全部資料路徑都失敗", logs);
+  throw new Error(`找不到可用資料路徑：\n${logs.join("\n")}`);
+}
+
+async function fetchFromBase(fileName) {
+  const base = await detectWorkingBaseUrl();
+  return tryFetchJson(`${base}/${fileName}`);
+}
+
 async function loadLatestJson() {
   if (cacheStore.latest) return cacheStore.latest;
-  const data = await fetchJson(`${DATA_BASE}/latest.json`);
+  const data = await fetchFromBase("latest.json");
   cacheStore.latest = data;
   return data;
 }
@@ -106,10 +135,9 @@ async function loadLatestJson() {
 async function loadHistoryJson(type) {
   if (cacheStore.history[type]) return cacheStore.history[type];
   const config = GAME_CONFIG[type];
-  const data = await fetchJson(`${DATA_BASE}/${config.file}`);
-  const rows = Array.isArray(data) ? data : [];
-  cacheStore.history[type] = rows;
-  return rows;
+  const data = await fetchFromBase(config.file);
+  cacheStore.history[type] = Array.isArray(data) ? data : [];
+  return cacheStore.history[type];
 }
 
 function normalizeHistoryRow(row) {
@@ -164,14 +192,9 @@ function pickColdNumbers(freq, count, max) {
 }
 
 function buildMainPrediction(hot, cold, pickCount) {
-  const merged = [];
   const hotNeed = Math.ceil(pickCount * 0.7);
   const coldNeed = pickCount - hotNeed;
-
-  merged.push(...hot.slice(0, hotNeed));
-  merged.push(...cold.slice(0, coldNeed));
-
-  return uniqSorted(merged).slice(0, pickCount);
+  return uniqSorted([...hot.slice(0, hotNeed), ...cold.slice(0, coldNeed)]).slice(0, pickCount);
 }
 
 function rotateArray(arr, step) {
@@ -182,13 +205,10 @@ function rotateArray(arr, step) {
 }
 
 function buildGroups(hot, cold, setCount, pickCount, max) {
-  const pool = uniqSorted([...hot, ...cold]);
-  const allNums = Array.from({ length: max }, (_, i) => i + 1);
-  const finalPool = uniqSorted([...pool, ...allNums]);
-
+  const pool = uniqSorted([...hot, ...cold, ...Array.from({ length: max }, (_, i) => i + 1)]);
   const groups = [];
   for (let i = 0; i < setCount; i++) {
-    const rotated = rotateArray(finalPool, i * 3);
+    const rotated = rotateArray(pool, i * 3);
     groups.push(rotated.slice(0, pickCount).sort((a, b) => a - b));
   }
   return groups;
@@ -217,6 +237,7 @@ function analyzeStreak(rows) {
 
 function analyzeTails(rows) {
   const tails = Array(10).fill(0);
+
   rows.forEach(row => {
     row.numbers.forEach(n => {
       tails[n % 10] += 1;
@@ -400,12 +421,19 @@ async function runPrediction(type) {
   } catch (err) {
     console.error(err);
     setHeader(config.name, "失敗");
-    showError(`讀取 ${config.name} 官方資料失敗，請確認 data/official/*.json 已更新。`);
+    showError(`讀取 ${config.name} 官方資料失敗。請確認 latest.json 與各彩種 json 已部署成功。`);
   }
 }
 
 window.runPrediction = runPrediction;
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   setHeader("請先選擇彩種並開始預測", "待預測");
+
+  try {
+    const base = await detectWorkingBaseUrl();
+    console.log("目前使用資料來源:", base);
+  } catch (err) {
+    console.error(err);
+  }
 });
