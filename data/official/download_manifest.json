@@ -1,0 +1,16 @@
+{
+  "version": "V68-link-manifest",
+  "sourcePage": "https://www.taiwanlottery.com/lotto/history/result_download/",
+  "fetchedAt": "2026-03-18T02:53:01.763Z",
+  "rocYearsChecked": [
+    "115",
+    "114",
+    "113"
+  ],
+  "totalFoundUrls": 57,
+  "totalDownloadLikeUrls": 1,
+  "likelyYearFiles": [],
+  "allDownloadLikeUrls": [
+    "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js"
+  ]
+}
