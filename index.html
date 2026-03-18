@@ -10,8 +10,8 @@
   <div class="app-shell">
     <header class="topbar">
       <div>
-        <h1>🎯 台灣彩券 AI 預測系統</h1>
-        <p class="subtitle">官方資料真比對版｜Bingo・大樂透・威力彩・539｜V70</p>
+        <h1>🎯 台灣彩券 AI 預測系統 V70</h1>
+        <p class="subtitle">官方資料真比對版｜Bingo・大樂透・威力彩・539</p>
       </div>
     </header>
 
@@ -67,79 +67,20 @@
         </div>
       </section>
 
-      <section class="panel official-panel">
-        <div class="result-header">
-          <div>
-            <h2>官方資料狀態</h2>
-            <p id="officialStatusText" class="result-subtitle">讀取中...</p>
-          </div>
-          <div class="badge-group">
-            <span id="officialDataBadge" class="badge">載入中</span>
-          </div>
-        </div>
-
-        <div id="officialDataPanel" class="prediction-result">
-          <div class="empty-state">
-            <div class="empty-icon">☁️</div>
-            <div class="empty-title">官方資料載入中</div>
-            <div class="empty-text">系統會自動讀取 data/official 內的官方資料檔案。</div>
-          </div>
-        </div>
-      </section>
-
       <section class="panel result-panel">
         <div class="result-header">
           <div>
             <h2>預測結果</h2>
             <p id="resultGameName" class="result-subtitle">請先選擇彩種並開始預測</p>
           </div>
-          <div class="badge-group">
-            <span id="resultBadge" class="badge">待預測</span>
-            <span id="confidenceBadge" class="badge confidence-badge confidence-normal">可信度：待分析</span>
-          </div>
+          <span id="resultBadge" class="badge">待預測</span>
         </div>
 
         <div id="predictionResult" class="prediction-result">
           <div class="empty-state">
             <div class="empty-icon">📊</div>
             <div class="empty-title">尚未產生預測</div>
-            <div class="empty-text">按上方按鈕後，這裡會顯示主推薦、熱號、冷號、連號、尾數分析等資訊。</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel tracking-panel">
-        <div class="result-header">
-          <div>
-            <h2>命中追蹤</h2>
-            <p class="result-subtitle">使用官方最新一期資料進行真比對</p>
-          </div>
-          <span id="hitBadge" class="badge">待比對</span>
-        </div>
-
-        <div id="hitTrackingResult" class="prediction-result">
-          <div class="empty-state">
-            <div class="empty-icon">🎯</div>
-            <div class="empty-title">尚無命中資料</div>
-            <div class="empty-text">每次產生預測時，系統會保存一筆等待官方開獎的紀錄。</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel stats-panel">
-        <div class="result-header">
-          <div>
-            <h2>命中統計面板</h2>
-            <p class="result-subtitle">近 10 次表現、平均命中、最佳紀錄、彩種排行榜</p>
-          </div>
-          <span id="statsBadge" class="badge">統計中</span>
-        </div>
-
-        <div id="statsPanelContent" class="prediction-result">
-          <div class="empty-state">
-            <div class="empty-icon">📈</div>
-            <div class="empty-title">尚無統計資料</div>
-            <div class="empty-text">開始預測並完成官方比對後，這裡會累積你的歷史命中表現。</div>
+            <div class="empty-text">按上方按鈕後，這裡會顯示主推薦、熱號、冷號、連號、尾數分析、官方比對等資訊。</div>
           </div>
         </div>
       </section>
