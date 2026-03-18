@@ -93,6 +93,7 @@ function toObjects(rows) {
   if (!Array.isArray(rows) || rows.length === 0) return [];
 
   const header = rows[0].map((h) => String(h || "").trim());
+
   return rows.slice(1).map((r) => {
     const obj = {};
     for (let i = 0; i < header.length; i++) {
@@ -163,7 +164,7 @@ function sortRowsDesc(rows) {
   });
 }
 
-function dedupeRowsByIssue(rows) {
+function dedupeRows(rows) {
   const map = new Map();
 
   for (const row of rows) {
@@ -275,6 +276,28 @@ function normalizeLotto649Rows(records) {
   return result;
 }
 
+function normalizeSuperlotto638Rows(records) {
+  const result = [];
+
+  for (let i = 0; i < records.length; i++) {
+    const row = records[i];
+    const issue = normalizeIssue(row.issue, i);
+    const date = normalizeDate(row.date);
+    const numbers = extractNumbers(row, 6, 1, 38);
+    const zone2 = safeInt(row.second ?? row.zone2 ?? row.special);
+
+    if (!issue) continue;
+    if (!date) continue;
+    if (numbers.length !== 6) continue;
+    if (hasDuplicateNumbers(numbers)) continue;
+    if (zone2 === null || zone2 < 1 || zone2 > 8) continue;
+
+    result.push({ issue, date, numbers, zone2 });
+  }
+
+  return result;
+}
+
 function convertCsvFile(options) {
   const { csvFile, jsonFile, latestKey, normalizer } = options;
 
@@ -295,7 +318,7 @@ function convertCsvFile(options) {
   }
 
   const normalized = normalizer(records);
-  const deduped = dedupeRowsByIssue(normalized);
+  const deduped = dedupeRows(normalized);
   const finalRows = sortRowsDesc(deduped);
 
   writeJson(path.join(DATA_DIR, jsonFile), finalRows);
@@ -318,7 +341,7 @@ function updateLatestJson(results) {
 
   const latest = {
     ...existing,
-    version: "csv-fix-3",
+    version: "csv-fix-4",
     updatedAt: new Date().toISOString(),
     games: {
       ...(existing && existing.games ? existing.games : {})
@@ -366,11 +389,21 @@ function main() {
     })
   );
 
+  results.push(
+    convertCsvFile({
+      csvFile: "power.csv",
+      jsonFile: "superlotto638.json",
+      latestKey: "superlotto638",
+      normalizer: normalizeSuperlotto638Rows
+    })
+  );
+
   updateLatestJson(results);
 
   syncToPublic("bingo.json");
   syncToPublic("dailycash.json");
   syncToPublic("lotto649.json");
+  syncToPublic("superlotto638.json");
   syncToPublic("latest.json");
 
   console.log("✅ convert_to_json 完成");
