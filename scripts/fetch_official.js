@@ -1,46 +1,8 @@
-const fs = require("fs");
+// V67.1 暫停版 fetch_official.js
 
-async function fetchJSON(url) {
-  try {
-    const res = await fetch(url);
-    return await res.json();
-  } catch (e) {
-    console.error("Fetch failed:", url);
-    return null;
-  }
-}
-
-function save(name, data) {
-  fs.writeFileSync(`data/official/${name}.json`, JSON.stringify(data || [], null, 2));
-}
-
-// 台彩官方來源（公開接口）
-const APIs = {
-  bingo: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Bingo/BingoResult",
-  lotto649: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649/Lotto649Result",
-  superlotto638: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/SuperLotto638/SuperLotto638Result",
-  dailycash: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/DailyCash/DailyCashResult"
-};
-
-(async () => {
-  console.log("Fetching official lottery data...");
-
-  for (const key of Object.keys(APIs)) {
-    const data = await fetchJSON(APIs[key]);
-
-    if (!data) {
-      console.log(`${key}: ❌ fetch failed`);
-      save(key, []);
-      continue;
-    }
-
-    // 根據 API 結構抓資料（核心）
-    let list = data?.content || data?.result || data?.data || [];
-
-    console.log(`${key}:`, Array.isArray(list) ? list.length : 0);
-
-    save(key, list);
-  }
-
-  console.log("Done fetch.");
-})();
+console.log("=================================");
+console.log("fetch_official.js 暫停使用");
+console.log("原因：目前 API 無法在 GitHub Actions 正常取得資料");
+console.log("系統已切換為 V67.1 安全模式");
+console.log("後續將改為官方網站資料抓取（V68）");
+console.log("=================================");
