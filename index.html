@@ -2,12 +2,114 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>台灣彩券預測 V67.1</title>
-  <meta name="theme-color" content="#081226" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>台灣彩券 AI 預測系統</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      background: #f5f6fa;
+      margin: 0;
+      padding: 16px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .predict-panel {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      margin: 12px auto;
+      max-width: 600px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    select, button {
+      margin: 6px 6px 6px 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    button {
+      background: #1f7a3f;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    #predictionResult {
+      margin-top: 16px;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+  </style>
 </head>
+
 <body>
-  <div id="app"></div>
-  <script src="./app.js"></script>
+
+<h1>🎯 台灣彩券 AI 預測</h1>
+
+<div class="predict-panel">
+
+  <h2>AI 預測區</h2>
+
+  <label>推薦組數：</label>
+  <select id="setCount">
+    <option value="1">1組</option>
+    <option value="2">2組</option>
+    <option value="3" selected>3組</option>
+    <option value="5">5組</option>
+  </select>
+
+  <br/>
+
+  <label>Bingo 選幾顆：</label>
+  <select id="bingoCount">
+    <option value="1">1顆</option>
+    <option value="2">2顆</option>
+    <option value="3">3顆</option>
+    <option value="4">4顆</option>
+    <option value="5">5顆</option>
+    <option value="6">6顆</option>
+    <option value="7">7顆</option>
+    <option value="8">8顆</option>
+    <option value="9">9顆</option>
+    <option value="10" selected>10顆</option>
+  </select>
+
+  <div style="margin-top:12px;">
+    <button onclick="runPrediction('bingo')">預測 Bingo</button>
+    <button onclick="runPrediction('649')">預測大樂透</button>
+    <button onclick="runPrediction('638')">預測威力彩</button>
+    <button onclick="runPrediction('539')">預測539</button>
+  </div>
+
+  <div id="predictionResult"></div>
+
+</div>
+
+<!-- JS 順序很重要 -->
+<script src="predictor.js"></script>
+<script src="app.js"></script>
+
 </body>
 </html>
