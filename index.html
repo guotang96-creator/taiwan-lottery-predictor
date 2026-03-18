@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券 AI 預測系統 V69.2</title>
+  <title>台灣彩券 AI 預測系統 V69.3</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,7 +11,7 @@
     <header class="topbar">
       <div>
         <h1>🎯 台灣彩券 AI 預測系統</h1>
-        <p class="subtitle">官方資料版｜Bingo・大樂透・威力彩・539｜V69.2</p>
+        <p class="subtitle">官方資料版｜Bingo・大樂透・威力彩・539</p>
       </div>
     </header>
 
@@ -80,9 +80,25 @@
           <div class="empty-state">
             <div class="empty-icon">📊</div>
             <div class="empty-title">尚未產生預測</div>
-            <div class="empty-text">
-              按上方按鈕後，這裡會顯示主推薦、熱號、冷號、連號、尾數分析、命中率與 AI 信心分數。
-            </div>
+            <div class="empty-text">按上方按鈕後，這裡會顯示主推薦、熱號、冷號、連號、尾數分析等資訊。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel tracking-panel">
+        <div class="result-header">
+          <div>
+            <h2>命中追蹤</h2>
+            <p class="result-subtitle">自動比對上一筆預測與最新開獎結果</p>
+          </div>
+          <span id="hitBadge" class="badge">待比對</span>
+        </div>
+
+        <div id="hitTrackingResult" class="prediction-result">
+          <div class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <div class="empty-title">尚無命中資料</div>
+            <div class="empty-text">產生預測後，系統會記住上一筆資料，之後可用來比對命中結果。</div>
           </div>
         </div>
       </section>
