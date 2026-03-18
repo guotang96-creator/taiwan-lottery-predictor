@@ -34,8 +34,10 @@ jobs:
           mkdir -p scripts
 
       - name: Fetch official data
-  run: node scripts/fetch_official.jsRun updater
-        run: node scripts/update_official.js
+  run: node scripts/fetch_official.js
+
+- name: Run updater
+  run: node scripts/update_official.js
 
       - name: Show result
         run: |
