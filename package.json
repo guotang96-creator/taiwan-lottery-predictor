@@ -1,15 +1,13 @@
 {
   "name": "taiwan-lottery-predictor",
   "private": true,
-  {
   "scripts": {
     "fetch:official": "node scripts/fetch_official.js",
     "parse:downloads": "node scripts/parse_downloads.js",
     "fetch:latest": "node scripts/fetch_latest_official.js",
     "convert:json": "node scripts/convert_to_json.js",
     "update:official": "node scripts/update_official.js"
-  }
-}
+  },
   "dependencies": {
     "adm-zip": "^0.5.16"
   }
