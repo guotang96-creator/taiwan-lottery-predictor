@@ -58,6 +58,8 @@ function getTailStats(nums) {
 
 function getConsecutiveText(nums) {
   const sorted = sortAsc(nums);
+  if (!sorted.length) return "無資料";
+
   const groups = [];
   let current = [sorted[0]];
 
@@ -69,7 +71,8 @@ function getConsecutiveText(nums) {
       current = [sorted[i]];
     }
   }
-  if (current.length >= 2) groups.push(current);
+
+  if (current.length >= 2) groups.push([...current]);
 
   if (!groups.length) return "本次主推薦未形成明顯連號，屬於分散型配置。";
   return `偵測到連號：${groups.map(g => g.map(pad2).join("-")).join("、")}`;
@@ -107,7 +110,9 @@ async function fetchJsonFirst(paths) {
     try {
       const res = await fetch(`${path}?t=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) continue;
+
       const data = await res.json();
+
       if (Array.isArray(data) && data.length) return data;
       if (Array.isArray(data?.content) && data.content.length) return data.content;
       if (Array.isArray(data?.data) && data.data.length) return data.data;
@@ -121,10 +126,6 @@ async function fetchJsonFirst(paths) {
 function parseNumber(v) {
   const n = parseInt(String(v).trim(), 10);
   return Number.isFinite(n) ? n : null;
-}
-
-function findKeysByNames(obj, names) {
-  return names.filter(k => Object.prototype.hasOwnProperty.call(obj, k));
 }
 
 function normalizeRow(row, type) {
@@ -146,11 +147,14 @@ function normalizeRow(row, type) {
         parseNumber(row[`Num${i}`]);
       if (n != null) nums.push(n);
     }
+
     const superNum =
       parseNumber(row["超級獎號"]) ??
       parseNumber(row["super"]) ??
       parseNumber(row["special"]);
+
     if (!nums.length) return null;
+
     return {
       date: rawDate,
       numbers: sortAsc(nums),
@@ -167,11 +171,14 @@ function normalizeRow(row, type) {
         parseNumber(row[`Num${i}`]);
       if (n != null) nums.push(n);
     }
+
     const special =
       parseNumber(row["特別號"]) ??
       parseNumber(row["special"]) ??
       parseNumber(row["特別號碼"]);
+
     if (nums.length < 6) return null;
+
     return {
       date: rawDate,
       numbers: sortAsc(nums),
@@ -188,12 +195,15 @@ function normalizeRow(row, type) {
         parseNumber(row[`Num${i}`]);
       if (n != null) nums.push(n);
     }
+
     const zone2 =
       parseNumber(row["第二區"]) ??
       parseNumber(row["第二區號"]) ??
       parseNumber(row["special"]) ??
       parseNumber(row["zone2"]);
+
     if (nums.length < 6) return null;
+
     return {
       date: rawDate,
       numbers: sortAsc(nums),
@@ -210,7 +220,9 @@ function normalizeRow(row, type) {
         parseNumber(row[`Num${i}`]);
       if (n != null) nums.push(n);
     }
+
     if (nums.length < 5) return null;
+
     return {
       date: rawDate,
       numbers: sortAsc(nums),
@@ -236,19 +248,16 @@ async function loadOfficialData(type) {
 
 function buildFrequencyMap(draws, maxNumber) {
   const freq = Array.from({ length: maxNumber + 1 }, () => 0);
-  draws.forEach(d => d.numbers.forEach(n => {
-    if (n >= 1 && n <= maxNumber) freq[n] += 1;
-  }));
+  draws.forEach(d => {
+    d.numbers.forEach(n => {
+      if (n >= 1 && n <= maxNumber) freq[n] += 1;
+    });
+  });
   return freq;
 }
 
 function buildMissMap(draws, maxNumber) {
   const miss = Array.from({ length: maxNumber + 1 }, () => 0);
-  const seen = new Set();
-
-  for (const d of draws) {
-    d.numbers.forEach(n => seen.add(n));
-  }
 
   for (let n = 1; n <= maxNumber; n++) {
     let missCount = 0;
@@ -258,6 +267,7 @@ function buildMissMap(draws, maxNumber) {
     }
     miss[n] = missCount;
   }
+
   return miss;
 }
 
@@ -266,10 +276,12 @@ function pickTopNumbersByScore(scoreMap, count, maxNumber) {
   for (let n = 1; n <= maxNumber; n++) {
     list.push({ n, score: scoreMap[n] || 0 });
   }
+
   list.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return a.n - b.n;
   });
+
   return sortAsc(list.slice(0, count).map(x => x.n));
 }
 
@@ -300,8 +312,8 @@ function makeMainPrediction(draws, maxNumber, pickCount) {
 
   return {
     main: pickTopNumbersByScore(score, pickCount, maxNumber),
-    hot: pickHotNumbers(freq, Math.min(pickCount, 10), maxNumber),
-    cold: pickColdNumbers(freq, Math.min(pickCount, 10), maxNumber),
+    hot: pickHotNumbers(freq, Math.min(Math.max(pickCount, 5), 10), maxNumber),
+    cold: pickColdNumbers(freq, Math.min(Math.max(pickCount, 5), 10), maxNumber),
     freq,
     miss,
     score
@@ -352,9 +364,11 @@ function evaluateHits(draws, maxNumber, pickCount, recentWindows = [10, 30, 50])
     }
 
     const hits = [];
+
     for (let i = 1; i < usable.length; i++) {
       const history = usable.slice(i, i + Math.min(windowSize, usable.length - i));
       if (!history.length) continue;
+
       const prediction = makeMainPrediction(history, maxNumber, pickCount).main;
       const actual = usable[i - 1].numbers;
       hits.push(intersectionCount(prediction, actual));
@@ -375,8 +389,9 @@ function confidenceFromMetrics(hitStats, main, hot) {
   const avg30 = hitStats[30]?.avgHit || 0;
   const avg50 = hitStats[50]?.avgHit || 0;
 
-  const consistency = (avg10 * 0.5) + (avg30 * 0.3) + (avg50 * 0.2);
+  const consistency = avg10 * 0.5 + avg30 * 0.3 + avg50 * 0.2;
   const hotOverlap = main.filter(n => hot.includes(n)).length;
+
   let score = 55 + consistency * 8 + hotOverlap * 3;
 
   if (score > 98) score = 98;
@@ -397,9 +412,24 @@ function buildExplosionGroup(main, hot, maxNumber, count) {
   return sortAsc(merged).slice(0, count);
 }
 
-function latestDrawText(draw) {
+function latestDrawText(draw, key) {
   if (!draw) return "查無最新一期資料";
-  return `${draw.date || "未知日期"}｜${draw.numbers.map(pad2).join("、")}${draw.extra != null ? `｜特別區 ${pad2(draw.extra)}` : ""}`;
+
+  const base = `${draw.date || "未知日期"}｜${draw.numbers.map(pad2).join("、")}`;
+
+  if (key === "lotto649" && draw.extra != null) {
+    return `${base}｜特別號 ${pad2(draw.extra)}`;
+  }
+
+  if (key === "superlotto638" && draw.extra != null) {
+    return `${base}｜第二區 ${pad2(draw.extra)}`;
+  }
+
+  if (key === "bingo" && draw.extra != null) {
+    return `${base}｜超級獎號 ${pad2(draw.extra)}`;
+  }
+
+  return base;
 }
 
 function renderPredictionHTML(config) {
@@ -461,7 +491,7 @@ function renderPredictionHTML(config) {
 
       <div class="result-card">
         <div class="card-title">冷號參考</div>
-        ${makeBallRow(cold, "cold")}
+        ${makeBallRow(cold, "")}
       </div>
 
       <div class="result-card">
@@ -565,6 +595,7 @@ async function runPrediction(type) {
 
   try {
     const allDraws = await loadOfficialData(cfg.key);
+
     if (!allDraws.length) {
       showError("找不到官方資料，請確認 data/official 內已成功產生對應 JSON。");
       return;
@@ -585,11 +616,18 @@ async function runPrediction(type) {
       setCount
     );
 
-    const hitStats = evaluateHits(allDraws.slice(0, 80), cfg.maxNumber, cfg.pickCount, [10, 30, 50]);
+    const hitStats = evaluateHits(
+      allDraws.slice(0, 80),
+      cfg.maxNumber,
+      cfg.pickCount,
+      [10, 30, 50]
+    );
+
     const confidenceScore = confidenceFromMetrics(hitStats, pred.main, pred.hot);
     const explosion = buildExplosionGroup(pred.main, pred.hot, cfg.maxNumber, cfg.pickCount);
 
     let extraHTML = "";
+
     if (cfg.key === "lotto649") {
       const specialGuess = pred.hot.find(n => !pred.main.includes(n)) || pred.cold[0] || pred.main[0];
       extraHTML = `<div class="special-box">特別號建議：<span class="ball special">${pad2(specialGuess)}</span></div>`;
@@ -600,6 +638,15 @@ async function runPrediction(type) {
       });
       const zone2 = Object.entries(zone2Freq).sort((a, b) => b[1] - a[1])[0]?.[0] || 1;
       extraHTML = `<div class="special-box">第二區建議：<span class="ball special">${pad2(zone2)}</span></div>`;
+    } else if (cfg.key === "bingo") {
+      const superFreq = {};
+      recentDraws.forEach(d => {
+        if (d.extra != null) superFreq[d.extra] = (superFreq[d.extra] || 0) + 1;
+      });
+      const superNum = Object.entries(superFreq).sort((a, b) => b[1] - a[1])[0]?.[0];
+      if (superNum) {
+        extraHTML = `<div class="special-box">超級獎號參考：<span class="ball special">${pad2(superNum)}</span></div>`;
+      }
     }
 
     updateHeader(cfg.gameName, "已完成");
@@ -612,7 +659,7 @@ async function runPrediction(type) {
       streak: getConsecutiveText(pred.main),
       tails: getTailStats(pred.main),
       extraHTML,
-      latestText: latestDrawText(latest),
+      latestText: latestDrawText(latest, cfg.key),
       hitStats,
       confidenceScore,
       explosion
