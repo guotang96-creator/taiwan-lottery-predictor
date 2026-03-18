@@ -2,91 +2,62 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券 AI 預測系統 V70</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>台灣彩券 AI 預測系統 V72.2</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
+
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div>
-        <h1>🎯 台灣彩券 AI 預測系統 V70</h1>
-        <p class="subtitle">官方資料真比對版｜Bingo・大樂透・威力彩・539</p>
-      </div>
-    </header>
+<div class="app-shell">
 
-    <main class="main-wrap">
-      <section class="panel control-panel">
-        <h2>預測設定</h2>
+<header class="topbar">
+  <h1>🎯 台灣彩券 AI 預測系統</h1>
+  <p>V72.2｜官方資料版｜最新五期 + AI分析</p>
+</header>
 
-        <div class="form-grid">
-          <div class="field">
-            <label for="setCount">推薦組數</label>
-            <select id="setCount">
-              <option value="1">1組</option>
-              <option value="2">2組</option>
-              <option value="3" selected>3組</option>
-              <option value="5">5組</option>
-            </select>
-          </div>
+<div class="main-wrap">
 
-          <div class="field">
-            <label for="historyPeriods">分析歷史期數</label>
-            <select id="historyPeriods">
-              <option value="30">近30期</option>
-              <option value="50" selected>近50期</option>
-              <option value="80">近80期</option>
-              <option value="100">近100期</option>
-              <option value="150">近150期</option>
-              <option value="200">近200期</option>
-            </select>
-          </div>
+<!-- 控制區 -->
+<div class="panel">
+  <h2>預測設定</h2>
 
-          <div class="field">
-            <label for="bingoCount">Bingo 選幾顆</label>
-            <select id="bingoCount">
-              <option value="1">1顆</option>
-              <option value="2">2顆</option>
-              <option value="3">3顆</option>
-              <option value="4">4顆</option>
-              <option value="5">5顆</option>
-              <option value="6">6顆</option>
-              <option value="7">7顆</option>
-              <option value="8">8顆</option>
-              <option value="9">9顆</option>
-              <option value="10" selected>10顆</option>
-            </select>
-          </div>
-        </div>
+  <label>推薦組數</label>
+  <select id="setCount">
+    <option value="1">1組</option>
+    <option value="3" selected>3組</option>
+    <option value="5">5組</option>
+  </select>
 
-        <div class="action-row">
-          <button class="lottery-btn" onclick="runPrediction('bingo')">預測 Bingo</button>
-          <button class="lottery-btn" onclick="runPrediction('649')">預測大樂透</button>
-          <button class="lottery-btn" onclick="runPrediction('638')">預測威力彩</button>
-          <button class="lottery-btn" onclick="runPrediction('539')">預測 539</button>
-        </div>
-      </section>
+  <label>分析期數</label>
+  <select id="historyPeriods">
+    <option value="30">30期</option>
+    <option value="50" selected>50期</option>
+    <option value="100">100期</option>
+  </select>
 
-      <section class="panel result-panel">
-        <div class="result-header">
-          <div>
-            <h2>預測結果</h2>
-            <p id="resultGameName" class="result-subtitle">請先選擇彩種並開始預測</p>
-          </div>
-          <span id="resultBadge" class="badge">待預測</span>
-        </div>
+  <label>Bingo 選幾顆</label>
+  <select id="bingoCount">
+    <option value="5">5顆</option>
+    <option value="10" selected>10顆</option>
+  </select>
 
-        <div id="predictionResult" class="prediction-result">
-          <div class="empty-state">
-            <div class="empty-icon">📊</div>
-            <div class="empty-title">尚未產生預測</div>
-            <div class="empty-text">按上方按鈕後，這裡會顯示主推薦、熱號、冷號、連號、尾數分析、官方比對等資訊。</div>
-          </div>
-        </div>
-      </section>
-    </main>
+  <div class="btn-group">
+    <button onclick="runPrediction('bingo')">Bingo</button>
+    <button onclick="runPrediction('649')">大樂透</button>
+    <button onclick="runPrediction('638')">威力彩</button>
+    <button onclick="runPrediction('539')">539</button>
   </div>
+</div>
 
-  <script src="app.js"></script>
+<!-- 結果區 -->
+<div class="panel">
+  <h2 id="resultGameName">尚未預測</h2>
+  <div id="predictionResult">請按上方按鈕開始</div>
+</div>
+
+</div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
