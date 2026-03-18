@@ -1,474 +1,448 @@
-const DATA_CANDIDATE_BASES = [
-  "/data/official",
-  "https://raw.githubusercontent.com/guotang96-creator/taiwan-lottery-predictor/main/data/official"
-];
+// app.js
+(() => {
+  const APP_VERSION = "official-live-v1";
 
-const GAME_CONFIG = {
-  bingo: {
-    name: "Bingo Bingo",
-    latestKey: "bingo",
-    file: "bingo.json",
-    max: 80,
-    pickDefault: () => parseInt(document.getElementById("bingoCount").value, 10) || 10
-  },
-  "649": {
-    name: "大樂透",
-    latestKey: "lotto649",
-    file: "lotto649.json",
-    max: 49,
-    pickDefault: () => 6
-  },
-  "638": {
-    name: "威力彩",
-    latestKey: "superlotto638",
-    file: "superlotto638.json",
-    max: 38,
-    pickDefault: () => 6
-  },
-  "539": {
-    name: "今彩 539",
-    latestKey: "dailycash",
-    file: "dailycash.json",
-    max: 39,
-    pickDefault: () => 5
-  }
-};
-
-const cacheStore = {
-  baseUrl: null,
-  latest: null,
-  history: {}
-};
-
-function pad2(n) {
-  return String(n).padStart(2, "0");
-}
-
-function uniqSorted(arr) {
-  return [...new Set(arr.map(Number).filter(n => Number.isFinite(n) && n > 0))].sort((a, b) => a - b);
-}
-
-function setHeader(gameName, badgeText) {
-  const titleEl = document.getElementById("resultGameName");
-  const badgeEl = document.getElementById("resultBadge");
-  if (titleEl) titleEl.textContent = gameName;
-  if (badgeEl) badgeEl.textContent = badgeText;
-}
-
-function renderBalls(numbers, cls = "") {
-  return `
-    <div class="ball-row">
-      ${numbers.map(n => `<span class="ball ${cls}">${pad2(n)}</span>`).join("")}
-    </div>
-  `;
-}
-
-function showLoading(text = "資料分析中，請稍候...") {
-  const resultEl = document.getElementById("predictionResult");
-  if (!resultEl) return;
-  resultEl.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">⏳</div>
-      <div class="empty-title">載入中</div>
-      <div class="empty-text">${text}</div>
-    </div>
-  `;
-}
-
-function showError(text = "資料讀取失敗") {
-  const resultEl = document.getElementById("predictionResult");
-  if (!resultEl) return;
-  resultEl.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">❌</div>
-      <div class="empty-title">發生錯誤</div>
-      <div class="empty-text">${text}</div>
-    </div>
-  `;
-}
-
-function withNoCache(url) {
-  const sep = url.includes("?") ? "&" : "?";
-  return `${url}${sep}_t=${Date.now()}`;
-}
-
-async function tryFetchJson(url) {
-  const finalUrl = withNoCache(url);
-  const res = await fetch(finalUrl, {
-    method: "GET",
-    cache: "no-store"
-  });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
-
-  return res.json();
-}
-
-async function detectWorkingBaseUrl() {
-  if (cacheStore.baseUrl) return cacheStore.baseUrl;
-
-  const logs = [];
-
-  for (const base of DATA_CANDIDATE_BASES) {
-    const testUrl = `${base}/latest.json`;
-
-    try {
-      const data = await tryFetchJson(testUrl);
-      if (data && data.games) {
-        cacheStore.baseUrl = base;
-        console.log("✅ 使用資料路徑:", base);
-        return base;
-      }
-      logs.push(`路徑可連但格式不符: ${testUrl}`);
-    } catch (err) {
-      logs.push(`失敗: ${testUrl} -> ${err.message}`);
-    }
-  }
-
-  console.error("❌ 全部資料路徑都失敗", logs);
-  throw new Error(`找不到可用資料路徑：\n${logs.join("\n")}`);
-}
-
-async function fetchFromBase(fileName) {
-  const base = await detectWorkingBaseUrl();
-  return tryFetchJson(`${base}/${fileName}`);
-}
-
-async function loadLatestJson(forceRefresh = false) {
-  if (!forceRefresh && cacheStore.latest) return cacheStore.latest;
-  const data = await fetchFromBase("latest.json");
-  cacheStore.latest = data;
-  return data;
-}
-
-async function loadHistoryJson(type, forceRefresh = false) {
-  if (!forceRefresh && cacheStore.history[type]) return cacheStore.history[type];
-  const config = GAME_CONFIG[type];
-  const data = await fetchFromBase(config.file);
-  cacheStore.history[type] = Array.isArray(data) ? data : [];
-  return cacheStore.history[type];
-}
-
-function normalizeHistoryRow(row) {
-  const numbers = uniqSorted(row.numbers || []);
-  return {
-    issue: row.issue ? String(row.issue) : "",
-    date: row.date || "",
-    numbers,
-    special: row.special ?? null,
-    zone2: row.zone2 ?? row.second ?? null
+  const DATA_PATHS = {
+    officialLatest: [
+      "./official_latest.json",
+      "./data/official_latest.json",
+      "./docs/official_latest.json",
+      "/taiwan-lottery-predictor/official_latest.json",
+      "/taiwan-lottery-predictor/data/official_latest.json",
+      "/taiwan-lottery-predictor/docs/official_latest.json"
+    ],
+    latest: [
+      "./latest.json",
+      "./data/latest.json",
+      "./docs/latest.json",
+      "/taiwan-lottery-predictor/latest.json",
+      "/taiwan-lottery-predictor/data/latest.json",
+      "/taiwan-lottery-predictor/docs/latest.json"
+    ]
   };
-}
 
-function normalizeHistoryRows(rows) {
-  return (rows || [])
-    .map(normalizeHistoryRow)
-    .filter(r => r.issue && r.numbers.length > 0);
-}
+  const GAME_META = {
+    bingo: {
+      title: "賓果 Bingo Bingo",
+      count: 20
+    },
+    daily539: {
+      title: "今彩 539",
+      count: 5
+    },
+    lotto649: {
+      title: "大樂透",
+      count: 6
+    },
+    superLotto638: {
+      title: "威力彩",
+      count: 6
+    }
+  };
 
-function getLatestRows(type, latestJson) {
-  const key = GAME_CONFIG[type].latestKey;
-  const rows = latestJson?.games?.[key];
-  return Array.isArray(rows) ? rows.map(normalizeHistoryRow) : [];
-}
-
-function countFrequencies(rows, max) {
-  const freq = Array(max + 1).fill(0);
-
-  rows.forEach(row => {
-    row.numbers.forEach(n => {
-      if (n >= 1 && n <= max) freq[n] += 1;
-    });
-  });
-
-  return freq;
-}
-
-function pickHotNumbers(freq, count, max) {
-  return Array.from({ length: max }, (_, i) => i + 1)
-    .sort((a, b) => {
-      if (freq[b] !== freq[a]) return freq[b] - freq[a];
-      return a - b;
-    })
-    .slice(0, count);
-}
-
-function pickColdNumbers(freq, count, max) {
-  return Array.from({ length: max }, (_, i) => i + 1)
-    .sort((a, b) => {
-      if (freq[a] !== freq[b]) return freq[a] - freq[b];
-      return a - b;
-    })
-    .slice(0, count);
-}
-
-function buildMainPrediction(hot, cold, pickCount) {
-  const hotNeed = Math.ceil(pickCount * 0.7);
-  const coldNeed = pickCount - hotNeed;
-  return uniqSorted([
-    ...hot.slice(0, hotNeed),
-    ...cold.slice(0, coldNeed)
-  ]).slice(0, pickCount);
-}
-
-function rotateArray(arr, step) {
-  const len = arr.length;
-  if (!len) return [];
-  const s = step % len;
-  return [...arr.slice(s), ...arr.slice(0, s)];
-}
-
-function buildGroups(hot, cold, setCount, pickCount, max) {
-  const pool = uniqSorted([
-    ...hot,
-    ...cold,
-    ...Array.from({ length: max }, (_, i) => i + 1)
-  ]);
-
-  const groups = [];
-  for (let i = 0; i < setCount; i++) {
-    const rotated = rotateArray(pool, i * 3);
-    groups.push(rotated.slice(0, pickCount).sort((a, b) => a - b));
+  function log(...args) {
+    console.log("[LotteryApp]", ...args);
   }
-  return groups;
-}
 
-function analyzeStreak(rows) {
-  const map = new Map();
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
 
-  rows.forEach(row => {
-    const nums = row.numbers;
-    for (let i = 0; i < nums.length - 1; i++) {
-      if (nums[i + 1] === nums[i] + 1) {
-        const key = `${pad2(nums[i])}-${pad2(nums[i + 1])}`;
-        map.set(key, (map.get(key) || 0) + 1);
+  function formatDate(input) {
+    if (!input) return "—";
+    const d = new Date(input);
+    if (Number.isNaN(d.getTime())) return String(input);
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
+  function normalizeNumbers(arr) {
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .map(v => Number(v))
+      .filter(v => Number.isFinite(v))
+      .map(v => pad2(v));
+  }
+
+  function safeText(v, fallback = "—") {
+    if (v === null || v === undefined || v === "") return fallback;
+    return String(v);
+  }
+
+  async function fetchJsonFromCandidates(paths) {
+    const errors = [];
+
+    for (const path of paths) {
+      try {
+        const res = await fetch(`${path}?v=${Date.now()}`, {
+          cache: "no-store"
+        });
+
+        if (!res.ok) {
+          errors.push(`${path} => HTTP ${res.status}`);
+          continue;
+        }
+
+        const json = await res.json();
+        log("Loaded JSON:", path, json);
+        return { path, json };
+      } catch (err) {
+        errors.push(`${path} => ${err.message}`);
       }
     }
-  });
 
-  const result = [...map.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([k, v]) => `${k}（${v}次）`);
-
-  return result.length ? `近期常見連號：${result.join("、")}` : "近期連號偏少，建議分散配置。";
-}
-
-function analyzeTails(rows) {
-  const tails = Array(10).fill(0);
-
-  rows.forEach(row => {
-    row.numbers.forEach(n => {
-      tails[n % 10] += 1;
-    });
-  });
-
-  const top = Array.from({ length: 10 }, (_, i) => i)
-    .sort((a, b) => tails[b] - tails[a])
-    .slice(0, 4);
-
-  return `近期較活躍尾數：${top.join("、")}`;
-}
-
-function analyzeSpecial(type, rows) {
-  if (type === "649") {
-    const vals = rows.map(r => Number(r.special)).filter(n => Number.isFinite(n) && n > 0);
-    if (!vals.length) return "";
-    return `<div class="special-box">特別號建議：<span class="ball special">${pad2(vals[0])}</span></div>`;
+    throw new Error(errors.join(" | "));
   }
 
-  if (type === "638") {
-    const vals = rows.map(r => Number(r.zone2)).filter(n => Number.isFinite(n) && n > 0);
-    if (!vals.length) return "";
-    return `<div class="special-box">第二區建議：<span class="ball special">${pad2(vals[0])}</span></div>`;
+  function getOfficialGameData(officialJson, gameKey) {
+    if (!officialJson || typeof officialJson !== "object") return null;
+
+    if (officialJson.officialLatest && officialJson.officialLatest[gameKey]) {
+      return officialJson.officialLatest[gameKey];
+    }
+
+    if (officialJson[gameKey] && officialJson[gameKey].latestOfficial) {
+      return officialJson[gameKey].latestOfficial;
+    }
+
+    if (officialJson[gameKey] && officialJson[gameKey].latest) {
+      return officialJson[gameKey].latest;
+    }
+
+    return null;
   }
 
-  return "";
-}
+  function getMergedGameData(latestJson, gameKey) {
+    if (!latestJson || typeof latestJson !== "object") return null;
 
-function renderLatestFive(type, rows) {
-  if (!rows.length) {
+    if (latestJson[gameKey]?.latestOfficial) {
+      return latestJson[gameKey].latestOfficial;
+    }
+
+    if (latestJson[gameKey]?.latest) {
+      return latestJson[gameKey].latest;
+    }
+
+    if (latestJson.officialLatest?.[gameKey]) {
+      return latestJson.officialLatest[gameKey];
+    }
+
+    return latestJson[gameKey] || null;
+  }
+
+  function unifyGameData(gameKey, raw) {
+    if (!raw) return null;
+
+    const numbers = normalizeNumbers(raw.numbers || raw.drawNumberSize || []);
+    const orderNumbers = normalizeNumbers(raw.orderNumbers || raw.drawOrderNums || []);
+    const specialNumber = raw.specialNumber ?? raw.superNum ?? null;
+
+    return {
+      gameKey,
+      title: GAME_META[gameKey]?.title || gameKey,
+      period: safeText(raw.period),
+      drawDate: raw.drawDate || raw.lotteryDate || raw.date || "",
+      redeemableDate: raw.redeemableDate || "",
+      numbers,
+      orderNumbers,
+      specialNumber: specialNumber !== null && specialNumber !== undefined && specialNumber !== ""
+        ? pad2(Number(specialNumber))
+        : null,
+      source: raw.source || "unknown"
+    };
+  }
+
+  function pickBestData(officialJson, latestJson) {
+    const result = {};
+
+    for (const gameKey of Object.keys(GAME_META)) {
+      const officialData = unifyGameData(gameKey, getOfficialGameData(officialJson, gameKey));
+      const latestData = unifyGameData(gameKey, getMergedGameData(latestJson, gameKey));
+      result[gameKey] = officialData || latestData || null;
+    }
+
+    return result;
+  }
+
+  function ensureLatestContainer() {
+    let container = document.getElementById("latest-results");
+
+    if (!container) {
+      container = document.createElement("section");
+      container.id = "latest-results";
+      container.style.maxWidth = "1200px";
+      container.style.margin = "20px auto";
+      container.style.padding = "16px";
+
+      const target =
+        document.querySelector("main") ||
+        document.querySelector(".container") ||
+        document.body;
+
+      target.prepend(container);
+    }
+
+    return container;
+  }
+
+  function createNumberBalls(numbers) {
+    if (!numbers || !numbers.length) {
+      return `<div style="color:#666;">尚無號碼資料</div>`;
+    }
+
     return `
-      <div class="result-card full-width">
-        <div class="card-title">最新五期號碼</div>
-        <div class="text-block">目前沒有最新五期資料。</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${numbers.map(num => `
+          <span style="
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:40px;
+            height:40px;
+            padding:0 10px;
+            border-radius:999px;
+            background:#d81b60;
+            color:#fff;
+            font-weight:700;
+            box-shadow:0 2px 6px rgba(0,0,0,0.15);
+          ">${num}</span>
+        `).join("")}
       </div>
     `;
   }
 
-  return `
-    <div class="result-card full-width">
-      <div class="card-title">最新五期號碼</div>
-      <div class="latest-five-list">
-        ${rows.slice(0, 5).map(row => {
-          let extra = "";
-
-          if (type === "649" && row.special) {
-            extra = `｜特別號 ${pad2(row.special)}`;
-          } else if (type === "638" && row.zone2) {
-            extra = `｜第二區 ${pad2(row.zone2)}`;
-          }
-
-          return `
-            <div class="latest-five-item">
-              <div class="latest-five-issue">
-                第 ${row.issue} 期${row.date ? `｜${row.date}` : ""}${extra}
-              </div>
-              ${renderBalls(row.numbers)}
-            </div>
-          `;
-        }).join("")}
+  function createSpecialBall(num, label = "特別號") {
+    if (!num || num === "NaN") return "";
+    return `
+      <div style="margin-top:10px;">
+        <span style="font-size:14px;color:#666;margin-right:8px;">${label}</span>
+        <span style="
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          min-width:40px;
+          height:40px;
+          padding:0 10px;
+          border-radius:999px;
+          background:#ff9800;
+          color:#fff;
+          font-weight:700;
+          box-shadow:0 2px 6px rgba(0,0,0,0.15);
+        ">${num}</span>
       </div>
-    </div>
-  `;
-}
+    `;
+  }
 
-function buildResultHtml({
-  type,
-  gameName,
-  main,
-  groups,
-  hot,
-  cold,
-  streak,
-  tails,
-  extra,
-  latestFive,
-  sourceBase
-}) {
-  return `
-    <div class="result-grid">
-      <div class="result-card highlight-card">
-        <div class="card-title">主推薦號碼</div>
-        ${renderBalls(main, "main")}
-      </div>
-
-      ${extra ? `
-      <div class="result-card">
-        <div class="card-title">${type === "649" ? "特別號" : "第二區"}</div>
-        ${extra}
-      </div>
-      ` : ""}
-
-      <div class="result-card">
-        <div class="card-title">多組推薦</div>
-        <div class="group-list">
-          ${groups.map((g, i) => `
-            <div class="group-item">
-              <div class="group-label">第 ${i + 1} 組</div>
-              ${renderBalls(g)}
-            </div>
-          `).join("")}
+  function createGameCard(data) {
+    if (!data) {
+      return `
+        <div style="
+          background:#fff;
+          border-radius:16px;
+          padding:18px;
+          box-shadow:0 4px 16px rgba(0,0,0,0.08);
+          border:1px solid #eee;
+        ">
+          <div style="font-size:18px;font-weight:700;margin-bottom:8px;">無資料</div>
+          <div style="color:#888;">目前尚未取得資料</div>
         </div>
-      </div>
-
-      <div class="result-card">
-        <div class="card-title">熱號參考</div>
-        ${renderBalls(hot.slice(0, main.length), "hot")}
-      </div>
-
-      <div class="result-card">
-        <div class="card-title">冷號參考</div>
-        ${renderBalls(cold.slice(0, main.length), "cold")}
-      </div>
-
-      <div class="result-card">
-        <div class="card-title">連號偵測</div>
-        <div class="text-block">${streak}</div>
-      </div>
-
-      <div class="result-card">
-        <div class="card-title">尾數分析</div>
-        <div class="text-block">${tails}</div>
-      </div>
-
-      ${renderLatestFive(type, latestFive)}
-
-      <div class="result-card full-width">
-        <div class="card-title">AI 分析摘要</div>
-        <div class="text-block">
-          ${gameName} 本次預測依據官方歷史資料與最新五期真實開獎結果，綜合熱號、冷號、連號與尾數節奏進行排序，建議搭配自己的習慣交叉參考。
-        </div>
-      </div>
-
-      <div class="result-card full-width">
-        <div class="card-title">目前資料來源</div>
-        <div class="text-block">${sourceBase || "未偵測"}</div>
-      </div>
-    </div>
-  `;
-}
-
-async function runPrediction(type) {
-  const config = GAME_CONFIG[type];
-  const resultEl = document.getElementById("predictionResult");
-  const setCount = parseInt(document.getElementById("setCount").value, 10) || 3;
-  const historyPeriods = parseInt(document.getElementById("historyPeriods").value, 10) || 50;
-  const pickCount = config.pickDefault();
-
-  setHeader(config.name, "分析中");
-  showLoading(`正在讀取 ${config.name} 即時官方資料...`);
-
-  try {
-    const baseUrl = await detectWorkingBaseUrl();
-
-    const [latestJson, historyRaw] = await Promise.all([
-      loadLatestJson(true),
-      loadHistoryJson(type, true)
-    ]);
-
-    const latestRows = getLatestRows(type, latestJson);
-    const historyRows = normalizeHistoryRows(historyRaw).sort((a, b) => String(b.issue).localeCompare(String(a.issue)));
-    const analysisRows = historyRows.slice(0, historyPeriods);
-
-    if (!historyRows.length && !latestRows.length) {
-      throw new Error("官方資料為空");
+      `;
     }
 
-    const workingRows = analysisRows.length ? analysisRows : latestRows;
-    const freq = countFrequencies(workingRows, config.max);
+    const specialLabel = data.gameKey === "superLotto638"
+      ? "第二區"
+      : data.gameKey === "lotto649"
+        ? "特別號"
+        : data.gameKey === "bingo"
+          ? "超級獎號"
+          : "特別號";
 
-    const hot = pickHotNumbers(freq, Math.max(pickCount, 10), config.max);
-    const cold = pickColdNumbers(freq, Math.max(pickCount, 10), config.max);
-    const main = buildMainPrediction(hot, cold, pickCount);
-    const groups = buildGroups(hot, cold, setCount, pickCount, config.max);
-    const streak = analysisRows.length ? analyzeStreak(analysisRows) : "目前歷史期數不足，連號分析先略過。";
-    const tails = analysisRows.length ? analyzeTails(analysisRows) : "目前歷史期數不足，尾數分析先略過。";
-    const extra = analyzeSpecial(type, latestRows.length ? latestRows : workingRows);
+    const numbersForDisplay =
+      data.gameKey === "bingo" && data.numbers.length === 0
+        ? data.orderNumbers
+        : data.numbers;
 
-    setHeader(config.name, "已完成");
+    return `
+      <div style="
+        background:#fff;
+        border-radius:18px;
+        padding:20px;
+        box-shadow:0 4px 16px rgba(0,0,0,0.08);
+        border:1px solid #ececec;
+      ">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:22px;font-weight:800;color:#222;">${data.title}</div>
+            <div style="font-size:14px;color:#666;margin-top:6px;">期數：${safeText(data.period)}</div>
+            <div style="font-size:14px;color:#666;margin-top:4px;">開獎時間：${formatDate(data.drawDate)}</div>
+          </div>
+          <div style="
+            background:#f5f5f5;
+            color:#444;
+            border-radius:999px;
+            padding:6px 12px;
+            font-size:12px;
+            font-weight:700;
+          ">
+            ${safeText(data.source, "official")}
+          </div>
+        </div>
 
-    resultEl.innerHTML = buildResultHtml({
-      type,
-      gameName: config.name,
-      main,
-      groups,
-      hot,
-      cold,
-      streak,
-      tails,
-      extra,
-      latestFive: latestRows,
-      sourceBase: baseUrl
+        <div style="margin-top:16px;">
+          ${createNumberBalls(numbersForDisplay)}
+          ${createSpecialBall(data.specialNumber, specialLabel)}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderLatestResults(bestData, sourceInfo = {}) {
+    const container = ensureLatestContainer();
+
+    container.innerHTML = `
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:16px;
+      ">
+        <div>
+          <h2 style="margin:0;font-size:28px;color:#222;">最新官方開獎資料</h2>
+          <div style="margin-top:6px;color:#666;font-size:14px;">
+            版本：${APP_VERSION}
+          </div>
+        </div>
+        <div style="color:#666;font-size:13px;">
+          official：${sourceInfo.officialPath || "—"}<br>
+          latest：${sourceInfo.latestPath || "—"}
+        </div>
+      </div>
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+        gap:16px;
+      ">
+        ${createGameCard(bestData.bingo)}
+        ${createGameCard(bestData.daily539)}
+        ${createGameCard(bestData.lotto649)}
+        ${createGameCard(bestData.superLotto638)}
+      </div>
+    `;
+  }
+
+  function updateLegacyDom(bestData) {
+    const mapping = [
+      ["bingo", "bingo"],
+      ["daily539", "539"],
+      ["lotto649", "lotto649"],
+      ["superLotto638", "superlotto638"]
+    ];
+
+    mapping.forEach(([gameKey, shortKey]) => {
+      const data = bestData[gameKey];
+      if (!data) return;
+
+      const periodEl =
+        document.getElementById(`${shortKey}-period`) ||
+        document.getElementById(`${gameKey}-period`);
+
+      const dateEl =
+        document.getElementById(`${shortKey}-date`) ||
+        document.getElementById(`${gameKey}-date`);
+
+      const numbersEl =
+        document.getElementById(`${shortKey}-numbers`) ||
+        document.getElementById(`${gameKey}-numbers`);
+
+      const specialEl =
+        document.getElementById(`${shortKey}-special`) ||
+        document.getElementById(`${gameKey}-special`);
+
+      const numbersForDisplay =
+        data.gameKey === "bingo" && data.numbers.length === 0
+          ? data.orderNumbers
+          : data.numbers;
+
+      if (periodEl) periodEl.textContent = safeText(data.period);
+      if (dateEl) dateEl.textContent = formatDate(data.drawDate);
+      if (numbersEl) numbersEl.textContent = numbersForDisplay.join(" ");
+      if (specialEl) specialEl.textContent = data.specialNumber || "—";
     });
-  } catch (err) {
-    console.error(err);
-    setHeader(config.name, "失敗");
-    showError(`讀取 ${config.name} 即時資料失敗：${err.message}`);
   }
-}
 
-window.runPrediction = runPrediction;
-
-window.addEventListener("DOMContentLoaded", async () => {
-  setHeader("請先選擇彩種並開始預測", "待預測");
-
-  try {
-    const base = await detectWorkingBaseUrl();
-    console.log("目前使用資料來源:", base);
-  } catch (err) {
-    console.error(err);
+  function showError(message) {
+    const container = ensureLatestContainer();
+    container.innerHTML = `
+      <div style="
+        max-width:900px;
+        margin:20px auto;
+        padding:18px;
+        border-radius:16px;
+        background:#fff3f3;
+        border:1px solid #f3b7b7;
+        color:#a40000;
+      ">
+        <div style="font-size:22px;font-weight:800;margin-bottom:8px;">資料載入失敗</div>
+        <div style="line-height:1.7;">${message}</div>
+      </div>
+    `;
   }
-});
+
+  async function loadAllData() {
+    let officialResult = null;
+    let latestResult = null;
+
+    try {
+      officialResult = await fetchJsonFromCandidates(DATA_PATHS.officialLatest);
+    } catch (err) {
+      log("official_latest.json 載入失敗", err.message);
+    }
+
+    try {
+      latestResult = await fetchJsonFromCandidates(DATA_PATHS.latest);
+    } catch (err) {
+      log("latest.json 載入失敗", err.message);
+    }
+
+    if (!officialResult && !latestResult) {
+      throw new Error("official_latest.json 與 latest.json 都載入失敗");
+    }
+
+    const bestData = pickBestData(
+      officialResult?.json || null,
+      latestResult?.json || null
+    );
+
+    window.LotteryData = {
+      officialLatest: officialResult?.json || null,
+      latest: latestResult?.json || null,
+      bestData
+    };
+
+    renderLatestResults(bestData, {
+      officialPath: officialResult?.path || "",
+      latestPath: latestResult?.path || ""
+    });
+
+    updateLegacyDom(bestData);
+
+    log("Data ready:", window.LotteryData);
+  }
+
+  async function init() {
+    try {
+      await loadAllData();
+    } catch (err) {
+      console.error(err);
+      showError(err.message || "未知錯誤");
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
