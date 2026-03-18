@@ -4,7 +4,15 @@ const path = require("path");
 const ROOT = process.cwd();
 const RAW_DIR = path.join(ROOT, "raw_data");
 
-const BINGO_API = "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestBingoResult";
+const API = {
+  bingo: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestBingoResult",
+  daily539:
+    "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?period&month=2026-01&endMonth=2026-03&pageNum=1&pageSize=200",
+  lotto649:
+    "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result?period&month=2026-01&endMonth=2026-03&pageNum=1&pageSize=200",
+  superLotto638:
+    "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/SuperLotto638Result?period&month=2026-01&endMonth=2026-03&pageNum=1&pageSize=200"
+};
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -82,6 +90,12 @@ function toObjects(rows) {
   });
 }
 
+function readCsvObjects(filePath) {
+  if (!fs.existsSync(filePath)) return [];
+  const text = fs.readFileSync(filePath, "utf8");
+  return toObjects(parseCSV(text));
+}
+
 function csvEscape(value) {
   const s = String(value ?? "");
   if (/[",\n]/.test(s)) {
@@ -98,12 +112,6 @@ function writeCsv(filePath, header, rows) {
   fs.writeFileSync(filePath, lines.join("\n") + "\n", "utf8");
 }
 
-function readCsvObjects(filePath) {
-  if (!fs.existsSync(filePath)) return [];
-  const text = fs.readFileSync(filePath, "utf8");
-  return toObjects(parseCSV(text));
-}
-
 function normalizeDate(value) {
   const s = String(value || "").trim();
   if (!s) return "";
@@ -112,15 +120,69 @@ function normalizeDate(value) {
   return s.slice(0, 10).replace(/\//g, "-");
 }
 
+function safeInt(value) {
+  const n = Number(String(value ?? "").trim());
+  return Number.isInteger(n) ? n : null;
+}
+
 function sortDesc(rows) {
   return [...rows].sort((a, b) => {
     const ai = Number(String(a.issue || "").replace(/\D/g, ""));
     const bi = Number(String(b.issue || "").replace(/\D/g, ""));
+
     if (Number.isFinite(ai) && Number.isFinite(bi) && ai !== bi) {
       return bi - ai;
     }
-    return String(b.date || "").localeCompare(String(a.date || ""));
+
+    const ad = String(a.date || "");
+    const bd = String(b.date || "");
+    if (ad !== bd) return bd.localeCompare(ad);
+
+    return String(b.issue || "").localeCompare(String(a.issue || ""));
   });
+}
+
+function dedupeByIssue(rows) {
+  const map = new Map();
+
+  for (const row of rows) {
+    const issue = String(row.issue || "").trim();
+    if (!issue) continue;
+
+    if (!map.has(issue)) {
+      map.set(issue, row);
+      continue;
+    }
+
+    const prev = map.get(issue);
+
+    const prevScore =
+      (prev.date ? 1 : 0) +
+      (Array.isArray(prev.numbers) ? prev.numbers.length : 0) +
+      (prev.special !== undefined ? 1 : 0) +
+      (prev.second !== undefined ? 1 : 0);
+
+    const currScore =
+      (row.date ? 1 : 0) +
+      (Array.isArray(row.numbers) ? row.numbers.length : 0) +
+      (row.special !== undefined ? 1 : 0) +
+      (row.second !== undefined ? 1 : 0);
+
+    if (currScore > prevScore) {
+      map.set(issue, row);
+      continue;
+    }
+
+    if (currScore === prevScore) {
+      const prevDate = String(prev.date || "");
+      const currDate = String(row.date || "");
+      if (currDate > prevDate) {
+        map.set(issue, row);
+      }
+    }
+  }
+
+  return sortDesc([...map.values()]);
 }
 
 async function fetchJson(url) {
@@ -138,13 +200,105 @@ async function fetchJson(url) {
   return res.json();
 }
 
-async function fetchLatestBingo() {
-  const data = await fetchJson(BINGO_API);
+function buildMonthRange(monthBack = 2) {
+  const now = new Date();
+  const end = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  const startDate = new Date(now.getFullYear(), now.getMonth() - monthBack, 1);
+  const start = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}`;
+
+  return { start, end };
+}
+
+function buildRangeUrl(baseName) {
+  const { start, end } = buildMonthRange(2);
+  return `https://api.taiwanlottery.com/TLCAPIWeB/Lottery/${baseName}?period&month=${start}&endMonth=${end}&pageNum=1&pageSize=200`;
+}
+
+function mergeRows(existingObjects, latestRows, parser) {
+  const normalizedExisting = [];
+
+  for (const obj of existingObjects) {
+    const parsed = parser(obj, true);
+    if (parsed) normalizedExisting.push(parsed);
+  }
+
+  return dedupeByIssue([...latestRows, ...normalizedExisting]);
+}
+
+function parseExistingBingoRow(row) {
+  const issue = String(row.issue || "").trim();
+  const date = normalizeDate(row.date || "");
+  const numbers = [];
+
+  for (let i = 1; i <= 20; i++) {
+    const n = safeInt(row[`n${i}`]);
+    if (n !== null && n >= 1 && n <= 80) numbers.push(n);
+  }
+
+  if (!issue || !date || numbers.length !== 20) return null;
+  return { issue, date, numbers };
+}
+
+function parseExisting539Row(row) {
+  const issue = String(row.issue || "").trim();
+  const date = normalizeDate(row.date || "");
+  const numbers = [];
+
+  for (let i = 1; i <= 5; i++) {
+    const n = safeInt(row[`n${i}`]);
+    if (n !== null && n >= 1 && n <= 39) numbers.push(n);
+  }
+
+  if (!issue || !date || numbers.length !== 5) return null;
+  return { issue, date, numbers };
+}
+
+function parseExistingLottoRow(row) {
+  const issue = String(row.issue || "").trim();
+  const date = normalizeDate(row.date || "");
+  const numbers = [];
+
+  for (let i = 1; i <= 6; i++) {
+    const n = safeInt(row[`n${i}`]);
+    if (n !== null && n >= 1 && n <= 49) numbers.push(n);
+  }
+
+  const special = safeInt(row.special);
+
+  if (!issue || !date || numbers.length !== 6) return null;
+
+  return {
+    issue,
+    date,
+    numbers,
+    special: special !== null && special >= 1 && special <= 49 ? special : undefined
+  };
+}
+
+function parseExistingPowerRow(row) {
+  const issue = String(row.issue || "").trim();
+  const date = normalizeDate(row.date || "");
+  const numbers = [];
+
+  for (let i = 1; i <= 6; i++) {
+    const n = safeInt(row[`n${i}`]);
+    if (n !== null && n >= 1 && n <= 38) numbers.push(n);
+  }
+
+  const second = safeInt(row.second);
+
+  if (!issue || !date || numbers.length !== 6) return null;
+  if (second === null || second < 1 || second > 8) return null;
+
+  return { issue, date, numbers, second };
+}
+
+async function fetchLatestBingoRows() {
+  const data = await fetchJson(API.bingo);
   const post = data?.content?.lotteryBingoLatestPost;
 
-  if (!post) {
-    throw new Error("找不到 lotteryBingoLatestPost");
-  }
+  if (!post) throw new Error("找不到 lotteryBingoLatestPost");
 
   const issue = String(post.drawTerm || "").trim();
   const date = normalizeDate(post.date || post.eDate || "");
@@ -155,61 +309,167 @@ async function fetchLatestBingo() {
     : [];
 
   if (!issue || !date || numbers.length !== 20) {
-    throw new Error(`Bingo 最新資料格式不完整 issue=${issue} date=${date} numbers=${numbers.length}`);
+    throw new Error(`Bingo 最新資料格式錯誤 issue=${issue} date=${date} count=${numbers.length}`);
   }
 
-  return { issue, date, numbers };
+  return [{ issue, date, numbers }];
 }
 
-function mergeBingoRow(latestRow, existingRows) {
-  const map = new Map();
+async function fetchLatest539Rows() {
+  const data = await fetchJson(buildRangeUrl("Daily539Result"));
+  const list = data?.content?.daily539Res || [];
 
-  map.set(latestRow.issue, latestRow);
+  return list
+    .map(item => {
+      const issue = String(item.period || "").trim();
+      const date = normalizeDate(item.lotteryDate || "");
+      const numbers = Array.isArray(item.drawNumberSize)
+        ? item.drawNumberSize
+            .map(v => Number(v))
+            .filter(v => Number.isInteger(v) && v >= 1 && v <= 39)
+        : [];
 
-  for (const row of existingRows) {
-    const issue = String(row.issue || "").trim();
-    if (!issue) continue;
+      if (!issue || !date || numbers.length !== 5) return null;
+      return { issue, date, numbers };
+    })
+    .filter(Boolean);
+}
 
-    const numbers = [];
-    for (let i = 1; i <= 20; i++) {
-      const n = Number(row[`n${i}`]);
-      if (Number.isInteger(n) && n >= 1 && n <= 80) {
-        numbers.push(n);
-      }
-    }
+async function fetchLatestLottoRows() {
+  const data = await fetchJson(buildRangeUrl("Lotto649Result"));
+  const list = data?.content?.lotto649Res || [];
 
-    if (numbers.length !== 20) continue;
+  return list
+    .map(item => {
+      const issue = String(item.period || "").trim();
+      const date = normalizeDate(item.lotteryDate || "");
+      const arr = Array.isArray(item.drawNumberSize)
+        ? item.drawNumberSize.map(v => Number(v)).filter(Number.isInteger)
+        : [];
 
-    if (!map.has(issue)) {
-      map.set(issue, {
+      if (!issue || !date || arr.length < 7) return null;
+
+      const numbers = arr.slice(0, 6).filter(v => v >= 1 && v <= 49);
+      const special = arr[6];
+
+      if (numbers.length !== 6) return null;
+
+      return {
         issue,
-        date: normalizeDate(row.date || ""),
-        numbers
-      });
-    }
-  }
+        date,
+        numbers,
+        special: Number.isInteger(special) && special >= 1 && special <= 49 ? special : undefined
+      };
+    })
+    .filter(Boolean);
+}
 
-  return sortDesc([...map.values()]);
+async function fetchLatestPowerRows() {
+  const data = await fetchJson(buildRangeUrl("SuperLotto638Result"));
+  const list = data?.content?.superLotto638Res || [];
+
+  return list
+    .map(item => {
+      const issue = String(item.period || "").trim();
+      const date = normalizeDate(item.lotteryDate || "");
+      const arr = Array.isArray(item.drawNumberSize)
+        ? item.drawNumberSize.map(v => Number(v)).filter(Number.isInteger)
+        : [];
+
+      if (!issue || !date || arr.length < 7) return null;
+
+      const numbers = arr.slice(0, 6).filter(v => v >= 1 && v <= 38);
+      const second = arr[6];
+
+      if (numbers.length !== 6) return null;
+      if (!Number.isInteger(second) || second < 1 || second > 8) return null;
+
+      return { issue, date, numbers, second };
+    })
+    .filter(Boolean);
+}
+
+function writeBingo(rows) {
+  writeCsv(
+    path.join(RAW_DIR, "bingo.csv"),
+    ["issue", "date", ...Array.from({ length: 20 }, (_, i) => `n${i + 1}`)],
+    rows.map(r => [r.issue, r.date, ...r.numbers])
+  );
+}
+
+function write539(rows) {
+  writeCsv(
+    path.join(RAW_DIR, "539.csv"),
+    ["issue", "date", "n1", "n2", "n3", "n4", "n5"],
+    rows.map(r => [r.issue, r.date, ...r.numbers])
+  );
+}
+
+function writeLotto(rows) {
+  writeCsv(
+    path.join(RAW_DIR, "lotto.csv"),
+    ["issue", "date", "n1", "n2", "n3", "n4", "n5", "n6", "special"],
+    rows.map(r => [r.issue, r.date, ...r.numbers, r.special ?? ""])
+  );
+}
+
+function writePower(rows) {
+  writeCsv(
+    path.join(RAW_DIR, "power.csv"),
+    ["issue", "date", "n1", "n2", "n3", "n4", "n5", "n6", "second"],
+    rows.map(r => [r.issue, r.date, ...r.numbers, r.second])
+  );
 }
 
 async function main() {
   ensureDir(RAW_DIR);
 
-  const latestBingo = await fetchLatestBingo();
-  const bingoPath = path.join(RAW_DIR, "bingo.csv");
-  const existingBingo = readCsvObjects(bingoPath);
+  const [
+    latestBingoRows,
+    latest539Rows,
+    latestLottoRows,
+    latestPowerRows
+  ] = await Promise.all([
+    fetchLatestBingoRows(),
+    fetchLatest539Rows(),
+    fetchLatestLottoRows(),
+    fetchLatestPowerRows()
+  ]);
 
-  const mergedBingo = mergeBingoRow(latestBingo, existingBingo);
-
-  writeCsv(
-    bingoPath,
-    ["issue", "date", ...Array.from({ length: 20 }, (_, i) => `n${i + 1}`)],
-    mergedBingo.map(r => [r.issue, r.date, ...r.numbers])
+  const bingoMerged = mergeRows(
+    readCsvObjects(path.join(RAW_DIR, "bingo.csv")),
+    latestBingoRows,
+    parseExistingBingoRow
   );
 
-  console.log("✅ Bingo 最新一期已合併到 raw_data/bingo.csv");
-  console.log(`最新期別: ${latestBingo.issue}`);
-  console.log(`最新日期: ${latestBingo.date}`);
+  const daily539Merged = mergeRows(
+    readCsvObjects(path.join(RAW_DIR, "539.csv")),
+    latest539Rows,
+    parseExisting539Row
+  );
+
+  const lottoMerged = mergeRows(
+    readCsvObjects(path.join(RAW_DIR, "lotto.csv")),
+    latestLottoRows,
+    parseExistingLottoRow
+  );
+
+  const powerMerged = mergeRows(
+    readCsvObjects(path.join(RAW_DIR, "power.csv")),
+    latestPowerRows,
+    parseExistingPowerRow
+  );
+
+  writeBingo(bingoMerged);
+  write539(daily539Merged);
+  writeLotto(lottoMerged);
+  writePower(powerMerged);
+
+  console.log("✅ 即時資料已合併到 raw_data");
+  console.log(`Bingo 最新期: ${latestBingoRows[0]?.issue || "-"}`);
+  console.log(`539 最新期: ${latest539Rows[0]?.issue || "-"}`);
+  console.log(`大樂透 最新期: ${latestLottoRows[0]?.issue || "-"}`);
+  console.log(`威力彩 最新期: ${latestPowerRows[0]?.issue || "-"}`);
 }
 
 main().catch(err => {
