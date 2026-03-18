@@ -2,8 +2,9 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = process.cwd();
-const EXTRACTED_DIR = path.join(ROOT, "data", "extracted");
-const OFFICIAL_DIR = path.join(ROOT, "data", "official");
+
+const RAW_DIR = path.join(ROOT, "raw_data");
+const DATA_DIR = path.join(ROOT, "data", "official");
 const PUBLIC_DIR = path.join(ROOT, "public", "data", "official");
 
 function ensureDir(dir) {
@@ -18,318 +19,306 @@ function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-function listCsvFiles(dir) {
-  const results = [];
-  if (!fs.existsSync(dir)) return results;
-
-  function walk(current) {
-    const items = fs.readdirSync(current, { withFileTypes: true });
-    for (const item of items) {
-      const full = path.join(current, item.name);
-      if (item.isDirectory()) {
-        walk(full);
-      } else if (item.isFile() && item.name.toLowerCase().endsWith(".csv")) {
-        results.push(full);
-      }
-    }
-  }
-
-  walk(dir);
-  return results;
+function normalizeLineEndings(text) {
+  return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 }
 
-function splitCsvLine(line) {
-  const out = [];
-  let cur = "";
+/**
+ * 簡易 CSV 解析器
+ * 支援:
+ * - 逗號分隔
+ * - 雙引號包住欄位
+ * - 欄位內有逗號
+ * - 欄位內雙引號轉義 ""
+ */
+function parseCSV(text) {
+  const rows = [];
+  const input = normalizeLineEndings(text);
+
+  let row = [];
+  let cell = "";
   let inQuotes = false;
 
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    const next = input[i + 1];
+
+    if (inQuotes) {
+      if (ch === '"' && next === '"') {
+        cell += '"';
+        i++;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        cell += ch;
+      }
+      continue;
+    }
 
     if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        cur += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (ch === "," && !inQuotes) {
-      out.push(cur.trim());
-      cur = "";
-    } else {
-      cur += ch;
+      inQuotes = true;
+      continue;
     }
+
+    if (ch === ",") {
+      row.push(cell);
+      cell = "";
+      continue;
+    }
+
+    if (ch === "\n") {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      continue;
+    }
+
+    cell += ch;
   }
 
-  out.push(cur.trim());
-  return out.map(v => v.replace(/^"|"$/g, "").trim());
-}
-
-function parseCsv(text) {
-  const lines = text
-    .replace(/^\uFEFF/, "")
-    .split(/\r?\n/)
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  if (!lines.length) return [];
-
-  const header = splitCsvLine(lines[0]);
-  const rows = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const values = splitCsvLine(lines[i]);
-    const row = {};
-    header.forEach((h, idx) => {
-      row[h] = values[idx] ?? "";
-    });
+  // 最後一格
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
     rows.push(row);
   }
 
-  return rows;
+  return rows
+    .map((r) => r.map((v) => String(v ?? "").trim()))
+    .filter((r) => r.some((v) => v !== ""));
 }
 
-function cleanKey(s) {
-  return String(s || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/[_\-\/\\（）()：:]/g, "");
+function toObjects(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+
+  const header = rows[0].map((h) => String(h || "").trim());
+  const body = rows.slice(1);
+
+  return body.map((r) => {
+    const obj = {};
+    for (let i = 0; i < header.length; i++) {
+      obj[header[i]] = String(r[i] ?? "").trim();
+    }
+    return obj;
+  });
 }
 
-function findField(obj, candidates) {
-  const entries = Object.entries(obj || {});
-  for (const key of candidates) {
-    const ck = cleanKey(key);
-    const found = entries.find(([k]) => cleanKey(k) === ck);
-    if (found && found[1] !== "") return found[1];
-  }
-
-  for (const key of candidates) {
-    const ck = cleanKey(key);
-    const found = entries.find(([k]) => cleanKey(k).includes(ck));
-    if (found && found[1] !== "") return found[1];
-  }
-
-  return "";
+function safeInt(value) {
+  const n = Number(String(value ?? "").trim());
+  return Number.isInteger(n) ? n : null;
 }
 
-function toNumber(v) {
-  const n = Number(String(v).replace(/[^\d.-]/g, ""));
-  return Number.isFinite(n) ? n : null;
-}
-
-function normalizeDate(v) {
-  const s = String(v || "").trim();
+function normalizeDate(dateStr) {
+  const s = String(dateStr || "").trim();
   if (!s) return "";
 
-  const m1 = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-  if (m1) {
-    return `${m1[1]}/${String(m1[2]).padStart(2, "0")}/${String(m1[3]).padStart(2, "0")}`;
-  }
+  // 已是 YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
 
-  const m2 = s.match(/^(\d{3})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-  if (m2) {
-    const year = String(Number(m2[1]) + 1911);
-    return `${year}/${String(m2[2]).padStart(2, "0")}/${String(m2[3]).padStart(2, "0")}`;
+  // YYYY/MM/DD -> YYYY-MM-DD
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(s)) return s.replace(/\//g, "-");
+
+  // YYYYMMDD -> YYYY-MM-DD
+  if (/^\d{8}$/.test(s)) {
+    return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
   }
 
   return s;
 }
 
-function uniqueSortedNumbers(arr, min, max) {
-  return [...new Set(
-    arr
-      .map(toNumber)
-      .filter(n => Number.isFinite(n) && n >= min && n <= max)
-  )].sort((a, b) => a - b);
+function normalizeIssue(issue, rowIndex) {
+  const s = String(issue || "").trim();
+
+  if (/^\d+$/.test(s)) return s;
+
+  // 只保留數字，避免 weird 字元
+  const digits = s.replace(/\D/g, "");
+  if (digits) return digits;
+
+  // 真的沒有才 fallback，但正常 bingo.csv 不該走到這裡
+  return `unknown-${String(rowIndex + 1).padStart(6, "0")}`;
 }
 
-function extractNumbersFromRow(row, min, max) {
-  const preferred = [
-    "numbers", "num", "n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8", "n9", "n10",
-    "第一區", "第一區1", "第一區2", "第一區3", "第一區4", "第一區5", "第一區6",
-    "開出號碼", "獎號1", "獎號2", "獎號3", "獎號4", "獎號5", "獎號6", "獎號7", "獎號8", "獎號9", "獎號10",
-    "號碼1", "號碼2", "號碼3", "號碼4", "號碼5", "號碼6", "號碼7", "號碼8", "號碼9", "號碼10"
-  ];
+function extractBingoNumbers(row) {
+  const numbers = [];
 
-  const values = [];
+  for (let i = 1; i <= 20; i++) {
+    const key = `n${i}`;
+    const n = safeInt(row[key]);
 
-  for (const key of preferred) {
-    const v = findField(row, [key]);
-    if (v !== "") values.push(v);
+    if (n !== null && n >= 1 && n <= 80) {
+      numbers.push(n);
+    }
   }
 
-  if (values.length) {
-    const nums = uniqueSortedNumbers(values, min, max);
-    if (nums.length) return nums;
-  }
-
-  const allValues = Object.values(row || {});
-  const merged = allValues.join(" ");
-  const nums = (merged.match(/\d+/g) || []).map(Number);
-  return uniqueSortedNumbers(nums, min, max);
+  return numbers;
 }
 
-function buildRecord(row, game) {
-  const issue = findField(row, [
-    "期別", "期數", "期號", "開獎期別", "開獎期數", "drawno", "issue", "period", "term", "seq"
-  ]);
+function hasDuplicateNumbers(arr) {
+  return new Set(arr).size !== arr.length;
+}
 
-  const date = findField(row, [
-    "日期", "開獎日期", "開出日期", "drawdate", "date"
-  ]);
+function normalizeBingoRows(records) {
+  const result = [];
 
-  const issueStr = String(issue || "").trim();
-  if (!issueStr) return null;
+  for (let i = 0; i < records.length; i++) {
+    const row = records[i];
 
-  if (game === "bingo") {
-    const numbers = extractNumbersFromRow(row, 1, 80);
-    if (!numbers.length) return null;
-    return {
-      issue: issueStr,
-      date: normalizeDate(date),
+    const issue = normalizeIssue(row.issue, i);
+    const date = normalizeDate(row.date);
+    const numbers = extractBingoNumbers(row);
+
+    // 基本資料不完整就跳過
+    if (!issue) continue;
+    if (!date) continue;
+    if (numbers.length !== 20) continue;
+    if (hasDuplicateNumbers(numbers)) continue;
+
+    result.push({
+      issue,
+      date,
       numbers
-    };
+    });
   }
 
-  if (game === "lotto649") {
-    const numbers = extractNumbersFromRow(row, 1, 49).slice(0, 6);
-    const special = toNumber(findField(row, ["特別號", "special", "specialno", "特號"]));
-    if (numbers.length < 6) return null;
-    return {
-      issue: issueStr,
-      date: normalizeDate(date),
-      numbers,
-      ...(Number.isFinite(special) && special >= 1 && special <= 49 ? { special } : {})
-    };
-  }
-
-  if (game === "superlotto638") {
-    const numbers = extractNumbersFromRow(row, 1, 38).slice(0, 6);
-    const zone2 = toNumber(findField(row, ["第二區", "zone2", "second", "特別號", "special"]));
-    if (numbers.length < 6) return null;
-    return {
-      issue: issueStr,
-      date: normalizeDate(date),
-      numbers,
-      ...(Number.isFinite(zone2) && zone2 >= 1 && zone2 <= 8 ? { zone2 } : {})
-    };
-  }
-
-  if (game === "dailycash") {
-    const numbers = extractNumbersFromRow(row, 1, 39).slice(0, 5);
-    if (numbers.length < 5) return null;
-    return {
-      issue: issueStr,
-      date: normalizeDate(date),
-      numbers
-    };
-  }
-
-  return null;
+  return result;
 }
 
-function detectGameFromFile(filePath) {
-  const name = filePath.toLowerCase();
+/**
+ * 以 issue 優先，date 次之
+ * issue 是 202401010001 這種格式，直接比數字即可
+ */
+function sortRowsDesc(rows) {
+  return [...rows].sort((a, b) => {
+    const ai = Number(String(a.issue).replace(/\D/g, ""));
+    const bi = Number(String(b.issue).replace(/\D/g, ""));
 
-  if (name.includes("bingo")) return "bingo";
-  if (name.includes("649") || name.includes("lotto649") || name.includes("biglotto")) return "lotto649";
-  if (name.includes("638") || name.includes("superlotto638") || name.includes("power")) return "superlotto638";
-  if (name.includes("539") || name.includes("dailycash")) return "dailycash";
+    if (Number.isFinite(ai) && Number.isFinite(bi) && ai !== bi) {
+      return bi - ai;
+    }
 
-  return null;
+    const ad = String(a.date || "");
+    const bd = String(b.date || "");
+    if (ad !== bd) return bd.localeCompare(ad);
+
+    return String(b.issue).localeCompare(String(a.issue));
+  });
 }
 
-function dedupeRecords(rows) {
+/**
+ * 去重策略：
+ * 先用 issue 去重，保留較完整的一筆
+ * 若 issue 相同且 numbers 相同，視為同筆
+ */
+function dedupeBingoRows(rows) {
   const map = new Map();
 
   for (const row of rows) {
-    const key = [
-      row.issue || "",
-      row.date || "",
-      (row.numbers || []).join("-"),
-      row.special ?? "",
-      row.zone2 ?? ""
-    ].join("|");
+    const key = String(row.issue);
 
     if (!map.has(key)) {
       map.set(key, row);
+      continue;
+    }
+
+    const prev = map.get(key);
+
+    const prevScore = (prev.date ? 1 : 0) + (Array.isArray(prev.numbers) ? prev.numbers.length : 0);
+    const currScore = (row.date ? 1 : 0) + (Array.isArray(row.numbers) ? row.numbers.length : 0);
+
+    if (currScore > prevScore) {
+      map.set(key, row);
+      continue;
+    }
+
+    // 若完整度相同，保留 issue/date 較新的結構穩定資料
+    if (currScore === prevScore) {
+      const prevDate = String(prev.date || "");
+      const currDate = String(row.date || "");
+      if (currDate > prevDate) {
+        map.set(key, row);
+      }
     }
   }
 
   return [...map.values()];
 }
 
-function sortRecordsDesc(rows) {
-  return [...rows].sort((a, b) => {
-    const ai = String(a.issue || "");
-    const bi = String(b.issue || "");
-
-    const an = Number(ai.replace(/\D/g, ""));
-    const bn = Number(bi.replace(/\D/g, ""));
-
-    if (Number.isFinite(an) && Number.isFinite(bn) && an !== bn) {
-      return bn - an;
+function buildLatestFile(bingoRows) {
+  return {
+    version: "bingo-fix-1",
+    updatedAt: new Date().toISOString(),
+    games: {
+      bingo: sortRowsDesc(bingoRows).slice(0, 5)
     }
-
-    return bi.localeCompare(ai);
-  });
+  };
 }
 
-function saveGameJson(fileName, rows) {
-  const officialPath = path.join(OFFICIAL_DIR, fileName);
-  const publicPath = path.join(PUBLIC_DIR, fileName);
+function syncToPublic(fileName) {
+  const src = path.join(DATA_DIR, fileName);
+  const dest = path.join(PUBLIC_DIR, fileName);
 
-  writeJson(officialPath, rows);
-  writeJson(publicPath, rows);
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, dest);
+    console.log(`📁 同步到 public: ${fileName}`);
+  }
 }
 
-function main() {
-  ensureDir(OFFICIAL_DIR);
+function convertBingo() {
+  ensureDir(DATA_DIR);
   ensureDir(PUBLIC_DIR);
 
-  const csvFiles = listCsvFiles(EXTRACTED_DIR);
+  const csvPath = path.join(RAW_DIR, "bingo.csv");
+  if (!fs.existsSync(csvPath)) {
+    throw new Error(`找不到檔案: ${csvPath}`);
+  }
 
-  const buckets = {
-    bingo: [],
-    lotto649: [],
-    superlotto638: [],
-    dailycash: []
+  const csvText = readText(csvPath);
+  const parsedRows = parseCSV(csvText);
+  const records = toObjects(parsedRows);
+
+  if (records.length === 0) {
+    throw new Error("bingo.csv 解析後沒有任何資料列");
+  }
+
+  const normalized = normalizeBingoRows(records);
+  const deduped = dedupeBingoRows(normalized);
+  const finalRows = sortRowsDesc(deduped);
+
+  const outPath = path.join(DATA_DIR, "bingo.json");
+  writeJson(outPath, finalRows);
+
+  // 若 latest.json 已存在，先讀進來再覆蓋 bingo 區塊
+  const latestPath = path.join(DATA_DIR, "latest.json");
+  let latest = {
+    version: "bingo-fix-1",
+    updatedAt: new Date().toISOString(),
+    games: {}
   };
 
-  for (const file of csvFiles) {
-    const game = detectGameFromFile(file);
-    if (!game) continue;
-
+  if (fs.existsSync(latestPath)) {
     try {
-      const text = readText(file);
-      const csvRows = parseCsv(text);
-
-      for (const row of csvRows) {
-        const rec = buildRecord(row, game);
-        if (rec) buckets[game].push(rec);
-      }
+      latest = JSON.parse(fs.readFileSync(latestPath, "utf8"));
     } catch (err) {
-      console.error(`處理失敗: ${file}`, err.message);
+      console.warn("⚠️ 既有 latest.json 讀取失敗，將重建");
     }
   }
 
-  const bingo = sortRecordsDesc(dedupeRecords(buckets.bingo));
-  const lotto649 = sortRecordsDesc(dedupeRecords(buckets.lotto649));
-  const superlotto638 = sortRecordsDesc(dedupeRecords(buckets.superlotto638));
-  const dailycash = sortRecordsDesc(dedupeRecords(buckets.dailycash));
+  latest.version = "bingo-fix-1";
+  latest.updatedAt = new Date().toISOString();
+  latest.games = latest.games || {};
+  latest.games.bingo = finalRows.slice(0, 5);
 
-  saveGameJson("bingo.json", bingo);
-  saveGameJson("lotto649.json", lotto649);
-  saveGameJson("superlotto638.json", superlotto638);
-  saveGameJson("dailycash.json", dailycash);
+  writeJson(latestPath, latest);
 
-  console.log("✅ convert_to_json 完成");
-  console.log("bingo:", bingo.length);
-  console.log("lotto649:", lotto649.length);
-  console.log("superlotto638:", superlotto638.length);
-  console.log("dailycash:", dailycash.length);
+  syncToPublic("bingo.json");
+  syncToPublic("latest.json");
+
+  console.log("✅ bingo CSV → JSON 轉換完成");
+  console.log(`原始筆數: ${records.length}`);
+  console.log(`有效筆數: ${normalized.length}`);
+  console.log(`去重後筆數: ${finalRows.length}`);
+  console.log("最新五期 issue:", finalRows.slice(0, 5).map((x) => x.issue).join(", "));
 }
 
-main();
+convertBingo();
