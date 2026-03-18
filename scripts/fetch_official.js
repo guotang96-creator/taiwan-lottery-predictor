@@ -1,4 +1,4 @@
-/* V68 官方下載頁抓取版（第一步：抓官方下載連結清單） */
+/* V68.1 官方下載頁偵查版：抓頁面 + JS bundle 內的下載連結 */
 const fs = require("fs");
 const path = require("path");
 
@@ -25,28 +25,19 @@ function absoluteUrl(base, maybeRelative) {
   }
 }
 
-function extractUrlsFromHtml(html, baseUrl) {
+function extractUrls(text, baseUrl) {
   const urls = [];
 
-  // href="..."
-  for (const m of html.matchAll(/href\s*=\s*["']([^"'#]+)["']/gi)) {
+  for (const m of text.matchAll(/https?:\/\/[^\s"'`()<>]+/gi)) {
+    urls.push(m[0]);
+  }
+
+  for (const m of text.matchAll(/["'`](\/[^"'`]+)["'`]/gi)) {
     const abs = absoluteUrl(baseUrl, m[1]);
     if (abs) urls.push(abs);
   }
 
-  // src="..."（有些站會把下載圖示包在特殊連結）
-  for (const m of html.matchAll(/src\s*=\s*["']([^"'#]+)["']/gi)) {
-    const abs = absoluteUrl(baseUrl, m[1]);
-    if (abs) urls.push(abs);
-  }
-
-  // onclick="window.open('...')" / location.href='...'
-  for (const m of html.matchAll(/(?:window\.open|location\.href|document\.location)\s*\(\s*['"]([^'"]+)['"]/gi)) {
-    const abs = absoluteUrl(baseUrl, m[1]);
-    if (abs) urls.push(abs);
-  }
-
-  for (const m of html.matchAll(/(?:window\.open|location\.href|document\.location)\s*=\s*['"]([^'"]+)['"]/gi)) {
+  for (const m of text.matchAll(/href\s*=\s*["']([^"'#]+)["']/gi)) {
     const abs = absoluteUrl(baseUrl, m[1]);
     if (abs) urls.push(abs);
   }
@@ -54,57 +45,82 @@ function extractUrlsFromHtml(html, baseUrl) {
   return uniq(urls);
 }
 
+function looksLikeBundle(url) {
+  return /result_download.*\.js(\?|$)/i.test(url) || /_nuxt\/.*\.js(\?|$)/i.test(url);
+}
+
 function looksLikeDownload(url) {
   return (
     /\.(csv|xls|xlsx|zip|txt|pdf)(\?|$)/i.test(url) ||
-    /download|result|history/i.test(url)
+    /download|history|result/i.test(url)
   );
 }
 
-function rocYearCandidates() {
-  const now = new Date();
-  const roc = now.getFullYear() - 1911;
-  return [roc, roc - 1, roc - 2].map(String);
+async function fetchText(url) {
+  const res = await fetch(url, {
+    headers: {
+      "user-agent": "Mozilla/5.0",
+      "accept": "*/*"
+    }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} @ ${url}`);
+  return res.text();
 }
 
 async function main() {
   ensureDir(OUT_DIR);
 
-  console.log("Fetching official download page...");
-  const res = await fetch(DOWNLOAD_PAGE, {
-    headers: {
-      "user-agent": "Mozilla/5.0",
-      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-    }
-  });
+  console.log("Step 1: fetch official download page");
+  const html = await fetchText(DOWNLOAD_PAGE);
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch official download page: HTTP ${res.status}`);
+  const pageUrls = extractUrls(html, DOWNLOAD_PAGE);
+  const bundleUrls = pageUrls.filter(looksLikeBundle);
+  const directDownloadUrls = pageUrls.filter(looksLikeDownload);
+
+  console.log("Page URLs:", pageUrls.length);
+  console.log("Bundle URLs:", bundleUrls.length);
+  console.log("Direct download-like URLs:", directDownloadUrls.length);
+
+  let bundleScanResults = [];
+
+  for (const bundleUrl of bundleUrls.slice(0, 10)) {
+    try {
+      console.log("Scanning bundle:", bundleUrl);
+      const jsText = await fetchText(bundleUrl);
+      const jsUrls = extractUrls(jsText, bundleUrl);
+      const downloadLike = jsUrls.filter(looksLikeDownload);
+
+      bundleScanResults.push({
+        bundleUrl,
+        foundUrls: jsUrls.length,
+        downloadLikeUrls: downloadLike
+      });
+    } catch (err) {
+      bundleScanResults.push({
+        bundleUrl,
+        error: err.message,
+        foundUrls: 0,
+        downloadLikeUrls: []
+      });
+    }
   }
 
-  const html = await res.text();
-  const allUrls = extractUrlsFromHtml(html, DOWNLOAD_PAGE);
-  const downloadUrls = allUrls.filter(looksLikeDownload);
-
-  const years = rocYearCandidates();
-  const likelyYearFiles = downloadUrls.filter(url => years.some(y => url.includes(y)));
+  const allBundleDownloadUrls = uniq(
+    bundleScanResults.flatMap(x => x.downloadLikeUrls || [])
+  );
 
   const manifest = {
-    version: "V68-link-manifest",
+    version: "V68.1-bundle-scan",
     sourcePage: DOWNLOAD_PAGE,
     fetchedAt: new Date().toISOString(),
-    rocYearsChecked: years,
-    totalFoundUrls: allUrls.length,
-    totalDownloadLikeUrls: downloadUrls.length,
-    likelyYearFiles,
-    allDownloadLikeUrls: downloadUrls
+    pageUrlsCount: pageUrls.length,
+    bundleUrls,
+    directDownloadUrls,
+    bundleScanResults,
+    allBundleDownloadUrls
   };
 
   writeJson(path.join(OUT_DIR, "download_manifest.json"), manifest);
-
-  console.log("Found URLs:", allUrls.length);
-  console.log("Download-like URLs:", downloadUrls.length);
-  console.log("Likely year files:", likelyYearFiles.length);
   console.log("Saved: data/official/download_manifest.json");
 }
 
