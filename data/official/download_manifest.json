@@ -1,146 +1,43 @@
 {
-  "version": "V68.1-bundle-scan",
+  "version": "V68.2-endpoint-probe",
+  "fetchedAt": "2026-03-18T03:24:29.311Z",
   "sourcePage": "https://www.taiwanlottery.com/lotto/history/result_download/",
-  "fetchedAt": "2026-03-18T03:17:37.843Z",
-  "pageUrlsCount": 62,
-  "bundleUrls": [
-    "https://www.taiwanlottery.com/_nuxt/entry.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/default.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/zh-tw.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/PageBanner.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/fileUtil.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/agency.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/Button.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/bank.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/brand.1_0_7_42.js",
-    "https://www.taiwanlottery.com/_nuxt/login.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/member.1_0_7_4.js",
-    "https://www.taiwanlottery.com/_nuxt/traditional.1_0_7_42.js",
-    "https://www.taiwanlottery.com/_nuxt/i18n.options.1_0_7_4.js"
-  ],
-  "directDownloadUrls": [
-    "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js",
-    "https://www.taiwanlottery.com/lotto/history/result_download"
-  ],
-  "bundleScanResults": [
+  "endpoint": "https://www.taiwanlottery.com/Lottery/ResultDownload",
+  "pageStatus": 200,
+  "pageContentType": "text/html",
+  "pagePreview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<title>台灣彩券-各期開獎結果資料下載</title>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script s",
+  "probes": [
     {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/entry.1_0_7_4.js",
-      "foundUrls": 184,
-      "downloadLikeUrls": [
-        "https://www.taiwanlottery.com/activity/bonus/history",
-        "https://www.taiwanlottery.com/activity/bonus/history/info/:bonusId()",
-        "https://www.taiwanlottery.com/activity/bonus/history/result/DragonBoatFestival2018",
-        "https://www.taiwanlottery.com/activity/bonus/history/result/MoonFestival2017",
-        "https://www.taiwanlottery.com/activity/bonus/history/result/:bonusId()",
-        "https://www.taiwanlottery.com/activity/bonus/result/:bonusId()",
-        "https://www.taiwanlottery.com/agency/download",
-        "https://www.taiwanlottery.com/bank/download",
-        "https://www.taiwanlottery.com/instant/history",
-        "https://www.taiwanlottery.com/lotto/history/frequency",
-        "https://www.taiwanlottery.com/lotto/history/history_result",
-        "https://www.taiwanlottery.com/lotto/history/oehl_statistics",
-        "https://www.taiwanlottery.com/lotto/history/result_download",
-        "https://www.taiwanlottery.com/lotto/history/statistics",
-        "https://www.taiwanlottery.com/lotto/history/store",
-        "https://www.taiwanlottery.com/lotto/lotto_lastest_result",
-        "https://www.taiwanlottery.com/lotto/result/:game()",
-        "https://www.taiwanlottery.com/lotto/result/bingo_bingo",
-        "https://www.taiwanlottery.com/lotto/result/traditional",
-        "https://www.taiwanlottery.com/result_all",
-        "https://www.taiwanlottery.com/result",
-        "https://www.taiwanlottery.com/history",
-        "https://www.taiwanlottery.com/result_download",
-        "https://www.taiwanlottery.com/history_result",
-        "https://www.taiwanlottery.com/activity/bonus/result/",
-        "https://www.taiwanlottery.com/lotto_lastest_result",
-        "https://www.taiwanlottery.com/result/super_lotto638"
-      ]
+      "name": "GET plain",
+      "ok": true,
+      "status": 200,
+      "contentType": "text/html",
+      "location": "",
+      "preview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script src=\"/assets/supporting_file/pdf.mjs\" type=\"module\"></script>\n<script src=\"/assets/supporting_file/pdf.worker.mjs\" type=\"module\"></script>\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N6HP9ZR');</script><link rel=\"modulepreload\" as=\"script\" c"
     },
     {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/default.1_0_7_4.js",
-      "foundUrls": 0,
-      "downloadLikeUrls": []
+      "name": "GET json accept",
+      "ok": true,
+      "status": 200,
+      "contentType": "text/html",
+      "location": "",
+      "preview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script src=\"/assets/supporting_file/pdf.mjs\" type=\"module\"></script>\n<script src=\"/assets/supporting_file/pdf.worker.mjs\" type=\"module\"></script>\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N6HP9ZR');</script><link rel=\"modulepreload\" as=\"script\" c"
     },
     {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/zh-tw.1_0_7_4.js",
-      "foundUrls": 0,
-      "downloadLikeUrls": []
+      "name": "POST empty json",
+      "ok": true,
+      "status": 200,
+      "contentType": "text/html",
+      "location": "",
+      "preview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script src=\"/assets/supporting_file/pdf.mjs\" type=\"module\"></script>\n<script src=\"/assets/supporting_file/pdf.worker.mjs\" type=\"module\"></script>\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N6HP9ZR');</script><link rel=\"modulepreload\" as=\"script\" c"
     },
     {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js",
-      "foundUrls": 2,
-      "downloadLikeUrls": [
-        "https://www.taiwanlottery.com/Lottery/ResultDownload"
-      ]
-    },
-    {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/PageBanner.1_0_7_4.js",
-      "foundUrls": 0,
-      "downloadLikeUrls": []
-    },
-    {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/fileUtil.1_0_7_4.js",
-      "foundUrls": 2,
-      "downloadLikeUrls": []
-    },
-    {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/agency.1_0_7_4.js",
-      "foundUrls": 31,
-      "downloadLikeUrls": [
-        "https://www.taiwanlottery.com/agency/download",
-        "https://www.taiwanlottery.com/images/icon/download_black.svg",
-        "https://www.taiwanlottery.com/images/icon/download_orange_linear.svg"
-      ]
-    },
-    {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/Button.1_0_7_4.js",
-      "foundUrls": 0,
-      "downloadLikeUrls": []
-    },
-    {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/bank.1_0_7_4.js",
-      "foundUrls": 41,
-      "downloadLikeUrls": [
-        "https://www.taiwanlottery.com/bank/download"
-      ]
-    },
-    {
-      "bundleUrl": "https://www.taiwanlottery.com/_nuxt/brand.1_0_7_42.js",
-      "foundUrls": 17,
-      "downloadLikeUrls": []
+      "name": "POST empty form",
+      "ok": true,
+      "status": 200,
+      "contentType": "text/html",
+      "location": "",
+      "preview": "<!DOCTYPE html>\n<html lang=\"zh-TW\" data-version=\"1_0_7_4\">\n<head><meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"icon\" type=\"image/x-icon\" sizes=\"32x32\" href=\"/favicon.ico\">\n<link rel=\"icon\" type=\"image/jpeg\" sizes=\"180x180\" href=\"/icon.jpg\">\n<link rel=\"apple-touch-icon\" href=\"/icon.jpg\">\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap\">\n<script src=\"/assets/supporting_file/pdf.mjs\" type=\"module\"></script>\n<script src=\"/assets/supporting_file/pdf.worker.mjs\" type=\"module\"></script>\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-N6HP9ZR');</script><link rel=\"modulepreload\" as=\"script\" c"
     }
-  ],
-  "allBundleDownloadUrls": [
-    "https://www.taiwanlottery.com/activity/bonus/history",
-    "https://www.taiwanlottery.com/activity/bonus/history/info/:bonusId()",
-    "https://www.taiwanlottery.com/activity/bonus/history/result/DragonBoatFestival2018",
-    "https://www.taiwanlottery.com/activity/bonus/history/result/MoonFestival2017",
-    "https://www.taiwanlottery.com/activity/bonus/history/result/:bonusId()",
-    "https://www.taiwanlottery.com/activity/bonus/result/:bonusId()",
-    "https://www.taiwanlottery.com/agency/download",
-    "https://www.taiwanlottery.com/bank/download",
-    "https://www.taiwanlottery.com/instant/history",
-    "https://www.taiwanlottery.com/lotto/history/frequency",
-    "https://www.taiwanlottery.com/lotto/history/history_result",
-    "https://www.taiwanlottery.com/lotto/history/oehl_statistics",
-    "https://www.taiwanlottery.com/lotto/history/result_download",
-    "https://www.taiwanlottery.com/lotto/history/statistics",
-    "https://www.taiwanlottery.com/lotto/history/store",
-    "https://www.taiwanlottery.com/lotto/lotto_lastest_result",
-    "https://www.taiwanlottery.com/lotto/result/:game()",
-    "https://www.taiwanlottery.com/lotto/result/bingo_bingo",
-    "https://www.taiwanlottery.com/lotto/result/traditional",
-    "https://www.taiwanlottery.com/result_all",
-    "https://www.taiwanlottery.com/result",
-    "https://www.taiwanlottery.com/history",
-    "https://www.taiwanlottery.com/result_download",
-    "https://www.taiwanlottery.com/history_result",
-    "https://www.taiwanlottery.com/activity/bonus/result/",
-    "https://www.taiwanlottery.com/lotto_lastest_result",
-    "https://www.taiwanlottery.com/result/super_lotto638",
-    "https://www.taiwanlottery.com/Lottery/ResultDownload",
-    "https://www.taiwanlottery.com/images/icon/download_black.svg",
-    "https://www.taiwanlottery.com/images/icon/download_orange_linear.svg"
   ]
 }
