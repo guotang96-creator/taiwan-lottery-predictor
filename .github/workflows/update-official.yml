@@ -3,84 +3,43 @@ name: Update Official Lottery Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "7,22,37,52 * * * *"
+    - cron: "*/15 * * * *"
 
 permissions:
   contents: write
 
-concurrency:
-  group: update-official-data
-  cancel-in-progress: true
-
 jobs:
-  update:
+  update-official-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
 
-      - name: Install dependencies
-        run: npm install
+      - name: Show Node version
+        run: node -v
 
-      - name: Ensure folders
-        run: |
-          mkdir -p data/official
-          mkdir -p data/downloads
-          mkdir -p data/extracted
-          mkdir -p public/data/official
-          mkdir -p scripts
-
-      - name: Fetch official zip files
-        run: node scripts/fetch_official.js
-
-      - name: Parse downloaded zip files
-        run: node scripts/parse_downloads.js
-
-      - name: Convert extracted csv to official json
+      - name: Convert CSV to JSON
         run: node scripts/convert_to_json.js
 
-      - name: Run updater
+      - name: Update latest and sync public files
         run: node scripts/update_official.js
 
-      - name: Show result
-        run: |
-          echo "---- data/official/latest.json ----"
-          cat data/official/latest.json || true
-          echo
-          echo "---- public/data/official/latest.json ----"
-          cat public/data/official/latest.json || true
-          echo
-          echo "---- public/data/official files ----"
-          find public/data/official -maxdepth 1 -type f | sort || true
-          echo
-          echo "---- data/official files ----"
-          find data/official -maxdepth 1 -type f | sort || true
-
-      - name: Commit updated data
+      - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add package.json || true
-          git add data/official/*.json || true
-          git add data/downloads/*.zip || true
-          git add data/extracted || true
-          git add public/data/official/*.json || true
+          git add data/official/*.json public/data/official/*.json scripts/convert_to_json.js scripts/update_official.js
 
-          if git diff --staged --quiet; then
+          if git diff --cached --quiet; then
             echo "No changes to commit"
-            exit 0
+          else
+            git commit -m "chore: update official lottery data"
+            git push
           fi
-
-          git commit -m "chore: update official lottery data (V74.1 local fast)"
-          git pull --rebase origin main || true
-          git push origin main
