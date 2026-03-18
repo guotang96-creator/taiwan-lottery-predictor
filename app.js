@@ -1,7 +1,6 @@
 const DATA_CANDIDATE_BASES = [
-  "./data/official",
   "/data/official",
-  "https://guotang96-creator.github.io/taiwan-lottery-predictor/data/official"
+  "https://raw.githubusercontent.com/guotang96-creator/taiwan-lottery-predictor/main/data/official"
 ];
 
 const GAME_CONFIG = {
@@ -88,11 +87,22 @@ function showError(text = "資料讀取失敗") {
   `;
 }
 
+function withNoCache(url) {
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}_t=${Date.now()}`;
+}
+
 async function tryFetchJson(url) {
-  const res = await fetch(url, { cache: "no-store" });
+  const finalUrl = withNoCache(url);
+  const res = await fetch(finalUrl, {
+    method: "GET",
+    cache: "no-store"
+  });
+
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }
+
   return res.json();
 }
 
@@ -103,6 +113,7 @@ async function detectWorkingBaseUrl() {
 
   for (const base of DATA_CANDIDATE_BASES) {
     const testUrl = `${base}/latest.json`;
+
     try {
       const data = await tryFetchJson(testUrl);
       if (data && data.games) {
@@ -125,15 +136,15 @@ async function fetchFromBase(fileName) {
   return tryFetchJson(`${base}/${fileName}`);
 }
 
-async function loadLatestJson() {
-  if (cacheStore.latest) return cacheStore.latest;
+async function loadLatestJson(forceRefresh = false) {
+  if (!forceRefresh && cacheStore.latest) return cacheStore.latest;
   const data = await fetchFromBase("latest.json");
   cacheStore.latest = data;
   return data;
 }
 
-async function loadHistoryJson(type) {
-  if (cacheStore.history[type]) return cacheStore.history[type];
+async function loadHistoryJson(type, forceRefresh = false) {
+  if (!forceRefresh && cacheStore.history[type]) return cacheStore.history[type];
   const config = GAME_CONFIG[type];
   const data = await fetchFromBase(config.file);
   cacheStore.history[type] = Array.isArray(data) ? data : [];
@@ -165,11 +176,13 @@ function getLatestRows(type, latestJson) {
 
 function countFrequencies(rows, max) {
   const freq = Array(max + 1).fill(0);
+
   rows.forEach(row => {
     row.numbers.forEach(n => {
       if (n >= 1 && n <= max) freq[n] += 1;
     });
   });
+
   return freq;
 }
 
@@ -194,7 +207,10 @@ function pickColdNumbers(freq, count, max) {
 function buildMainPrediction(hot, cold, pickCount) {
   const hotNeed = Math.ceil(pickCount * 0.7);
   const coldNeed = pickCount - hotNeed;
-  return uniqSorted([...hot.slice(0, hotNeed), ...cold.slice(0, coldNeed)]).slice(0, pickCount);
+  return uniqSorted([
+    ...hot.slice(0, hotNeed),
+    ...cold.slice(0, coldNeed)
+  ]).slice(0, pickCount);
 }
 
 function rotateArray(arr, step) {
@@ -205,7 +221,12 @@ function rotateArray(arr, step) {
 }
 
 function buildGroups(hot, cold, setCount, pickCount, max) {
-  const pool = uniqSorted([...hot, ...cold, ...Array.from({ length: max }, (_, i) => i + 1)]);
+  const pool = uniqSorted([
+    ...hot,
+    ...cold,
+    ...Array.from({ length: max }, (_, i) => i + 1)
+  ]);
+
   const groups = [];
   for (let i = 0; i < setCount; i++) {
     const rotated = rotateArray(pool, i * 3);
@@ -314,7 +335,8 @@ function buildResultHtml({
   streak,
   tails,
   extra,
-  latestFive
+  latestFive,
+  sourceBase
 }) {
   return `
     <div class="result-grid">
@@ -370,6 +392,11 @@ function buildResultHtml({
           ${gameName} 本次預測依據官方歷史資料與最新五期真實開獎結果，綜合熱號、冷號、連號與尾數節奏進行排序，建議搭配自己的習慣交叉參考。
         </div>
       </div>
+
+      <div class="result-card full-width">
+        <div class="card-title">目前資料來源</div>
+        <div class="text-block">${sourceBase || "未偵測"}</div>
+      </div>
     </div>
   `;
 }
@@ -382,27 +409,34 @@ async function runPrediction(type) {
   const pickCount = config.pickDefault();
 
   setHeader(config.name, "分析中");
-  showLoading(`正在讀取 ${config.name} 官方資料...`);
+  showLoading(`正在讀取 ${config.name} 即時官方資料...`);
 
   try {
+    const baseUrl = await detectWorkingBaseUrl();
+
     const [latestJson, historyRaw] = await Promise.all([
-      loadLatestJson(),
-      loadHistoryJson(type)
+      loadLatestJson(true),
+      loadHistoryJson(type, true)
     ]);
 
     const latestRows = getLatestRows(type, latestJson);
     const historyRows = normalizeHistoryRows(historyRaw).sort((a, b) => String(b.issue).localeCompare(String(a.issue)));
-
     const analysisRows = historyRows.slice(0, historyPeriods);
-    const freq = countFrequencies(analysisRows, config.max);
+
+    if (!historyRows.length && !latestRows.length) {
+      throw new Error("官方資料為空");
+    }
+
+    const workingRows = analysisRows.length ? analysisRows : latestRows;
+    const freq = countFrequencies(workingRows, config.max);
 
     const hot = pickHotNumbers(freq, Math.max(pickCount, 10), config.max);
     const cold = pickColdNumbers(freq, Math.max(pickCount, 10), config.max);
     const main = buildMainPrediction(hot, cold, pickCount);
     const groups = buildGroups(hot, cold, setCount, pickCount, config.max);
-    const streak = analyzeStreak(analysisRows);
-    const tails = analyzeTails(analysisRows);
-    const extra = analyzeSpecial(type, latestRows.length ? latestRows : analysisRows);
+    const streak = analysisRows.length ? analyzeStreak(analysisRows) : "目前歷史期數不足，連號分析先略過。";
+    const tails = analysisRows.length ? analyzeTails(analysisRows) : "目前歷史期數不足，尾數分析先略過。";
+    const extra = analyzeSpecial(type, latestRows.length ? latestRows : workingRows);
 
     setHeader(config.name, "已完成");
 
@@ -416,12 +450,13 @@ async function runPrediction(type) {
       streak,
       tails,
       extra,
-      latestFive: latestRows
+      latestFive: latestRows,
+      sourceBase: baseUrl
     });
   } catch (err) {
     console.error(err);
     setHeader(config.name, "失敗");
-    showError(`讀取 ${config.name} 官方資料失敗。請確認 latest.json 與各彩種 json 已部署成功。`);
+    showError(`讀取 ${config.name} 即時資料失敗：${err.message}`);
   }
 }
 
