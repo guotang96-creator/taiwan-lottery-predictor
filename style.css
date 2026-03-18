@@ -2,200 +2,180 @@
   box-sizing: border-box;
 }
 
-:root {
-  --bg: #f4f7fb;
-  --panel: #ffffff;
-  --panel-soft: #f9fbff;
-  --text: #1f2937;
-  --muted: #6b7280;
-  --line: #e5e7eb;
-  --primary: #166534;
-  --primary-2: #22c55e;
-  --accent: #0f766e;
-  --danger: #dc2626;
-  --cold: #2563eb;
-  --shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  --radius: 18px;
-}
-
-/* 基本 */
-
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
-  background: linear-gradient(180deg, #eef5ff 0%, var(--bg) 100%);
-  color: var(--text);
+  font-family: "Noto Sans TC", Arial, sans-serif;
+  background: #0f172a;
+  color: #f8fafc;
 }
-
-/* 容器 */
 
 .app-shell {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px 14px 40px;
+  padding: 20px;
 }
 
-/* Header */
-
 .topbar {
-  margin-bottom: 16px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
 }
 
 .topbar h1 {
-  margin: 0 0 6px;
-  font-size: 30px;
+  margin: 0 0 8px;
+  font-size: 28px;
 }
 
 .subtitle {
   margin: 0;
-  color: var(--muted);
+  color: #cbd5e1;
   font-size: 14px;
 }
-
-/* 主區 */
 
 .main-wrap {
   display: grid;
-  gap: 16px;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
 }
 
-/* 面板 */
-
 .panel {
-  background: var(--panel);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px;
+  background: #111827;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
 .panel h2 {
-  margin: 0 0 14px;
+  margin-top: 0;
+  margin-bottom: 18px;
   font-size: 22px;
 }
 
-/* 表單 */
-
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 
 .field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #cbd5e1;
   font-size: 14px;
-  color: var(--muted);
-  font-weight: 600;
 }
 
-select {
-  padding: 12px;
+.field select {
+  width: 100%;
+  padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid var(--line);
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #f8fafc;
   font-size: 15px;
 }
 
-select:focus {
-  border-color: var(--primary-2);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
-}
-
-/* 按鈕 */
-
 .action-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .lottery-btn {
   border: none;
-  background: linear-gradient(135deg, var(--primary), var(--primary-2));
-  color: #fff;
-  padding: 12px 18px;
   border-radius: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: white;
   font-size: 15px;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.25);
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .lottery-btn:hover {
   transform: translateY(-1px);
+  opacity: 0.95;
 }
 
-/* 結果區 */
-
 .result-panel {
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  min-height: 500px;
 }
 
 .result-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .result-subtitle {
-  margin: 4px 0 0;
-  color: var(--muted);
+  margin: 6px 0 0;
+  color: #94a3b8;
+  font-size: 14px;
 }
 
 .badge {
-  background: #ecfdf5;
-  color: var(--primary);
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  padding: 8px 12px;
   border-radius: 999px;
+  background: #1e293b;
+  color: #f8fafc;
   font-size: 13px;
-  font-weight: bold;
+  font-weight: 700;
 }
 
-/* 空狀態 */
+.prediction-result {
+  min-height: 360px;
+}
 
 .empty-state {
-  border: 2px dashed #dbe3ef;
-  border-radius: 18px;
-  padding: 30px;
+  border: 1px dashed #334155;
+  border-radius: 16px;
+  padding: 34px 20px;
   text-align: center;
+  background: rgba(15, 23, 42, 0.6);
 }
 
 .empty-icon {
-  font-size: 40px;
+  font-size: 42px;
+  margin-bottom: 10px;
 }
 
 .empty-title {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .empty-text {
-  color: var(--muted);
-  margin-top: 6px;
+  color: #94a3b8;
+  line-height: 1.7;
+  font-size: 14px;
 }
-
-/* 卡片 */
 
 .result-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
 .result-card {
-  background: #fff;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
-  padding: 14px;
-  border: 1px solid #edf2f7;
+  padding: 16px;
 }
 
 .highlight-card {
-  background: linear-gradient(135deg, #f0fdf4, #ecfeff);
+  background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(234,88,12,0.12));
+  border: 1px solid rgba(245,158,11,0.4);
 }
 
 .full-width {
@@ -203,11 +183,11 @@ select:focus {
 }
 
 .card-title {
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #f8fafc;
 }
-
-/* 球 */
 
 .ball-row {
   display: flex;
@@ -216,75 +196,48 @@ select:focus {
 }
 
 .ball {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #1e293b;
   color: white;
-  font-weight: bold;
-  background: #64748b;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 0 10px;
 }
 
 .ball.main {
-  background: #22c55e;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
 }
 
 .ball.hot {
-  background: #f97316;
-}
-
-.ball.cold {
-  background: #3b82f6;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
 .ball.special {
-  background: #a855f7;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
 }
 
-/* 組 */
-
-.group-item {
-  margin-bottom: 10px;
-}
-
-.group-label {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-/* 文字 */
-
-.text-block {
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-/* 特別區 */
-
-.special-box {
-  font-weight: bold;
-}
-
-/* RWD */
-
-@media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .result-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .lottery-btn {
-    width: 100%;
-  }
-}
 .group-list {
   display: grid;
   gap: 10px;
+}
+
+.group-item {
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.group-label {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #cbd5e1;
+  font-weight: 700;
 }
 
 .special-box {
@@ -294,6 +247,26 @@ select:focus {
   font-size: 15px;
 }
 
+.text-block {
+  color: #e2e8f0;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
 .text-block strong {
   font-size: 18px;
+}
+
+@media (max-width: 900px) {
+  .main-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: auto;
+  }
 }
