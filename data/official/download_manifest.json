@@ -1,954 +1,370 @@
 {
-  "version": "V68.5-playwright-probe",
-  "fetchedAt": "2026-03-18T04:18:19.915Z",
-  "pageUrl": "https://www.taiwanlottery.com/lotto/history/result_download/",
-  "title": "台灣彩券-各期開獎結果資料下載",
-  "bodyPreview": "經銷商專區\n\n品牌專區\n\n愛心公益\n\nAPP會員專區\n\n電腦型彩券遊戲\n\n刮刮樂\n\n開獎資訊\n\n活動專區\n\n新聞與公告\n\n節制過度投注\n\n2,000萬超級紅包\n\nTOP\n各期開獎結果資料下載\n第3屆、第4屆、第5屆公益彩券\n各年度各期彩券獎號\n銷售金額與獎金總額\n資料下載\n主要欄位說明：(各遊戲欄位內容依遊戲設計而有所差異，下方以大樂透為例)\n遊戲名稱,期別,開獎日期,銷售總額,銷售注數,總獎金,獎號1,獎號2,獎號3,獎號4,獎號5,獎號6,特別號\n資料更新頻率：每月5日更新至前一個月資料\n各年度公益彩券獎號資料下載：\n第5屆（民國113-122年）\n115年度\n114年度\n113年度\n第4屆（民國103-112年）\n112年度\n111年度\n110年度\n109年度\n108年度\n107年度\n106年度\n105年度\n104年度\n103年度\n第3屆（民國96-102年）\n102年度\n101年度\n100年度\n99年度\n98年度\n97年度\n96年度\n\n市話 0800-024-999\n\n手機 0809-077-168\n\n網站地圖\n問與答\n如何兌獎\n聯絡客服\n我要檢舉\n發行條例\n管理辦法\n第五屆公益彩券經銷商遴選及管理要點\n隱私權保護政策\n客戶資料保密承諾\n公司治理\n中信銀行 彩券管理部\n財政部 國庫署\n台彩樂Now事FB\n台彩樂Now事IG\n\n未滿18歲不得購買或兌領彩券ver.1_0_7_4\n\n版權所有 © 2024 台灣彩券股份有限公司",
-  "yearTextCount": 28,
-  "clicked": [
-    {
-      "year": "114",
-      "label": "114年度",
-      "success": true
-    },
-    {
-      "year": "113",
-      "label": "第5屆（民國113-122年）",
-      "success": true
-    },
-    {
-      "year": "112",
-      "label": "第4屆（民國103-112年）",
-      "success": true
-    },
-    {
-      "year": "111",
-      "label": "111年度",
-      "success": true
-    },
-    {
-      "year": "110",
-      "label": "110年度",
-      "success": true
-    },
-    {
-      "year": "2024",
-      "label": "版權所有 © 2024 台灣彩券股份有限公司",
-      "success": true
-    },
-    {
-      "index": 0,
-      "text": "115年度",
-      "success": true
-    },
-    {
-      "index": 1,
-      "text": "114年度",
-      "success": true
-    },
-    {
-      "index": 2,
-      "text": "113年度",
-      "success": true
-    },
-    {
-      "index": 3,
-      "text": "112年度",
-      "success": true
-    },
-    {
-      "index": 4,
-      "text": "111年度",
-      "success": true
-    },
-    {
-      "index": 5,
-      "text": "110年度",
-      "success": true
-    },
-    {
-      "index": 6,
-      "text": "109年度",
-      "success": true
-    },
-    {
-      "index": 7,
-      "text": "108年度",
-      "success": true
-    },
-    {
-      "index": 8,
-      "text": "107年度",
-      "success": true
-    },
-    {
-      "index": 9,
-      "text": "106年度",
-      "success": true
-    },
-    {
-      "index": 10,
-      "text": "105年度",
-      "success": true
-    },
-    {
-      "index": 11,
-      "text": "104年度",
-      "success": true
-    },
-    {
-      "index": 12,
-      "text": "103年度",
-      "success": true
-    },
-    {
-      "index": 13,
-      "text": "102年度",
-      "success": true
-    },
-    {
-      "index": 14,
-      "text": "101年度",
-      "success": true
-    },
-    {
-      "index": 15,
-      "text": "100年度",
-      "success": true
-    },
-    {
-      "index": 16,
-      "text": "99年度",
-      "success": true
-    },
-    {
-      "index": 17,
-      "text": "98年度",
-      "success": true
-    },
-    {
-      "index": 18,
-      "text": "97年度",
-      "success": true
-    },
-    {
-      "index": 19,
-      "text": "96年度",
-      "success": true
-    }
+  "version": "V68.6-download-zips",
+  "fetchedAt": "2026-03-18T04:25:18.017Z",
+  "yearsTried": [
+    2026,
+    2025,
+    2024,
+    2023,
+    2022,
+    2021,
+    2020,
+    2019,
+    2018,
+    2017,
+    2016,
+    2015,
+    2014,
+    2013,
+    2012,
+    2011,
+    2010,
+    2009,
+    2008,
+    2007
   ],
-  "downloadEvents": [
+  "successCount": 20,
+  "failCount": 0,
+  "results": [
     {
-      "suggestedFilename": "2025.zip",
-      "url": "blob:https://www.taiwanlottery.com/dee860c6-b50c-492e-b23e-d2fdcd5f773a"
+      "year": 2026,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2026",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2026",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2026.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2026.zip",
+      "fileName": "2026.zip",
+      "savedAs": "data/downloads/2026.zip",
+      "size": 394769
     },
     {
-      "suggestedFilename": "2022.zip",
-      "url": "blob:https://www.taiwanlottery.com/b16944cf-d929-46bf-8843-bb7cf54a1f8f"
+      "year": 2025,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2025",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2025",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2025.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2025.zip",
+      "fileName": "2025.zip",
+      "savedAs": "data/downloads/2025.zip",
+      "size": 2363494
     },
     {
-      "suggestedFilename": "2021.zip",
-      "url": "blob:https://www.taiwanlottery.com/908da676-3620-437e-a9ac-612eed5c613f"
+      "year": 2024,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2024",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2024",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2024.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2024.zip",
+      "fileName": "2024.zip",
+      "savedAs": "data/downloads/2024.zip",
+      "size": 2364829
     },
     {
-      "suggestedFilename": "2026.zip",
-      "url": "blob:https://www.taiwanlottery.com/8a39e372-7d76-4a07-97a0-3e4f3d58685c"
+      "year": 2023,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2023",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2023",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2023.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2023.zip",
+      "fileName": "2023.zip",
+      "savedAs": "data/downloads/2023.zip",
+      "size": 2417977
     },
     {
-      "suggestedFilename": "2025.zip",
-      "url": "blob:https://www.taiwanlottery.com/8df54a72-d1ac-4d30-a078-5fbfbe8a3273"
+      "year": 2022,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2022",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2022",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2022.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2022.zip",
+      "fileName": "2022.zip",
+      "savedAs": "data/downloads/2022.zip",
+      "size": 2503694
     },
     {
-      "suggestedFilename": "2024.zip",
-      "url": "blob:https://www.taiwanlottery.com/2ebf2210-2c31-4894-90bc-9e1ad4b91341"
+      "year": 2021,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2021",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2021",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2021.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2021.zip",
+      "fileName": "2021.zip",
+      "savedAs": "data/downloads/2021.zip",
+      "size": 2489517
     },
     {
-      "suggestedFilename": "2023.zip",
-      "url": "blob:https://www.taiwanlottery.com/f5fc13c4-36cb-4189-b1f1-1fd72e6a9e7b"
+      "year": 2020,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2020",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2020",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2020.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2020.zip",
+      "fileName": "2020.zip",
+      "savedAs": "data/downloads/2020.zip",
+      "size": 2507892
     },
     {
-      "suggestedFilename": "2022.zip",
-      "url": "blob:https://www.taiwanlottery.com/00625694-3470-4643-84ea-b2ac9e1c35dd"
+      "year": 2019,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2019",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2019",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2019.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2019.zip",
+      "fileName": "2019.zip",
+      "savedAs": "data/downloads/2019.zip",
+      "size": 2499003
     },
     {
-      "suggestedFilename": "2021.zip",
-      "url": "blob:https://www.taiwanlottery.com/1e60d672-f7ed-4e88-8b30-dcd94e2fe0d5"
+      "year": 2018,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2018",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2018",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2018.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2018.zip",
+      "fileName": "2018.zip",
+      "savedAs": "data/downloads/2018.zip",
+      "size": 2489077
     },
     {
-      "suggestedFilename": "2020.zip",
-      "url": "blob:https://www.taiwanlottery.com/2a9682b6-4ba8-4298-b013-f06fe3f70c7c"
+      "year": 2017,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2017",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2017",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2017.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2017.zip",
+      "fileName": "2017.zip",
+      "savedAs": "data/downloads/2017.zip",
+      "size": 2326563
     },
     {
-      "suggestedFilename": "2019.zip",
-      "url": "blob:https://www.taiwanlottery.com/d263ed88-c2f7-4000-af35-775630844c89"
+      "year": 2016,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2016",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2016",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2016.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2016.zip",
+      "fileName": "2016.zip",
+      "savedAs": "data/downloads/2016.zip",
+      "size": 2320352
     },
     {
-      "suggestedFilename": "2018.zip",
-      "url": "blob:https://www.taiwanlottery.com/a15cd958-0650-42d6-aec7-44910fc9f517"
+      "year": 2015,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2015",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2015",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2015.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2015.zip",
+      "fileName": "2015.zip",
+      "savedAs": "data/downloads/2015.zip",
+      "size": 2305658
     },
     {
-      "suggestedFilename": "2017.zip",
-      "url": "blob:https://www.taiwanlottery.com/823d1761-2826-4be3-b08e-67a78e2c26c2"
+      "year": 2014,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2014",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2014",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2014.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2014.zip",
+      "fileName": "2014.zip",
+      "savedAs": "data/downloads/2014.zip",
+      "size": 2303498
     },
     {
-      "suggestedFilename": "2016.zip",
-      "url": "blob:https://www.taiwanlottery.com/47ea8969-24f7-4b56-8964-a767f4f32a00"
+      "year": 2013,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2013",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2013",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2013.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2013.zip",
+      "fileName": "2013.zip",
+      "savedAs": "data/downloads/2013.zip",
+      "size": 2314482
     },
     {
-      "suggestedFilename": "2015.zip",
-      "url": "blob:https://www.taiwanlottery.com/4e42694f-7eb6-4e5f-bf59-6bf279fa0344"
+      "year": 2012,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2012",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2012",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2012.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2012.zip",
+      "fileName": "2012.zip",
+      "savedAs": "data/downloads/2012.zip",
+      "size": 2323002
     },
     {
-      "suggestedFilename": "2014.zip",
-      "url": "blob:https://www.taiwanlottery.com/cb6a857e-df3b-4478-a837-98486ed166b0"
+      "year": 2011,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2011",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2011",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2011.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2011.zip",
+      "fileName": "2011.zip",
+      "savedAs": "data/downloads/2011.zip",
+      "size": 2311052
     },
     {
-      "suggestedFilename": "2013.zip",
-      "url": "blob:https://www.taiwanlottery.com/71e238e1-d8a1-4747-bc71-02fe0f88b0c4"
+      "year": 2010,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2010",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2010",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2010.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2010.zip",
+      "fileName": "2010.zip",
+      "savedAs": "data/downloads/2010.zip",
+      "size": 1801180
     },
     {
-      "suggestedFilename": "2012.zip",
-      "url": "blob:https://www.taiwanlottery.com/65564515-403a-41c5-9189-e0cb3fd1f076"
+      "year": 2009,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2009",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2009",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2009.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2009.zip",
+      "fileName": "2009.zip",
+      "savedAs": "data/downloads/2009.zip",
+      "size": 1645688
     },
     {
-      "suggestedFilename": "2011.zip",
-      "url": "blob:https://www.taiwanlottery.com/6e0779e5-2d8c-4ef8-856f-4a2bd6e8c5d6"
+      "year": 2008,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2008",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2008",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2008.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2008.zip",
+      "fileName": "2008.zip",
+      "savedAs": "data/downloads/2008.zip",
+      "size": 1128114
     },
     {
-      "suggestedFilename": "2010.zip",
-      "url": "blob:https://www.taiwanlottery.com/81cd3656-159c-48d0-a99e-f8b771db20e9"
-    },
-    {
-      "suggestedFilename": "2009.zip",
-      "url": "blob:https://www.taiwanlottery.com/06cb0526-8b23-439a-9330-334a4cf1727c"
-    },
-    {
-      "suggestedFilename": "2008.zip",
-      "url": "blob:https://www.taiwanlottery.com/6ab51992-3e10-4b83-a32b-61898630183b"
-    },
-    {
-      "suggestedFilename": "2007.zip",
-      "url": "blob:https://www.taiwanlottery.com/6f352118-da3e-4f69-85b2-99b12b6a506c"
+      "year": 2007,
+      "ok": true,
+      "apiUrl": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2007",
+      "apiResponse": {
+        "rtCode": 0,
+        "rtMsg": null,
+        "content": {
+          "fileName": "2007",
+          "path": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2007.zip"
+        }
+      },
+      "downloadUrl": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2007.zip",
+      "fileName": "2007.zip",
+      "savedAs": "data/downloads/2007.zip",
+      "size": 29164
     }
-  ],
-  "networkHits": [
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://www.taiwanlottery.com/lotto/history/result_download/"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "text/html",
-      "url": "https://www.taiwanlottery.com/lotto/history/result_download/"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://www.googletagmanager.com/gtm.js?id=GTM-N6HP9ZR&is_td=1&v=3&t=t&pid=992463627&gtm=45He63g1v830652063za200zd830652063&seq=1&exp=103116026~103200004~115938466~115938469~116024733~117484252&dl=www.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&tdp=GTM-N6HP9ZR;30652063;0;0;0&frm=0&rtg=30652063&slo=0&hlo=3&lst=1&bt=0&ct=3&mde=G-RF69FMDZ7F;0_1&z=0"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://www.googletagmanager.com/td?id=GTM-N6HP9ZR&v=3&t=t&pid=992463627&gtm=45He63g1v830652063za200zd830652063&seq=1&exp=103116026~103200004~115938466~115938469~116024733~117484252&dl=www.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&tdp=GTM-N6HP9ZR;30652063;0;0;0&frm=0&rtg=30652063&slo=0&hlo=3&lst=1&bt=0&ct=3&mde=G-RF69FMDZ7F;0_1&z=0"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://www.googletagmanager.com/td?id=GTM-N6HP9ZR&v=3&t=t&pid=992463627&gtm=45He63g1v830652063za200zd830652063&seq=1&exp=103116026~103200004~115938466~115938469~116024733~117484252&dl=www.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&tdp=GTM-N6HP9ZR;30652063;0;0;0&frm=0&rtg=30652063&slo=0&hlo=3&lst=1&bt=0&ct=3&mde=G-RF69FMDZ7F;0_1&z=0"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://www.googletagmanager.com/gtm.js?id=GTM-N6HP9ZR&is_td=1&v=3&t=t&pid=992463627&gtm=45He63g1v830652063za200zd830652063&seq=1&exp=103116026~103200004~115938466~115938469~116024733~117484252&dl=www.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&tdp=GTM-N6HP9ZR;30652063;0;0;0&frm=0&rtg=30652063&slo=0&hlo=3&lst=1&bt=0&ct=3&mde=G-RF69FMDZ7F;0_1&z=0"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://www.google-analytics.com/j/collect?v=1&_v=j102&a=1850056463&t=pageview&_s=1&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&ul=en-us&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sr=1440x1200&vp=1440x1200&_u=YEBAAEABAAAAACAAI~&jid=981326214&gjid=943841848&cid=472671414.1773807428&tid=UA-149343827-1&_gid=1722582429.1773807428&_r=1&_slc=1&gtm=45He63g1n81N6HP9ZRv830652063za200zd830652063&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&z=683404875"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-RF69FMDZ7F&gtm=45je63g1v9187043393z8830652063za20gzb830652063zd830652063&_p=1773807427611&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ecid=1479192139&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&ec_mode=a&_eu=AAAAAGA&_s=1&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&sid=1773807428&sct=1&seg=0&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&en=page_view&_fv=1&_ss=1&tfd=1668"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "text/plain",
-      "url": "https://www.google-analytics.com/j/collect?v=1&_v=j102&a=1850056463&t=pageview&_s=1&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&ul=en-us&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sr=1440x1200&vp=1440x1200&_u=YEBAAEABAAAAACAAI~&jid=981326214&gjid=943841848&cid=472671414.1773807428&tid=UA-149343827-1&_gid=1722582429.1773807428&_r=1&_slc=1&gtm=45He63g1n81N6HP9ZRv830652063za200zd830652063&gcd=13l3l3l3l1l1&dma=0&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&z=683404875"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/javascript",
-      "url": "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.js"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.css"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-RF69FMDZ7F&gtm=45je63g1v9187043393z8830652063za20gzb830652063zd830652063&_p=1773807427611&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ecid=1479192139&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&ec_mode=a&_eu=AAAAAGA&_s=1&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&sid=1773807428&sct=1&seg=0&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&en=page_view&_fv=1&_ss=1&tfd=1668"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QH8PJX46RG&gtm=45je63g1v873991973z8830652063za20gzb830652063zd830652063&_p=1773807427611&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAAAGA&_s=1&tag_exp=103116026~103200004~115616985~115938466~115938468~116024733~117484252&sid=1773807428&sct=1&seg=0&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&en=page_view&_fv=1&_ss=1&tfd=1792"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&_gaz=1&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGA&_s=1&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=0&_tu=wAQ&en=page_view&_fv=1&_ss=1&_ee=1&tfd=1853"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "text/css",
-      "url": "https://www.taiwanlottery.com/_nuxt/result_download.1_0_7_4.css"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QH8PJX46RG&gtm=45je63g1v873991973z8830652063za20gzb830652063zd830652063&_p=1773807427611&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAAAGA&_s=1&tag_exp=103116026~103200004~115616985~115938466~115938468~116024733~117484252&sid=1773807428&sct=1&seg=0&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&en=page_view&_fv=1&_ss=1&tfd=1792"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&_gaz=1&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGA&_s=1&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=0&_tu=wAQ&en=page_view&_fv=1&_ss=1&_ee=1&tfd=1853"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-X9BXXDQZ1C&gtm=45je63g1v9173871598za200zb830652063zd830652063&_p=1773807427611&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&_fid=f_5f8FjNbsULpr0CwpUvlw&cid=472671414.1773807428&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAAAGA&_s=1&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&sid=1773807428&sct=1&seg=0&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=page_view&_fv=1&_ss=1&_ee=1&ep.origin=firebase&tfd=2534"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-X9BXXDQZ1C&gtm=45je63g1v9173871598za200zb830652063zd830652063&_p=1773807427611&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&_fid=f_5f8FjNbsULpr0CwpUvlw&cid=472671414.1773807428&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AAAAAGA&_s=1&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&sid=1773807428&sct=1&seg=0&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=page_view&_fv=1&_ss=1&_ee=1&ep.origin=firebase&tfd=2534"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-RF69FMDZ7F&gtm=45je63g1v9187043393za20gzb830652063zd830652063&_p=1773807427611&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ecid=1479192139&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&ec_mode=a&_eu=AEAAAGQ&_s=2&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dr=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&sid=1773807428&sct=1&seg=1&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=page_view&_et=1545&tfd=3216"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-RF69FMDZ7F&gtm=45je63g1v9187043393za20gzb830652063zd830652063&_p=1773807427611&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ecid=1479192139&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&ec_mode=a&_eu=AEAAAGQ&_s=2&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dr=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&sid=1773807428&sct=1&seg=1&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=page_view&_et=1545&tfd=3216"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2025"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2025"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2025.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QH8PJX46RG&gtm=45je63g1v873991973za20gzb830652063zd830652063&_p=1773807427611&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEAAAGQ&_s=2&tag_exp=103116026~103200004~115616985~115938466~115938468~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dr=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&sid=1773807428&sct=1&seg=1&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=page_view&_et=1428&tfd=8221"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QH8PJX46RG&gtm=45je63g1v873991973za20gzb830652063zd830652063&_p=1773807427611&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEAAAGQ&_s=2&tag_exp=103116026~103200004~115616985~115938466~115938468~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dr=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&sid=1773807428&sct=1&seg=1&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=page_view&_et=1428&tfd=8221"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2025.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&_s=2&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=0&_tu=wAQ&en=%5BNon-Texts%5D&_ee=1&ep.event_category=ClickLink&ep.event_label=https%3A%2F%2Fwww.taiwanlottery.com%2Fdee860c6-b50c-492e-b23e-d2fdcd5f773a&_et=7478&tfd=14333"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&_s=2&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=0&_tu=wAQ&en=%5BNon-Texts%5D&_ee=1&ep.event_category=ClickLink&ep.event_label=https%3A%2F%2Fwww.taiwanlottery.com%2Fdee860c6-b50c-492e-b23e-d2fdcd5f773a&_et=7478&tfd=14333"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2022"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2022"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2022.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2022.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2021"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2021"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2021.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2021.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=3&tfd=21010"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=3&tfd=21010"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2026"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2026"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2026.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2026.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-RF69FMDZ7F&gtm=45je63g1v9187043393za20gzb830652063zd830652063&_p=1773807427611&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ecid=1479192139&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEAAAGQ&_s=3&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&sid=1773807428&sct=1&seg=1&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dr=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=scroll&epn.percent_scrolled=90&_et=17125&tfd=25343"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QH8PJX46RG&gtm=45je63g1v873991973za20gzb830652063zd830652063&_p=1773807427611&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEAAAGQ&_s=3&tag_exp=103116026~103200004~115616985~115938466~115938468~116024733~117484252&sid=1773807428&sct=1&seg=1&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dr=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=scroll&epn.percent_scrolled=90&_et=17124&tfd=25346"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-RF69FMDZ7F&gtm=45je63g1v9187043393za20gzb830652063zd830652063&_p=1773807427611&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ecid=1479192139&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEAAAGQ&_s=3&tag_exp=103116026~103200004~115938466~115938469~116024733~117484252&sid=1773807428&sct=1&seg=1&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dr=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=scroll&epn.percent_scrolled=90&_et=17125&tfd=25343"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-QH8PJX46RG&gtm=45je63g1v873991973za20gzb830652063zd830652063&_p=1773807427611&gcd=13l3l3l3l1l1&npa=0&dma=0&cid=472671414.1773807428&ul=en-us&sr=1440x1200&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=AEAAAGQ&_s=3&tag_exp=103116026~103200004~115616985~115938466~115938468~116024733~117484252&sid=1773807428&sct=1&seg=1&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dr=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download%2F&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&_tu=wAQ&en=scroll&epn.percent_scrolled=90&_et=17124&tfd=25346"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2024"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2024"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2024.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=4&tfd=28385"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2024.zip"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=4&tfd=28385"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2023"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2023"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2023.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2023.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=5&tfd=33510"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=5&tfd=33510"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2020"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2020"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2020.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2020.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2019"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=6&tfd=40832"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=6&tfd=40832"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2019"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2019.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2019.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2018"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2018"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2018.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2018.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2017"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2017"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2017.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2017.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=7&tfd=46282"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=7&tfd=46282"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2016"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2016"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2016.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2016.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2015"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2015"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2015.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2015.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=8&tfd=51434"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=8&tfd=51434"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2014"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2014"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2014.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2014.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2013"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2013"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2013.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2013.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2012"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2012"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2012.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2012.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=9&tfd=58883"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=9&tfd=58883"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2011"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2011"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2011.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2011.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2010"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2010"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2010.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2010.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=10&tfd=63995"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&_gaz=1&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&_s=11&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&en=%5BNon-Texts%5D&_ee=1&ep.event_category=ClickLink&ep.event_label=https%3A%2F%2Fwww.taiwanlottery.com%2F81cd3656-159c-48d0-a99e-f8b771db20e9&_et=2502&tfd=64023"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=10&tfd=63995"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&_gaz=1&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&_s=11&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&en=%5BNon-Texts%5D&_ee=1&ep.event_category=ClickLink&ep.event_label=https%3A%2F%2Fwww.taiwanlottery.com%2F81cd3656-159c-48d0-a99e-f8b771db20e9&_et=2502&tfd=64023"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2009"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2009"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2009.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2009.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2008"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2008"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2008.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2008.zip"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2007"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/json; charset=utf-8",
-      "url": "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/ResultDownload?year=2007"
-    },
-    {
-      "type": "request",
-      "method": "GET",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2007.zip"
-    },
-    {
-      "type": "response",
-      "status": 200,
-      "contentType": "application/x-zip-compressed",
-      "url": "https://cdn.taiwanlottery.com.tw/app/FilesForDownload/Download/LottoResult/2007.zip"
-    },
-    {
-      "type": "request",
-      "method": "POST",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=12&tfd=71492"
-    },
-    {
-      "type": "response",
-      "status": 204,
-      "contentType": "text/plain",
-      "url": "https://analytics.google.com/g/collect?v=2&tid=G-N8EMP8TWX1&gtm=45je63g1v9126313482za20g&_p=1773807427611&gcd=13l3l3l3l2l1&npa=0&dma=0&ul=en-us&sr=1440x1200&cid=472671414.1773807428&uaa=x86&uab=64&uafvl=Not%253AA-Brand%3B99.0.0.0%7CHeadlessChrome%3B145.0.7632.6%7CChromium%3B145.0.7632.6&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&are=1&frm=0&pscdl=noapi&_eu=ABAIAGQ&tag_exp=103116026~103200004~115616985~115938466~115938469~116024733~117484252&dl=https%3A%2F%2Fwww.taiwanlottery.com%2Flotto%2Fhistory%2Fresult_download&dt=%E5%8F%B0%E7%81%A3%E5%BD%A9%E5%88%B8-%E5%90%84%E6%9C%9F%E9%96%8B%E7%8D%8E%E7%B5%90%E6%9E%9C%E8%B3%87%E6%96%99%E4%B8%8B%E8%BC%89&sid=1773807428&sct=1&seg=1&_tu=wAQ&_s=12&tfd=71492"
-    }
-  ],
-  "consoleLogs": [
-    "Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of \"text/html\". Strict MIME type checking is enforced for module scripts per HTML spec."
   ]
 }
