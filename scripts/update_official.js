@@ -7,12 +7,16 @@ function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function readJson(filePath, fallback = null) {
+function fileExists(filePath) {
+  return fs.existsSync(filePath);
+}
+
+function readJson(filePath, fallback = {}) {
   try {
-    if (!fs.existsSync(filePath)) return fallback;
+    if (!fileExists(filePath)) return fallback;
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (err) {
-    console.warn(`⚠️ 無法讀取 JSON: ${filePath}`, err.message);
+    console.warn(`⚠️ 讀取失敗: ${filePath}`, err.message);
     return fallback;
   }
 }
@@ -23,157 +27,77 @@ function writeJson(filePath, data) {
   console.log(`✅ 已寫入 ${filePath}`);
 }
 
-function fileExists(filePath) {
-  return fs.existsSync(filePath);
-}
-
-function normalizeNumberArray(arr) {
+function normalizeArray(arr) {
   if (!Array.isArray(arr)) return [];
-  return arr
-    .map(v => Number(v))
-    .filter(v => Number.isFinite(v));
+  return arr.map(v => Number(v)).filter(v => Number.isFinite(v));
 }
 
-function pickLatestJsonFile() {
-  const candidates = [
-    path.join(ROOT, 'latest.json'),
-    path.join(ROOT, 'data', 'latest.json'),
-    path.join(ROOT, 'docs', 'latest.json'),
-    path.join(ROOT, 'public', 'latest.json')
-  ];
-
-  for (const file of candidates) {
-    if (fileExists(file)) return file;
+function pickFirstExisting(paths) {
+  for (const p of paths) {
+    if (fileExists(p)) return p;
   }
-
-  return path.join(ROOT, 'latest.json');
-}
-
-function pickOfficialLatestFile() {
-  const candidates = [
-    path.join(ROOT, 'official_latest.json'),
-    path.join(ROOT, 'data', 'official_latest.json'),
-    path.join(ROOT, 'docs', 'official_latest.json')
-  ];
-
-  for (const file of candidates) {
-    if (fileExists(file)) return file;
-  }
-
   return null;
 }
 
-function safeGameBlock(base, key) {
-  if (!base || typeof base !== 'object') return {};
-  if (!base[key] || typeof base[key] !== 'object') return {};
-  return base[key];
-}
+function mergeGame(baseGame, officialGame, gameKey) {
+  const latestOfficial = officialGame
+    ? {
+        period: officialGame.period || '',
+        drawDate: officialGame.drawDate || '',
+        redeemableDate: officialGame.redeemableDate || '',
+        numbers: normalizeArray(officialGame.numbers),
+        orderNumbers: normalizeArray(officialGame.orderNumbers),
+        specialNumber:
+          officialGame.specialNumber !== undefined && officialGame.specialNumber !== null
+            ? Number(officialGame.specialNumber)
+            : null,
+        source: officialGame.source || 'official-api'
+      }
+    : null;
 
-function toFrontEndGameData(gameKey, gameData, officialData) {
-  const merged = {
-    ...gameData
+  return {
+    ...(baseGame || {}),
+    game: gameKey,
+    latestOfficial,
+    latest: latestOfficial || baseGame?.latest || null
   };
-
-  if (officialData && typeof officialData === 'object') {
-    merged.latestOfficial = {
-      period: officialData.period || '',
-      drawDate: officialData.drawDate || '',
-      redeemableDate: officialData.redeemableDate || '',
-      numbers: normalizeNumberArray(officialData.numbers),
-      orderNumbers: normalizeNumberArray(officialData.orderNumbers),
-      specialNumber:
-        officialData.specialNumber !== undefined && officialData.specialNumber !== null
-          ? Number(officialData.specialNumber)
-          : null,
-      source: officialData.source || 'official-api'
-    };
-
-    merged.latest = {
-      period: officialData.period || '',
-      drawDate: officialData.drawDate || '',
-      numbers: normalizeNumberArray(officialData.numbers),
-      specialNumber:
-        officialData.specialNumber !== undefined && officialData.specialNumber !== null
-          ? Number(officialData.specialNumber)
-          : null
-    };
-  } else {
-    merged.latestOfficial = merged.latestOfficial || null;
-    merged.latest = merged.latest || merged.latest || null;
-  }
-
-  merged.game = gameKey;
-  return merged;
-}
-
-function buildFrontEndPayload(baseJson, officialLatestJson) {
-  const officialLatest = officialLatestJson?.officialLatest || {};
-
-  const bingoBase = safeGameBlock(baseJson, 'bingo');
-  const daily539Base = safeGameBlock(baseJson, 'daily539');
-  const lotto649Base = safeGameBlock(baseJson, 'lotto649');
-  const superLotto638Base = safeGameBlock(baseJson, 'superLotto638');
-
-  const output = {
-    generatedAt:
-      officialLatestJson?.generatedAt ||
-      baseJson?.generatedAt ||
-      new Date().toISOString(),
-
-    source: 'merged-official-data',
-
-    bingo: toFrontEndGameData('bingo', bingoBase, officialLatest.bingo),
-    daily539: toFrontEndGameData('daily539', daily539Base, officialLatest.daily539),
-    lotto649: toFrontEndGameData('lotto649', lotto649Base, officialLatest.lotto649),
-    superLotto638: toFrontEndGameData(
-      'superLotto638',
-      superLotto638Base,
-      officialLatest.superLotto638
-    ),
-
-    officialLatest: officialLatest
-  };
-
-  return output;
-}
-
-function writeAllTargets(data) {
-  const targets = [
-    path.join(ROOT, 'latest.json'),
-    path.join(ROOT, 'data', 'latest.json')
-  ];
-
-  if (fileExists(path.join(ROOT, 'docs'))) {
-    targets.push(path.join(ROOT, 'docs', 'latest.json'));
-  }
-
-  if (fileExists(path.join(ROOT, 'public'))) {
-    targets.push(path.join(ROOT, 'public', 'latest.json'));
-  }
-
-  for (const target of targets) {
-    writeJson(target, data);
-  }
 }
 
 function main() {
   try {
-    const latestJsonFile = pickLatestJsonFile();
-    const officialLatestFile = pickOfficialLatestFile();
+    const latestFile = pickFirstExisting([
+      path.join(ROOT, 'latest.json'),
+      path.join(ROOT, 'data', 'latest.json'),
+      path.join(ROOT, 'docs', 'latest.json')
+    ]);
 
-    console.log(`📄 latest.json 來源: ${latestJsonFile}`);
-    console.log(`📄 official_latest.json 來源: ${officialLatestFile || '未找到'}`);
+    const officialFile = pickFirstExisting([
+      path.join(ROOT, 'official_latest.json'),
+      path.join(ROOT, 'data', 'official_latest.json'),
+      path.join(ROOT, 'docs', 'official_latest.json')
+    ]);
 
-    const baseJson = readJson(latestJsonFile, {}) || {};
-    const officialLatestJson = officialLatestFile
-      ? readJson(officialLatestFile, {})
-      : {};
+    const baseJson = latestFile ? readJson(latestFile, {}) : {};
+    const officialJson = officialFile ? readJson(officialFile, {}) : {};
 
-    const merged = buildFrontEndPayload(baseJson, officialLatestJson);
+    const officialLatest = officialJson?.officialLatest || {};
 
-    writeAllTargets(merged);
+    const merged = {
+      ...baseJson,
+      generatedAt: new Date().toISOString(),
+      source: 'merged-official-data',
+      officialLatest,
+      bingo: mergeGame(baseJson?.bingo, officialLatest?.bingo, 'bingo'),
+      daily539: mergeGame(baseJson?.daily539, officialLatest?.daily539, 'daily539'),
+      lotto649: mergeGame(baseJson?.lotto649, officialLatest?.lotto649, 'lotto649'),
+      superLotto638: mergeGame(baseJson?.superLotto638, officialLatest?.superLotto638, 'superLotto638')
+    };
 
-    console.log('🎉 update_official.js 完成');
+    writeJson(path.join(ROOT, 'latest.json'), merged);
+    writeJson(path.join(ROOT, 'data', 'latest.json'), merged);
+    writeJson(path.join(ROOT, 'docs', 'latest.json'), merged);
+
+    console.log('🎉 latest.json 已同步輸出到 root / data / docs');
   } catch (err) {
     console.error('❌ update_official.js 失敗:', err);
     process.exit(1);
