@@ -36,6 +36,8 @@ jobs:
           mkdir -p data/official
           mkdir -p data/downloads
           mkdir -p data/extracted
+          mkdir -p public/data
+          mkdir -p public/data/official
           mkdir -p scripts
 
       - name: Fetch official zip files
@@ -61,6 +63,12 @@ jobs:
           echo "---- meta.json ----"
           cat data/official/meta.json || true
           echo
+          echo "---- public/data/latest.json ----"
+          cat public/data/latest.json || true
+          echo
+          echo "---- public/data ----"
+          find public/data -maxdepth 3 -type f | sort || true
+          echo
           echo "---- downloads ----"
           ls -lah data/downloads || true
           echo
@@ -79,6 +87,9 @@ jobs:
           git add data/official/*.json
           git add data/downloads/*.zip
           git add data/extracted
+          git add public/data/*.json
+          git add public/data/latest.json
+          git add public/data/official/*.json
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
