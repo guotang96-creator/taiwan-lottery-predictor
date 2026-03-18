@@ -15,7 +15,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -28,18 +28,13 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Install Playwright browser
-        run: npx playwright install chromium --with-deps
-
       - name: Ensure folders
         run: |
           mkdir -p data/official
+          mkdir -p data/downloads
           mkdir -p scripts
 
-      - name: Fetch official download manifest
+      - name: Fetch official zip files
         run: node scripts/fetch_official.js
 
       - name: Run updater
@@ -53,6 +48,9 @@ jobs:
           echo "---- meta.json ----"
           cat data/official/meta.json || true
           echo
+          echo "---- downloads ----"
+          ls -lah data/downloads || true
+          echo
           echo "---- files ----"
           ls -lah data/official || true
 
@@ -61,14 +59,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add package.json
           git add data/official/*.json
+          git add data/downloads/*.zip
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "chore: update official lottery data (V68.5 playwright)"
+          git commit -m "chore: update official lottery data (V68.6 downloads)"
           git pull --rebase origin main
           git push origin main
