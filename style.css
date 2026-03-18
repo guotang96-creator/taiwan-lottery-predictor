@@ -308,3 +308,29 @@ body {
     grid-template-columns: 1fr;
   }
 }
+.latest-five-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.latest-five-item {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.latest-five-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #cfd8e3;
+}
+
+.latest-five-balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
