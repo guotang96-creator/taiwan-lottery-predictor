@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V76 歷史學習完整版";
+  const APP_VERSION = "V76.1 歷史學習完整版";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -12,19 +12,27 @@
 
   const CSV_CANDIDATES = {
     bingo: [
+      "./docs/raw_data/bingo.csv",
       "./raw_data/bingo.csv",
+      "/taiwan-lottery-predictor/docs/raw_data/bingo.csv",
       "/taiwan-lottery-predictor/raw_data/bingo.csv"
     ],
     daily539: [
+      "./docs/raw_data/539.csv",
       "./raw_data/539.csv",
+      "/taiwan-lottery-predictor/docs/raw_data/539.csv",
       "/taiwan-lottery-predictor/raw_data/539.csv"
     ],
     lotto649: [
+      "./docs/raw_data/lotto.csv",
       "./raw_data/lotto.csv",
+      "/taiwan-lottery-predictor/docs/raw_data/lotto.csv",
       "/taiwan-lottery-predictor/raw_data/lotto.csv"
     ],
     superLotto638: [
+      "./docs/raw_data/power.csv",
       "./raw_data/power.csv",
+      "/taiwan-lottery-predictor/docs/raw_data/power.csv",
       "/taiwan-lottery-predictor/raw_data/power.csv"
     ]
   };
@@ -293,7 +301,7 @@
     }
 
     const keys = Object.keys(row).filter(k => k !== "__raw");
-    const numberKeys = keys.filter(k => /number|draw|show|open|big|ball|num/i.test(k));
+    const numberKeys = keys.filter(k => /number|draw|show|open|big|ball|num|special|second/i.test(k));
 
     for (const key of numberKeys) {
       const raw = String(row[key] ?? "").trim();
@@ -314,7 +322,7 @@
   }
 
   function inferPeriod(row) {
-    const direct = firstMatchValue(row, ["period", "drawterm", "term", "issue", "期別", "期數"]);
+    const direct = firstMatchValue(row, ["issue", "period", "drawterm", "term", "期別", "期數"]);
     if (direct) return String(direct);
 
     const raw = row.__raw || [];
@@ -348,21 +356,13 @@
 
       if (gameKey === "bingo") {
         const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 20);
-        const orderNumbers = numbers.slice();
-        const specialNumber = inferSpecial(
-          row,
-          ["specialnumber", "supernum", "bulleye", "bull_eye", "特別號", "超級獎號"],
-          cfg.min,
-          cfg.max
-        );
-
         return {
           period,
           drawDate,
           redeemableDate: "",
           numbers,
-          orderNumbers,
-          specialNumber,
+          orderNumbers: numbers.slice(),
+          specialNumber: null,
           source: "history-csv"
         };
       }
@@ -381,18 +381,25 @@
       }
 
       if (gameKey === "lotto649") {
-        const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 6);
+        let numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 6);
         let specialNumber = inferSpecial(
           row,
-          ["specialnumber", "specialnum", "bonusnumber", "特別號"],
+          ["special", "specialnumber", "specialnum", "bonusnumber", "特別號"],
           1,
           49
         );
 
         if (specialNumber == null) {
-          const nums = numericArray(row.__raw || [], 1, 49);
-          if (nums.length >= 7) specialNumber = nums[6];
+          const seqKeys = findSequentialNumberKeys(row);
+          if (seqKeys.length >= 7) {
+            const specialRaw = Number(row[seqKeys[6]]);
+            if (Number.isFinite(specialRaw) && specialRaw >= 1 && specialRaw <= 49) {
+              specialNumber = specialRaw;
+            }
+          }
         }
+
+        if (numbers.length > 6) numbers = numbers.slice(0, 6);
 
         return {
           period,
@@ -406,23 +413,22 @@
       }
 
       if (gameKey === "superLotto638") {
-        const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 6);
+        let numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 6);
         let specialNumber = inferSpecial(
           row,
-          ["specialnumber", "specialnum", "secondareanumber", "第二區", "第二區號碼"],
+          ["second", "special", "specialnumber", "specialnum", "secondareanumber", "第二區", "第二區號碼"],
           1,
           8
         );
 
         if (specialNumber == null) {
-          const nums = numericArray(row.__raw || [], 1, 38);
-          const small = numericArray(row.__raw || [], 1, 8);
-          if (small.length && !numbers.includes(small[small.length - 1])) {
-            specialNumber = small[small.length - 1];
-          } else if (nums.length >= 7) {
-            specialNumber = nums[6];
+          const secondRaw = Number(firstMatchValue(row, ["second"]));
+          if (Number.isFinite(secondRaw) && secondRaw >= 1 && secondRaw <= 8) {
+            specialNumber = secondRaw;
           }
         }
+
+        if (numbers.length > 6) numbers = numbers.slice(0, 6);
 
         return {
           period,
@@ -713,7 +719,7 @@
     const titleEl = $("resultGameName");
 
     if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜V76 歷史學習 AI 預測 + 官方最新資料`;
+      titleEl.textContent = `${cfg.label}｜V76.1 歷史學習 AI 預測 + 官方最新資料`;
     }
 
     setBadge("已完成", true);
@@ -736,9 +742,7 @@
               <div class="summary-item-value">${renderBalls(latestDraw?.numbers || [], latestDraw?.specialNumber, cfg.specialLabel)}</div>
             </div>
           </div>
-          <div class="source-note">
-            歷史學習期數：${draws.length} 期
-          </div>
+          <div class="source-note">歷史學習期數：${draws.length} 期</div>
         </div>
 
         <div class="section-card">
@@ -818,8 +822,8 @@
     state.history.lotto649 = lotto649History.data;
     state.history.superLotto638 = superLotto638History.data;
 
-    console.log("[V76] latest loaded:", latestResult.path);
-    console.log("[V76] history counts:", {
+    console.log("[V76.1] latest loaded:", latestResult.path);
+    console.log("[V76.1] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
