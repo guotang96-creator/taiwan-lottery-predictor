@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V76.2 歷史學習排序修正版";
+  const APP_VERSION = "V77 回測強化版";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -138,10 +138,10 @@
   }
 
   function injectStyles() {
-    if (document.getElementById("v76-style")) return;
+    if (document.getElementById("v77-style")) return;
 
     const style = document.createElement("style");
-    style.id = "v76-style";
+    style.id = "v77-style";
     style.textContent = `
       .result-wrap{display:flex;flex-direction:column;gap:16px}
       .section-card,.summary-card{
@@ -187,6 +187,18 @@
       }
       .source-note{
         font-size:12px;color:#666;margin-top:6px
+      }
+      .backtest-grid{
+        display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px
+      }
+      .backtest-card{
+        background:#f8fafc;border-radius:14px;padding:12px;border:1px solid #edf2f7
+      }
+      .backtest-title{
+        font-size:14px;font-weight:800;color:#222;margin-bottom:6px
+      }
+      .backtest-line{
+        font-size:13px;color:#444;line-height:1.8
       }
     `;
     document.head.appendChild(style);
@@ -463,7 +475,11 @@
     const dateValue = draw?.drawDate ? new Date(draw.drawDate).getTime() : 0;
     const safeDate = Number.isFinite(dateValue) ? dateValue : 0;
     const safePeriod = Number(draw?.period || 0);
-    return { safeDate, safePeriod };
+
+    return {
+      safeDate,
+      safePeriod
+    };
   }
 
   function sortDrawsDesc(draws) {
@@ -480,10 +496,24 @@
   }
 
   function getLatestDraw(gameKey) {
-    return state.latestJson?.[gameKey]?.latestOfficial ||
+    const latest =
+      state.latestJson?.[gameKey]?.latestOfficial ||
       state.latestJson?.[gameKey]?.latest ||
       state.latestJson?.officialLatest?.[gameKey] ||
       null;
+
+    return latest;
+  }
+
+  function isBingoLatestNewer(latest, historyTop) {
+    if (!latest) return false;
+    if (!historyTop) return true;
+
+    const lt = toSortableTime(latest);
+    const ht = toSortableTime(historyTop);
+
+    if (lt.safeDate !== ht.safeDate) return lt.safeDate > ht.safeDate;
+    return lt.safePeriod > ht.safePeriod;
   }
 
   function getHistory(gameKey, limit) {
@@ -492,16 +522,34 @@
 
     const merged = [...history];
 
-    if (latest && !merged.some(x => String(x.period) === String(latest.period))) {
-      merged.push(latest);
+    if (latest) {
+      const latestKey = `${latest.period || ""}__${latest.drawDate || ""}`;
+      const idx = merged.findIndex(item => `${item.period || ""}__${item.drawDate || ""}` === latestKey);
+
+      if (idx >= 0) {
+        merged[idx] = latest;
+      } else {
+        merged.push(latest);
+      }
+
+      if (gameKey === "bingo" && merged.length) {
+        const top = sortDrawsDesc(merged)[0];
+        if (isBingoLatestNewer(latest, top) && !merged.some(x => String(x.period) === String(latest.period) && String(x.drawDate) === String(latest.drawDate))) {
+          merged.push(latest);
+        }
+      }
     }
 
     const dedupedMap = new Map();
-
     for (const item of merged) {
       const key = `${item.period || ""}__${item.drawDate || ""}`;
       if (!dedupedMap.has(key)) {
         dedupedMap.set(key, item);
+      } else {
+        const oldItem = dedupedMap.get(key);
+        if ((item.numbers?.length || 0) >= (oldItem.numbers?.length || 0)) {
+          dedupedMap.set(key, item);
+        }
       }
     }
 
@@ -676,6 +724,64 @@
     return sets;
   }
 
+  function countHits(predicted, actual) {
+    const actualSet = new Set(actual || []);
+    return (predicted || []).filter(n => actualSet.has(n)).length;
+  }
+
+  function simulatePredictionForIndex(gameCode, historyDraws, index, setCount) {
+    const cfg = GAME_CONFIG[gameCode];
+    const futureDraw = historyDraws[index];
+    const train = historyDraws.slice(index + 1);
+
+    if (!futureDraw || train.length < 5) return null;
+
+    const sets = buildPredictionSets(gameCode, train, train[0], setCount);
+    const hits = sets.map(set => countHits(set.numbers, futureDraw.numbers));
+    const bestHit = Math.max(...hits);
+
+    return {
+      period: futureDraw.period,
+      hit: bestHit,
+      numbers: futureDraw.numbers
+    };
+  }
+
+  function runBacktest(gameCode, historyDraws, setCount) {
+    const windows = [30, 50, 100];
+
+    return windows.map(windowSize => {
+      const usable = historyDraws.slice(0, windowSize + 10);
+      const results = [];
+
+      for (let i = 0; i < Math.min(windowSize, usable.length - 5); i += 1) {
+        const result = simulatePredictionForIndex(gameCode, usable, i, setCount);
+        if (result) results.push(result);
+      }
+
+      if (!results.length) {
+        return {
+          windowSize,
+          samples: 0,
+          avgHit: 0,
+          hit1: 0,
+          hit2: 0,
+          hit3: 0
+        };
+      }
+
+      const totalHit = results.reduce((sum, r) => sum + r.hit, 0);
+      return {
+        windowSize,
+        samples: results.length,
+        avgHit: (totalHit / results.length).toFixed(2),
+        hit1: results.filter(r => r.hit >= 1).length,
+        hit2: results.filter(r => r.hit >= 2).length,
+        hit3: results.filter(r => r.hit >= 3).length
+      };
+    });
+  }
+
   function renderBalls(numbers, specialNumber = null, specialLabel = "") {
     const main = (numbers || [])
       .map(n => `<span class="ball">${pad2(n)}</span>`)
@@ -728,6 +834,23 @@
     `).join("");
   }
 
+  function renderBacktest(backtests) {
+    return `
+      <div class="backtest-grid">
+        ${backtests.map(item => `
+          <div class="backtest-card">
+            <div class="backtest-title">近 ${item.windowSize} 期回測</div>
+            <div class="backtest-line">樣本數：${item.samples}</div>
+            <div class="backtest-line">平均命中：${item.avgHit}</div>
+            <div class="backtest-line">命中 1 碼以上：${item.hit1}</div>
+            <div class="backtest-line">命中 2 碼以上：${item.hit2}</div>
+            <div class="backtest-line">命中 3 碼以上：${item.hit3}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function renderPrediction(gameCode) {
     const cfg = GAME_CONFIG[gameCode];
     const historyPeriods = Number($("historyPeriods")?.value || 50);
@@ -735,18 +858,20 @@
 
     const latestDraw = getLatestDraw(cfg.key);
     const draws = getHistory(cfg.key, historyPeriods);
+    const fullHistory = getHistory(cfg.key, 120);
 
     const frequency = frequencyAnalysis(draws, cfg.min, cfg.max);
     const miss = missAnalysis(draws, cfg.min, cfg.max);
     const tails = tailAnalysis(draws);
     const consecutive = consecutiveAnalysis(draws);
     const sets = buildPredictionSets(gameCode, draws, latestDraw, setCount);
+    const backtests = runBacktest(gameCode, fullHistory, setCount);
 
     const container = $("predictionResult");
     const titleEl = $("resultGameName");
 
     if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜V76.2 歷史學習 AI 預測 + 官方最新資料`;
+      titleEl.textContent = `${cfg.label}｜V77 回測強化版 + 官方最新資料`;
     }
 
     setBadge("已完成", true);
@@ -782,6 +907,11 @@
               </div>
             `).join("")}
           </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">回測表現</div>
+          ${renderBacktest(backtests)}
         </div>
 
         <div class="section-card">
@@ -849,8 +979,8 @@
     state.history.lotto649 = lotto649History.data;
     state.history.superLotto638 = superLotto638History.data;
 
-    console.log("[V76.2] latest loaded:", latestResult.path);
-    console.log("[V76.2] history counts:", {
+    console.log("[V77] latest loaded:", latestResult.path);
+    console.log("[V77] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
