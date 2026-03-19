@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V76.1 歷史學習完整版";
+  const APP_VERSION = "V76.2 歷史學習排序修正版";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -446,8 +446,7 @@
 
     return normalized
       .filter(item => item.period || item.drawDate || (item.numbers && item.numbers.length))
-      .filter(item => item.numbers.length >= Math.min(cfg.historyMainCount, 3))
-      .sort((a, b) => Number(b.period || 0) - Number(a.period || 0));
+      .filter(item => item.numbers.length >= Math.min(cfg.historyMainCount, 3));
   }
 
   async function loadHistoryCsv(gameKey) {
@@ -458,6 +457,26 @@
       path: result.path,
       data: normalizeHistoryRows(gameKey, rows)
     };
+  }
+
+  function toSortableTime(draw) {
+    const dateValue = draw?.drawDate ? new Date(draw.drawDate).getTime() : 0;
+    const safeDate = Number.isFinite(dateValue) ? dateValue : 0;
+    const safePeriod = Number(draw?.period || 0);
+    return { safeDate, safePeriod };
+  }
+
+  function sortDrawsDesc(draws) {
+    return [...draws].sort((a, b) => {
+      const ta = toSortableTime(a);
+      const tb = toSortableTime(b);
+
+      if (tb.safeDate !== ta.safeDate) {
+        return tb.safeDate - ta.safeDate;
+      }
+
+      return tb.safePeriod - ta.safePeriod;
+    });
   }
 
   function getLatestDraw(gameKey) {
@@ -471,14 +490,22 @@
     const history = state.history[gameKey] || [];
     const latest = getLatestDraw(gameKey);
 
-    const out = [...history];
-    if (latest && !out.some(x => String(x.period) === String(latest.period))) {
-      out.unshift(latest);
+    const merged = [...history];
+
+    if (latest && !merged.some(x => String(x.period) === String(latest.period))) {
+      merged.push(latest);
     }
 
-    return out
-      .sort((a, b) => Number(b.period || 0) - Number(a.period || 0))
-      .slice(0, limit);
+    const dedupedMap = new Map();
+
+    for (const item of merged) {
+      const key = `${item.period || ""}__${item.drawDate || ""}`;
+      if (!dedupedMap.has(key)) {
+        dedupedMap.set(key, item);
+      }
+    }
+
+    return sortDrawsDesc([...dedupedMap.values()]).slice(0, limit);
   }
 
   function frequencyAnalysis(draws, min, max) {
@@ -688,7 +715,7 @@
     const cfg = GAME_CONFIG[gameCode];
     if (!draws.length) return `<div class="text-muted">尚無資料</div>`;
 
-    return draws.slice(0, 5).map(draw => `
+    return sortDrawsDesc(draws).slice(0, 5).map(draw => `
       <div class="mini-row">
         <div class="mini-row-head">
           <span>第 ${escapeHtml(draw.period || "—")} 期</span>
@@ -719,7 +746,7 @@
     const titleEl = $("resultGameName");
 
     if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜V76.1 歷史學習 AI 預測 + 官方最新資料`;
+      titleEl.textContent = `${cfg.label}｜V76.2 歷史學習 AI 預測 + 官方最新資料`;
     }
 
     setBadge("已完成", true);
@@ -822,8 +849,8 @@
     state.history.lotto649 = lotto649History.data;
     state.history.superLotto638 = superLotto638History.data;
 
-    console.log("[V76.1] latest loaded:", latestResult.path);
-    console.log("[V76.1] history counts:", {
+    console.log("[V76.2] latest loaded:", latestResult.path);
+    console.log("[V76.2] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
