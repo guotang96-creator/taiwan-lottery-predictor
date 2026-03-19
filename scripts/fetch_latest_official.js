@@ -62,7 +62,9 @@ function latestByPeriod(list) {
 }
 
 function normalizeBingo(content) {
-  if (!content) {
+  const raw = content?.lotteryBingoLatestPost || content || null;
+
+  if (!raw) {
     return {
       game: 'bingo',
       period: '',
@@ -75,27 +77,31 @@ function normalizeBingo(content) {
   }
 
   const numbers = toNumberArray(
-    content.drawNumberSize ||
-    content.drawSizeNums ||
-    content.drawNumberAppear ||
-    content.numberDrawOrder ||
+    raw.bigShowOrder ||
+    raw.drawNumberSize ||
+    raw.drawSizeNums ||
     []
   );
 
   const orderNumbers = toNumberArray(
-    content.drawOrderNums ||
-    content.drawOrderNumbers ||
-    content.drawNumberAppear ||
+    raw.openShowOrder ||
+    raw.drawOrderNums ||
+    raw.drawOrderNumbers ||
     []
   );
 
   return {
     game: 'bingo',
-    period: String(content.drawTerm || content.period || ''),
-    drawDate: content.lotteryDate || content.drawDate || '',
+    period: String(raw.drawTerm || raw.period || ''),
+    drawDate: raw.dDate || raw.lotteryDate || raw.drawDate || '',
     numbers,
     orderNumbers,
-    specialNumber: Number(content.superNum || content.specialNumber || null) || null,
+    specialNumber: Number(
+      raw?.prizeNum?.bullEye ||
+      raw.superNum ||
+      raw.specialNumber ||
+      null
+    ) || null,
     source: 'official-api'
   };
 }
@@ -159,6 +165,9 @@ function normalize638(item) {
 async function main() {
   try {
     const { month, endMonth } = getMonthRange(3);
+
+    console.log('📡 抓取官方最新 API...');
+    console.log({ month, endMonth });
 
     const bingoRes = await fetchJson(
       'https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestBingoResult'
