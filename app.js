@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V79 資料狀態版";
+  const APP_VERSION = "V80 資料提示強化版";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -145,10 +145,10 @@
   }
 
   function injectStyles() {
-    if (document.getElementById("v79-style")) return;
+    if (document.getElementById("v80-style")) return;
 
     const style = document.createElement("style");
-    style.id = "v79-style";
+    style.id = "v80-style";
     style.textContent = `
       .result-wrap{display:flex;flex-direction:column;gap:16px}
       .section-card,.summary-card{
@@ -158,12 +158,16 @@
       .section-title,.summary-title{
         font-size:18px;font-weight:800;color:#222;margin:0 0 10px 0
       }
-      .summary-grid{
+      .summary-grid,.status-grid{
         display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px
       }
-      .summary-item{background:#f8fafc;border-radius:14px;padding:12px}
-      .summary-item-label{font-size:13px;color:#666;margin-bottom:6px}
-      .summary-item-value{font-size:16px;font-weight:700;color:#222;line-height:1.6}
+      .summary-item,.status-card{
+        background:#f8fafc;border-radius:14px;padding:12px;border:1px solid #edf2f7
+      }
+      .summary-item-label,.status-title{font-size:13px;color:#666;margin-bottom:6px}
+      .summary-item-value,.status-value{
+        font-size:16px;font-weight:700;color:#222;line-height:1.6;word-break:break-word
+      }
       .prediction-sets{display:grid;gap:12px}
       .prediction-set{background:#f8fafc;border-radius:14px;padding:14px;border:1px solid #edf2f7}
       .set-title{font-size:15px;font-weight:800;margin-bottom:10px;color:#222}
@@ -171,17 +175,13 @@
         display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;
         background:#eef2ff;color:#2f3b8f;font-size:12px;font-weight:800;margin-bottom:10px
       }
-      .status-grid{
-        display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px
+      .hint-box{
+        background:#fff7e6;border:1px solid #f3d08a;color:#8a4b00;
+        border-radius:14px;padding:12px;line-height:1.8
       }
-      .status-card{
-        background:#f8fafc;border-radius:14px;padding:12px;border:1px solid #edf2f7
-      }
-      .status-title{
-        font-size:13px;color:#666;margin-bottom:6px
-      }
-      .status-value{
-        font-size:15px;font-weight:800;color:#222;line-height:1.6;word-break:break-word
+      .ok-box{
+        background:#eefaf0;border:1px solid #b9e2c1;color:#147a2e;
+        border-radius:14px;padding:12px;line-height:1.8
       }
       .ball{
         display:inline-flex;align-items:center;justify-content:center;
@@ -933,15 +933,26 @@
     const lagMin = latestStamp ? Math.max(0, Math.floor((Date.now() - new Date(latestStamp).getTime()) / 60000)) : null;
 
     let syncText = "—";
+    let compareText = "—";
+    let refreshText = "資料已更新";
+
     if (gameCode === "bingo") {
       if (lagMin === null) {
         syncText = "未知";
+        compareText = "無法判定";
+        refreshText = "請稍後重整頁面";
       } else if (lagMin <= 15) {
         syncText = `正常（落後約 ${lagMin} 分鐘）`;
+        compareText = "與官方站接近同步";
+        refreshText = "目前資料新鮮，可直接使用";
       } else if (lagMin <= 60) {
         syncText = `稍慢（落後約 ${lagMin} 分鐘）`;
+        compareText = "可能比官方站慢一到數期";
+        refreshText = "可稍後再重整，或等待 workflow 更新";
       } else {
         syncText = `偏慢（落後約 ${lagMin} 分鐘）`;
+        compareText = "大機率落後官方站最新 Bingo";
+        refreshText = "建議稍後重新整理，或先查看官方站最新期別";
       }
     }
 
@@ -951,7 +962,9 @@
       latestPath,
       historyPath,
       historyCount: draws.length,
-      bingoSyncText: syncText
+      bingoSyncText: syncText,
+      bingoCompareText: compareText,
+      refreshText
     };
   }
 
@@ -992,6 +1005,34 @@
     `;
   }
 
+  function renderHints(status, gameCode) {
+    if (gameCode !== "bingo") {
+      return `
+        <div class="ok-box">
+          目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=80</b>。
+        </div>
+      `;
+    }
+
+    const isSlow = status.bingoSyncText.includes("稍慢") || status.bingoSyncText.includes("偏慢");
+
+    if (isSlow) {
+      return `
+        <div class="hint-box">
+          <div><b>Bingo 官方比對提示：</b>${escapeHtml(status.bingoCompareText)}</div>
+          <div><b>手動刷新建議：</b>${escapeHtml(status.refreshText)}</div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="ok-box">
+        <div><b>Bingo 官方比對提示：</b>${escapeHtml(status.bingoCompareText)}</div>
+        <div><b>手動刷新建議：</b>${escapeHtml(status.refreshText)}</div>
+      </div>
+    `;
+  }
+
   function renderPrediction(gameCode) {
     const cfg = GAME_CONFIG[gameCode];
     const historyPeriods = Number($("historyPeriods")?.value || 50);
@@ -1012,7 +1053,7 @@
     const titleEl = $("resultGameName");
 
     if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜V79 資料狀態版 + 官方最新資料`;
+      titleEl.textContent = `${cfg.label}｜V80 資料提示強化版 + 官方最新資料`;
     }
 
     setBadge("已完成", true);
@@ -1022,6 +1063,11 @@
         <div class="section-card">
           <div class="section-title">資料狀態</div>
           ${renderStatus(status, gameCode)}
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">資料提示</div>
+          ${renderHints(status, gameCode)}
         </div>
 
         <div class="summary-card">
@@ -1124,8 +1170,8 @@
     state.historySourcePath.lotto649 = lotto649History.path || "";
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
 
-    console.log("[V79] latest loaded:", latestResult.path);
-    console.log("[V79] history counts:", {
+    console.log("[V80] latest loaded:", latestResult.path);
+    console.log("[V80] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
