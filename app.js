@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V78 模式強化版";
+  const APP_VERSION = "V78.1 模式強化顯示修正版";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -182,7 +182,10 @@
         font-size:13px;color:#666;margin-bottom:8px
       }
       .mini-row-balls{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
-      .mini-special-wrap{display:inline-flex;align-items:center;gap:8px;margin-left:8px}
+      .mini-special-wrap{
+        display:inline-flex;align-items:center;gap:8px;
+        margin-left:8px;vertical-align:middle
+      }
       .mini-label{font-size:13px;color:#666;font-weight:700}
       .text-muted{color:#888}
       .error-box{
@@ -297,10 +300,10 @@
   function findSequentialNumberKeys(row) {
     const keys = Object.keys(row).filter(k => k !== "__raw");
     return keys
-      .filter(k => /(^n\d+$)|(^num\d+$)|(^no\d+$)|(^ball\d+$)|(^m\d+$)/i.test(k))
+      .filter(k => /(^n\\d+$)|(^num\\d+$)|(^no\\d+$)|(^ball\\d+$)|(^m\\d+$)/i.test(k))
       .sort((a, b) => {
-        const na = Number((a.match(/\d+/) || ["0"])[0]);
-        const nb = Number((b.match(/\d+/) || ["0"])[0]);
+        const na = Number((a.match(/\\d+/) || ["0"])[0]);
+        const nb = Number((b.match(/\\d+/) || ["0"])[0]);
         return na - nb;
       });
   }
@@ -320,7 +323,7 @@
       if (!raw) continue;
 
       if (raw.includes(" ") || raw.includes("-") || raw.includes("|") || raw.includes("/")) {
-        const parts = raw.split(/[\s|/-]+/).filter(Boolean);
+        const parts = raw.split(/[\\s|/-]+/).filter(Boolean);
         const nums = numericArray(parts, min, max);
         if (nums.length >= Math.min(3, desiredCount)) return nums.slice(0, desiredCount);
       }
@@ -338,7 +341,7 @@
     if (direct) return String(direct);
 
     const raw = row.__raw || [];
-    const candidate = raw.find(v => /^\d{6,}$/.test(String(v)));
+    const candidate = raw.find(v => /^\\d{6,}$/.test(String(v)));
     return candidate ? String(candidate) : "";
   }
 
@@ -347,7 +350,7 @@
     if (direct) return String(direct);
 
     const raw = row.__raw || [];
-    const candidate = raw.find(v => /\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(String(v)));
+    const candidate = raw.find(v => /\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}/.test(String(v)));
     return candidate ? String(candidate) : "";
   }
 
@@ -818,7 +821,10 @@
   }
 
   function renderBalls(numbers, specialNumber = null, specialLabel = "") {
-    const main = (numbers || []).map(n => `<span class="ball">${pad2(n)}</span>`).join("");
+    const main = (numbers || [])
+      .map(n => `<span class="ball">${pad2(n)}</span>`)
+      .join("");
+
     const special = specialNumber !== null && specialNumber !== undefined
       ? `
         <span class="mini-special-wrap">
@@ -828,7 +834,11 @@
       `
       : "";
 
-    return main || `<span class="text-muted">無資料</span>` + special;
+    if (!main && !special) {
+      return `<span class="text-muted">無資料</span>`;
+    }
+
+    return `${main}${special}`;
   }
 
   function renderTagList(items, type) {
@@ -917,7 +927,7 @@
     const titleEl = $("resultGameName");
 
     if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜V78 模式強化版 + 官方最新資料`;
+      titleEl.textContent = `${cfg.label}｜V78.1 模式強化版 + 官方最新資料`;
     }
 
     setBadge("已完成", true);
@@ -1018,8 +1028,8 @@
     state.history.lotto649 = lotto649History.data;
     state.history.superLotto638 = superLotto638History.data;
 
-    console.log("[V78] latest loaded:", latestResult.path);
-    console.log("[V78] history counts:", {
+    console.log("[V78.1] latest loaded:", latestResult.path);
+    console.log("[V78.1] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
