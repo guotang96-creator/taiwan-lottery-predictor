@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V75 AI 官方即時版";
+  const APP_VERSION = "V75.1 AI 官方即時版";
 
   const DATA_CANDIDATES = [
     "./docs/latest.json",
@@ -48,13 +48,7 @@
   };
 
   const state = {
-    data: null,
-    history: {
-      bingo: [],
-      daily539: [],
-      lotto649: [],
-      superLotto638: []
-    }
+    data: null
   };
 
   function $(id) {
@@ -81,17 +75,13 @@
       .replaceAll("'", "&#039;");
   }
 
-  function normalizeNumberArray(arr, min, max) {
-    if (!Array.isArray(arr)) return [];
-    return [...new Set(arr.map(Number).filter(n => Number.isFinite(n) && n >= min && n <= max))].sort((a, b) => a - b);
-  }
-
   function range(min, max) {
     return Array.from({ length: max - min + 1 }, (_, i) => min + i);
   }
 
   async function fetchFirstJson(paths) {
     const errors = [];
+
     for (const path of paths) {
       try {
         const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
@@ -105,6 +95,7 @@
         errors.push(`${path}: ${err.message}`);
       }
     }
+
     throw new Error(errors.join(" | "));
   }
 
@@ -171,14 +162,9 @@
   function renderBalls(numbers, specialNumber = null, specialLabel = "") {
     const main = (numbers || []).map(n => `<span class="ball">${pad2(n)}</span>`).join("");
     const special = specialNumber !== null && specialNumber !== undefined
-      ? `
-        <span class="mini-special-wrap">
-          ${specialLabel ? `<span class="mini-label">${escapeHtml(specialLabel)}</span>` : ""}
-          <span class="ball special">${pad2(specialNumber)}</span>
-        </span>
-      `
+      ? `<span class="mini-special-wrap">${specialLabel ? `<span class="mini-label">${escapeHtml(specialLabel)}</span>` : ""}<span class="ball special">${pad2(specialNumber)}</span></span>`
       : "";
-    return main || `<span class="text-muted">無資料</span>` + special;
+    return main || `<span class="text-muted">無資料</span>${special}`;
   }
 
   function renderTagList(items, type) {
@@ -199,14 +185,13 @@
     return items.map(item => `<span class="stat-chip">${pad2(item.number)}（${item.count}）</span>`).join("");
   }
 
-  function buildLatestHistory(gameKey) {
-    const block = state.data?.[gameKey];
-    if (!block?.latestOfficial) return [];
-    return [block.latestOfficial];
-  }
-
   function getLatestDraw(gameKey) {
     return state.data?.[gameKey]?.latestOfficial || state.data?.[gameKey]?.latest || null;
+  }
+
+  function buildLatestHistory(gameKey) {
+    const latest = getLatestDraw(gameKey);
+    return latest ? [latest] : [];
   }
 
   function frequencyAnalysis(draws, min, max) {
@@ -292,8 +277,8 @@
     const cfg = GAME_CONFIG[gameCode];
     const count = cfg.pickCount();
     const pool = buildScorePool(draws, cfg.min, cfg.max, latestDraw);
-
     const sets = [];
+
     for (let s = 0; s < setCount; s += 1) {
       const picked = [];
       const used = new Set();
@@ -308,13 +293,9 @@
       const sorted = picked.sort((a, b) => a - b);
 
       let specialNumber = null;
-      if (gameCode === "649") {
-        specialNumber = 17;
-      } else if (gameCode === "638") {
-        specialNumber = 1;
-      } else if (gameCode === "bingo") {
-        specialNumber = latestDraw?.specialNumber ?? null;
-      }
+      if (gameCode === "649") specialNumber = latestDraw?.specialNumber ?? null;
+      if (gameCode === "638") specialNumber = latestDraw?.specialNumber ?? null;
+      if (gameCode === "bingo") specialNumber = latestDraw?.specialNumber ?? null;
 
       sets.push({
         numbers: sorted,
@@ -433,6 +414,7 @@
 
   function showError(message) {
     const container = $("predictionResult");
+    if (!container) return;
     setBadge("失敗", false);
     container.innerHTML = `
       <div class="error-box">
@@ -467,7 +449,9 @@
     try {
       await initData();
       setBadge("待預測", true);
-      $("resultGameName").textContent = `${APP_VERSION}｜請先選擇彩種並開始預測`;
+      if ($("resultGameName")) {
+        $("resultGameName").textContent = `${APP_VERSION}｜請先選擇彩種並開始預測`;
+      }
     } catch (err) {
       console.error(err);
       showError(err.message || "初始化失敗");
