@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V78.1 模式強化顯示修正版";
+  const APP_VERSION = "V79 資料狀態版";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -80,11 +80,18 @@
 
   const state = {
     latestJson: null,
+    latestJsonPath: "",
     history: {
       bingo: [],
       daily539: [],
       lotto649: [],
       superLotto638: []
+    },
+    historySourcePath: {
+      bingo: "",
+      daily539: "",
+      lotto649: "",
+      superLotto638: ""
     }
   };
 
@@ -138,10 +145,10 @@
   }
 
   function injectStyles() {
-    if (document.getElementById("v78-style")) return;
+    if (document.getElementById("v79-style")) return;
 
     const style = document.createElement("style");
-    style.id = "v78-style";
+    style.id = "v79-style";
     style.textContent = `
       .result-wrap{display:flex;flex-direction:column;gap:16px}
       .section-card,.summary-card{
@@ -163,6 +170,18 @@
       .mode-badge{
         display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;
         background:#eef2ff;color:#2f3b8f;font-size:12px;font-weight:800;margin-bottom:10px
+      }
+      .status-grid{
+        display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px
+      }
+      .status-card{
+        background:#f8fafc;border-radius:14px;padding:12px;border:1px solid #edf2f7
+      }
+      .status-title{
+        font-size:13px;color:#666;margin-bottom:6px
+      }
+      .status-value{
+        font-size:15px;font-weight:800;color:#222;line-height:1.6;word-break:break-word
       }
       .ball{
         display:inline-flex;align-items:center;justify-content:center;
@@ -188,6 +207,8 @@
       }
       .mini-label{font-size:13px;color:#666;font-weight:700}
       .text-muted{color:#888}
+      .ok-text{color:#147a2e;font-weight:800}
+      .warn-text{color:#8a4b00;font-weight:800}
       .error-box{
         background:#fff3f3;border:1px solid #f3b7b7;color:#a40000;
         border-radius:16px;padding:16px;line-height:1.8
@@ -300,10 +321,10 @@
   function findSequentialNumberKeys(row) {
     const keys = Object.keys(row).filter(k => k !== "__raw");
     return keys
-      .filter(k => /(^n\\d+$)|(^num\\d+$)|(^no\\d+$)|(^ball\\d+$)|(^m\\d+$)/i.test(k))
+      .filter(k => /(^n\d+$)|(^num\d+$)|(^no\d+$)|(^ball\d+$)|(^m\d+$)/i.test(k))
       .sort((a, b) => {
-        const na = Number((a.match(/\\d+/) || ["0"])[0]);
-        const nb = Number((b.match(/\\d+/) || ["0"])[0]);
+        const na = Number((a.match(/\d+/) || ["0"])[0]);
+        const nb = Number((b.match(/\d+/) || ["0"])[0]);
         return na - nb;
       });
   }
@@ -323,7 +344,7 @@
       if (!raw) continue;
 
       if (raw.includes(" ") || raw.includes("-") || raw.includes("|") || raw.includes("/")) {
-        const parts = raw.split(/[\\s|/-]+/).filter(Boolean);
+        const parts = raw.split(/[\s|/-]+/).filter(Boolean);
         const nums = numericArray(parts, min, max);
         if (nums.length >= Math.min(3, desiredCount)) return nums.slice(0, desiredCount);
       }
@@ -341,7 +362,7 @@
     if (direct) return String(direct);
 
     const raw = row.__raw || [];
-    const candidate = raw.find(v => /^\\d{6,}$/.test(String(v)));
+    const candidate = raw.find(v => /^\d{6,}$/.test(String(v)));
     return candidate ? String(candidate) : "";
   }
 
@@ -350,7 +371,7 @@
     if (direct) return String(direct);
 
     const raw = row.__raw || [];
-    const candidate = raw.find(v => /\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}/.test(String(v)));
+    const candidate = raw.find(v => /\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(String(v)));
     return candidate ? String(candidate) : "";
   }
 
@@ -821,9 +842,7 @@
   }
 
   function renderBalls(numbers, specialNumber = null, specialLabel = "") {
-    const main = (numbers || [])
-      .map(n => `<span class="ball">${pad2(n)}</span>`)
-      .join("");
+    const main = (numbers || []).map(n => `<span class="ball">${pad2(n)}</span>`).join("");
 
     const special = specialNumber !== null && specialNumber !== undefined
       ? `
@@ -834,10 +853,7 @@
       `
       : "";
 
-    if (!main && !special) {
-      return `<span class="text-muted">無資料</span>`;
-    }
-
+    if (!main && !special) return `<span class="text-muted">無資料</span>`;
     return `${main}${special}`;
   }
 
@@ -908,6 +924,74 @@
     `;
   }
 
+  function getDataStatus(gameCode, draws, latestDraw) {
+    const historyPath = state.historySourcePath[GAME_CONFIG[gameCode].key] || "";
+    const latestPath = state.latestJsonPath || "";
+    const generatedAt = state.latestJson?.generatedAt || "";
+    const source = latestDraw?.source || state.latestJson?.source || "unknown";
+    const latestStamp = latestDraw?.drawDate || "";
+    const lagMin = latestStamp ? Math.max(0, Math.floor((Date.now() - new Date(latestStamp).getTime()) / 60000)) : null;
+
+    let syncText = "—";
+    if (gameCode === "bingo") {
+      if (lagMin === null) {
+        syncText = "未知";
+      } else if (lagMin <= 15) {
+        syncText = `正常（落後約 ${lagMin} 分鐘）`;
+      } else if (lagMin <= 60) {
+        syncText = `稍慢（落後約 ${lagMin} 分鐘）`;
+      } else {
+        syncText = `偏慢（落後約 ${lagMin} 分鐘）`;
+      }
+    }
+
+    return {
+      generatedAt,
+      source,
+      latestPath,
+      historyPath,
+      historyCount: draws.length,
+      bingoSyncText: syncText
+    };
+  }
+
+  function renderStatus(status, gameCode) {
+    return `
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="status-title">版本</div>
+          <div class="status-value">${escapeHtml(APP_VERSION)}</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">資料最後更新</div>
+          <div class="status-value">${escapeHtml(formatDate(status.generatedAt))}</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">最新資料來源</div>
+          <div class="status-value">${escapeHtml(status.source)}</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">JSON 載入路徑</div>
+          <div class="status-value">${escapeHtml(status.latestPath || "—")}</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">歷史 CSV 路徑</div>
+          <div class="status-value">${escapeHtml(status.historyPath || "—")}</div>
+        </div>
+        <div class="status-card">
+          <div class="status-title">歷史學習期數</div>
+          <div class="status-value">${escapeHtml(String(status.historyCount))} 期</div>
+        </div>
+        ${gameCode === "bingo" ? `
+          <div class="status-card">
+            <div class="status-title">Bingo 即時同步狀態</div>
+            <div class="status-value ${status.bingoSyncText.includes("正常") ? "ok-text" : "warn-text"}">${escapeHtml(status.bingoSyncText)}</div>
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }
+
   function renderPrediction(gameCode) {
     const cfg = GAME_CONFIG[gameCode];
     const historyPeriods = Number($("historyPeriods")?.value || 50);
@@ -915,6 +999,7 @@
     const latestDraw = getLatestDraw(cfg.key);
     const draws = getHistory(cfg.key, historyPeriods);
     const fullHistory = getHistory(cfg.key, 120);
+    const status = getDataStatus(gameCode, draws, latestDraw);
 
     const frequency = frequencyAnalysis(draws, cfg.min, cfg.max);
     const miss = missAnalysis(draws, cfg.min, cfg.max);
@@ -927,13 +1012,18 @@
     const titleEl = $("resultGameName");
 
     if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜V78.1 模式強化版 + 官方最新資料`;
+      titleEl.textContent = `${cfg.label}｜V79 資料狀態版 + 官方最新資料`;
     }
 
     setBadge("已完成", true);
 
     container.innerHTML = `
       <div class="result-wrap">
+        <div class="section-card">
+          <div class="section-title">資料狀態</div>
+          ${renderStatus(status, gameCode)}
+        </div>
+
         <div class="summary-card">
           <div class="summary-title">最新一期</div>
           <div class="summary-grid">
@@ -1015,12 +1105,13 @@
 
     const latestResult = await fetchFirstJson(JSON_CANDIDATES);
     state.latestJson = latestResult.json;
+    state.latestJsonPath = latestResult.path;
 
     const [bingoHistory, daily539History, lotto649History, superLotto638History] = await Promise.all([
-      loadHistoryCsv("bingo").catch(() => ({ data: [] })),
-      loadHistoryCsv("daily539").catch(() => ({ data: [] })),
-      loadHistoryCsv("lotto649").catch(() => ({ data: [] })),
-      loadHistoryCsv("superLotto638").catch(() => ({ data: [] }))
+      loadHistoryCsv("bingo").catch(() => ({ data: [], path: "" })),
+      loadHistoryCsv("daily539").catch(() => ({ data: [], path: "" })),
+      loadHistoryCsv("lotto649").catch(() => ({ data: [], path: "" })),
+      loadHistoryCsv("superLotto638").catch(() => ({ data: [], path: "" }))
     ]);
 
     state.history.bingo = bingoHistory.data;
@@ -1028,8 +1119,13 @@
     state.history.lotto649 = lotto649History.data;
     state.history.superLotto638 = superLotto638History.data;
 
-    console.log("[V78.1] latest loaded:", latestResult.path);
-    console.log("[V78.1] history counts:", {
+    state.historySourcePath.bingo = bingoHistory.path || "";
+    state.historySourcePath.daily539 = daily539History.path || "";
+    state.historySourcePath.lotto649 = lotto649History.path || "";
+    state.historySourcePath.superLotto638 = superLotto638History.path || "";
+
+    console.log("[V79] latest loaded:", latestResult.path);
+    console.log("[V79] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
