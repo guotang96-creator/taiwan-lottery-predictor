@@ -1,5 +1,6 @@
 (() => {
-  const APP_VERSION = "V80 資料提示強化版";
+  const APP_VERSION = "V82 命中追蹤版";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v82";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -39,6 +40,7 @@
 
   const GAME_CONFIG = {
     bingo: {
+      code: "bingo",
       key: "bingo",
       label: "Bingo Bingo",
       min: 1,
@@ -48,6 +50,7 @@
       specialLabel: "超級獎號"
     },
     "539": {
+      code: "539",
       key: "daily539",
       label: "今彩539",
       min: 1,
@@ -57,6 +60,7 @@
       specialLabel: ""
     },
     "649": {
+      code: "649",
       key: "lotto649",
       label: "大樂透",
       min: 1,
@@ -66,6 +70,7 @@
       specialLabel: "特別號"
     },
     "638": {
+      code: "638",
       key: "superLotto638",
       label: "威力彩",
       min: 1,
@@ -81,6 +86,7 @@
   const state = {
     latestJson: null,
     latestJsonPath: "",
+    currentGameCode: null,
     history: {
       bingo: [],
       daily539: [],
@@ -145,10 +151,10 @@
   }
 
   function injectStyles() {
-    if (document.getElementById("v80-style")) return;
+    if (document.getElementById("v82-style")) return;
 
     const style = document.createElement("style");
-    style.id = "v80-style";
+    style.id = "v82-style";
     style.textContent = `
       .result-wrap{display:flex;flex-direction:column;gap:16px}
       .section-card,.summary-card{
@@ -161,7 +167,7 @@
       .summary-grid,.status-grid{
         display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px
       }
-      .summary-item,.status-card{
+      .summary-item,.status-card,.track-card{
         background:#f8fafc;border-radius:14px;padding:12px;border:1px solid #edf2f7
       }
       .summary-item-label,.status-title{font-size:13px;color:#666;margin-bottom:6px}
@@ -183,6 +189,29 @@
         background:#eefaf0;border:1px solid #b9e2c1;color:#147a2e;
         border-radius:14px;padding:12px;line-height:1.8
       }
+      .track-grid{
+        display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px
+      }
+      .track-title{
+        font-size:13px;color:#666;margin-bottom:6px
+      }
+      .track-value{
+        font-size:15px;font-weight:800;color:#222;line-height:1.7
+      }
+      .track-list{display:flex;flex-direction:column;gap:10px}
+      .track-row{background:#f8fafc;border-radius:14px;padding:12px;border:1px solid #edf2f7}
+      .track-head{
+        display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+        font-size:13px;color:#666;margin-bottom:8px
+      }
+      .track-hit-good{color:#147a2e;font-weight:800}
+      .track-hit-warn{color:#8a4b00;font-weight:800}
+      .track-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+      .small-btn{
+        border:none;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer
+      }
+      .save-btn{background:#e8f7ea;color:#147a2e}
+      .clear-btn{background:#fff3f3;color:#a40000}
       .ball{
         display:inline-flex;align-items:center;justify-content:center;
         width:40px;height:40px;border-radius:999px;background:#d81b60;
@@ -506,7 +535,6 @@
     return [...draws].sort((a, b) => {
       const ta = toSortableTime(a);
       const tb = toSortableTime(b);
-
       if (tb.safeDate !== ta.safeDate) return tb.safeDate - ta.safeDate;
       return tb.safePeriod - ta.safePeriod;
     });
@@ -786,6 +814,11 @@
     return (predicted || []).filter(n => actualSet.has(n)).length;
   }
 
+  function countSpecialHit(predictedSpecial, actualSpecial) {
+    if (predictedSpecial == null || actualSpecial == null) return 0;
+    return Number(predictedSpecial) === Number(actualSpecial) ? 1 : 0;
+  }
+
   function simulatePredictionForIndex(gameCode, historyDraws) {
     const cfg = GAME_CONFIG[gameCode];
     const target = historyDraws[0];
@@ -839,6 +872,114 @@
         hit3: results.filter(r => r.hit >= 3).length
       };
     });
+  }
+
+  function readPredictionHistory() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const data = raw ? JSON.parse(raw) : [];
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function writePredictionHistory(list) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
+  }
+
+  function savePredictionRecord(gameCode, latestDraw, modes) {
+    const cfg = GAME_CONFIG[gameCode];
+    const list = readPredictionHistory();
+
+    const record = {
+      id: `${gameCode}_${Date.now()}`,
+      gameCode,
+      gameKey: cfg.key,
+      gameLabel: cfg.label,
+      createdAt: new Date().toISOString(),
+      referencePeriod: latestDraw?.period || "",
+      referenceDrawDate: latestDraw?.drawDate || "",
+      modes: modes.map(mode => ({
+        mode: mode.mode,
+        numbers: mode.numbers || [],
+        specialNumber: mode.specialNumber ?? null
+      })),
+      checked: false,
+      resultPeriod: "",
+      resultDrawDate: "",
+      resultNumbers: [],
+      resultSpecialNumber: null,
+      bestHit: 0,
+      specialHit: 0
+    };
+
+    const deduped = list.filter(item => !(item.gameCode === gameCode && item.referencePeriod === record.referencePeriod));
+    deduped.unshift(record);
+    writePredictionHistory(deduped);
+    return record;
+  }
+
+  function updatePredictionTracking() {
+    const list = readPredictionHistory();
+    let changed = false;
+
+    for (const item of list) {
+      const latest = getLatestDraw(item.gameKey);
+      if (!latest) continue;
+      if (!latest.period) continue;
+
+      const latestPeriodNum = Number(latest.period || 0);
+      const refPeriodNum = Number(item.referencePeriod || 0);
+
+      if (latestPeriodNum > refPeriodNum) {
+        const bestHit = Math.max(
+          ...item.modes.map(mode => countHits(mode.numbers || [], latest.numbers || []))
+        );
+        const bestSpecialHit = Math.max(
+          ...item.modes.map(mode => countSpecialHit(mode.specialNumber, latest.specialNumber))
+        );
+
+        item.checked = true;
+        item.resultPeriod = latest.period || "";
+        item.resultDrawDate = latest.drawDate || "";
+        item.resultNumbers = latest.numbers || [];
+        item.resultSpecialNumber = latest.specialNumber ?? null;
+        item.bestHit = bestHit;
+        item.specialHit = bestSpecialHit;
+        changed = true;
+      }
+    }
+
+    if (changed) writePredictionHistory(list);
+    return list;
+  }
+
+  function clearPredictionHistory() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  function getTrackingSummary(gameCode) {
+    const cfg = GAME_CONFIG[gameCode];
+    const list = readPredictionHistory().filter(item => item.gameCode === gameCode);
+    const checked = list.filter(item => item.checked);
+    const waiting = list.filter(item => !item.checked);
+
+    const avgHit = checked.length
+      ? (checked.reduce((sum, item) => sum + Number(item.bestHit || 0), 0) / checked.length).toFixed(2)
+      : "0.00";
+
+    return {
+      total: list.length,
+      checked: checked.length,
+      waiting: waiting.length,
+      avgHit,
+      hit1: checked.filter(item => Number(item.bestHit || 0) >= 1).length,
+      hit2: checked.filter(item => Number(item.bestHit || 0) >= 2).length,
+      hit3: checked.filter(item => Number(item.bestHit || 0) >= 3).length,
+      recent: list.slice(0, 5),
+      cfg
+    };
   }
 
   function renderBalls(numbers, specialNumber = null, specialLabel = "") {
@@ -1009,7 +1150,7 @@
     if (gameCode !== "bingo") {
       return `
         <div class="ok-box">
-          目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=80</b>。
+          目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=82</b>。
         </div>
       `;
     }
@@ -1033,9 +1174,88 @@
     `;
   }
 
+  function renderTracking(gameCode) {
+    const summary = getTrackingSummary(gameCode);
+    const cfg = summary.cfg;
+
+    return `
+      <div class="track-grid">
+        <div class="track-card">
+          <div class="track-title">已儲存預測</div>
+          <div class="track-value">${summary.total} 筆</div>
+        </div>
+        <div class="track-card">
+          <div class="track-title">已完成比對</div>
+          <div class="track-value">${summary.checked} 筆</div>
+        </div>
+        <div class="track-card">
+          <div class="track-title">等待開獎比對</div>
+          <div class="track-value">${summary.waiting} 筆</div>
+        </div>
+        <div class="track-card">
+          <div class="track-title">平均命中</div>
+          <div class="track-value">${summary.avgHit}</div>
+        </div>
+        <div class="track-card">
+          <div class="track-title">命中 1 碼以上</div>
+          <div class="track-value">${summary.hit1} 筆</div>
+        </div>
+        <div class="track-card">
+          <div class="track-title">命中 2 碼以上</div>
+          <div class="track-value">${summary.hit2} 筆</div>
+        </div>
+        <div class="track-card">
+          <div class="track-title">命中 3 碼以上</div>
+          <div class="track-value">${summary.hit3} 筆</div>
+        </div>
+      </div>
+      <div class="track-actions">
+        <button class="small-btn save-btn" onclick="saveCurrentPrediction()">儲存本次預測</button>
+        <button class="small-btn clear-btn" onclick="clearPredictionRecords()">清空命中紀錄</button>
+      </div>
+      <div class="track-list" style="margin-top:12px;">
+        ${
+          summary.recent.length
+            ? summary.recent.map(item => `
+              <div class="track-row">
+                <div class="track-head">
+                  <span>${escapeHtml(item.gameLabel)}</span>
+                  <span>建立：${escapeHtml(formatDate(item.createdAt))}</span>
+                </div>
+                <div class="track-head">
+                  <span>參考期數：${escapeHtml(item.referencePeriod || "—")}</span>
+                  <span>${item.checked ? `比對期數：${escapeHtml(item.resultPeriod || "—")}` : "尚未比對"}</span>
+                </div>
+                <div style="margin-bottom:8px;">
+                  ${item.modes.map(mode => `
+                    <div style="margin-bottom:8px;">
+                      <div style="font-size:13px;color:#666;font-weight:700;">${escapeHtml(mode.mode)}</div>
+                      <div>${renderBalls(mode.numbers || [], mode.specialNumber, cfg.specialLabel)}</div>
+                    </div>
+                  `).join("")}
+                </div>
+                ${
+                  item.checked
+                    ? `
+                      <div class="track-hit-good">最佳命中：${item.bestHit} 碼${item.resultSpecialNumber != null ? `｜特別號/第二區命中：${item.specialHit ? "是" : "否"}` : ""}</div>
+                      <div style="margin-top:8px;">實際開獎：${renderBalls(item.resultNumbers || [], item.resultSpecialNumber, cfg.specialLabel)}</div>
+                    `
+                    : `<div class="track-hit-warn">等待下一期開獎後自動比對</div>`
+                }
+              </div>
+            `).join("")
+            : `<div class="text-muted">目前尚無預測紀錄，先按上方按鈕儲存本次預測。</div>`
+        }
+      </div>
+    `;
+  }
+
   function renderPrediction(gameCode) {
     const cfg = GAME_CONFIG[gameCode];
     const historyPeriods = Number($("historyPeriods")?.value || 50);
+
+    state.currentGameCode = gameCode;
+    updatePredictionTracking();
 
     const latestDraw = getLatestDraw(cfg.key);
     const draws = getHistory(cfg.key, historyPeriods);
@@ -1049,11 +1269,14 @@
     const modes = buildPredictionModes(gameCode, draws, latestDraw);
     const backtests = runBacktest(gameCode, fullHistory);
 
+    state.currentModes = modes;
+    state.currentLatestDraw = latestDraw;
+
     const container = $("predictionResult");
     const titleEl = $("resultGameName");
 
     if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜V80 資料提示強化版 + 官方最新資料`;
+      titleEl.textContent = `${cfg.label}｜V82 命中追蹤版 + 官方最新資料`;
     }
 
     setBadge("已完成", true);
@@ -1068,6 +1291,11 @@
         <div class="section-card">
           <div class="section-title">資料提示</div>
           ${renderHints(status, gameCode)}
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">命中追蹤</div>
+          ${renderTracking(gameCode)}
         </div>
 
         <div class="summary-card">
@@ -1134,6 +1362,21 @@
     `;
   }
 
+  function saveCurrentPrediction() {
+    if (!state.currentGameCode || !state.currentLatestDraw || !state.currentModes) return;
+    savePredictionRecord(state.currentGameCode, state.currentLatestDraw, state.currentModes);
+    renderPrediction(state.currentGameCode);
+    alert("已儲存本次預測，之後會自動追蹤命中。");
+  }
+
+  function clearPredictionRecords() {
+    clearPredictionHistory();
+    if (state.currentGameCode) {
+      renderPrediction(state.currentGameCode);
+    }
+    alert("已清空命中紀錄。");
+  }
+
   function showError(message) {
     const container = $("predictionResult");
     if (!container) return;
@@ -1170,8 +1413,8 @@
     state.historySourcePath.lotto649 = lotto649History.path || "";
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
 
-    console.log("[V80] latest loaded:", latestResult.path);
-    console.log("[V80] history counts:", {
+    console.log("[V82] latest loaded:", latestResult.path);
+    console.log("[V82] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
@@ -1192,10 +1435,13 @@
   }
 
   window.runPrediction = runPrediction;
+  window.saveCurrentPrediction = saveCurrentPrediction;
+  window.clearPredictionRecords = clearPredictionRecords;
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       await initData();
+      updatePredictionTracking();
       setBadge("待預測", true);
       if ($("resultGameName")) {
         $("resultGameName").textContent = `${APP_VERSION}｜請先選擇彩種並開始預測`;
