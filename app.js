@@ -1452,3 +1452,336 @@
     }
   });
 })();
+/* =========================
+   V83 產品化儀表板版增強
+   直接貼在 V82 app.js 最下方
+========================= */
+(function () {
+  const V83_VERSION = "V83";
+  const OPS_KEY = "taiwanLotteryRecentOpsV83";
+  const SETTINGS_KEY = "taiwanLotteryDashboardSettingsV83";
+
+  function v83$(id) {
+    return document.getElementById(id);
+  }
+
+  function safeText(value, fallback = "—") {
+    if (value === null || value === undefined || value === "") return fallback;
+    return String(value);
+  }
+
+  function safeFormatDate(value) {
+    try {
+      if (typeof formatDate === "function") return formatDate(value || "");
+      if (!value) return "—";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value);
+      return d.toLocaleString("zh-TW");
+    } catch {
+      return safeText(value);
+    }
+  }
+
+  function getRecentOps() {
+    try {
+      return JSON.parse(localStorage.getItem(OPS_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function saveRecentOps(list) {
+    localStorage.setItem(OPS_KEY, JSON.stringify(list.slice(0, 12)));
+  }
+
+  function pushRecentOp(text) {
+    const list = getRecentOps();
+    list.unshift({
+      text,
+      time: new Date().toISOString()
+    });
+    saveRecentOps(list);
+    renderRecentOps();
+  }
+
+  function renderRecentOps() {
+    const box = v83$("v83RecentOps");
+    if (!box) return;
+    const items = getRecentOps();
+
+    if (!items.length) {
+      box.innerHTML = `<div class="recent-op">尚未有操作紀錄</div>`;
+      return;
+    }
+
+    box.innerHTML = items.slice(0, 6).map(item => `
+      <div class="recent-op">
+        <div style="font-weight:700;margin-bottom:4px;">${safeText(item.text)}</div>
+        <div style="font-size:12px;opacity:.7;">${safeFormatDate(item.time)}</div>
+      </div>
+    `).join("");
+  }
+
+  function saveDashboardSettings() {
+    const payload = {
+      setCount: v83$("setCount")?.value || "3",
+      historyPeriods: v83$("historyPeriods")?.value || "50",
+      bingoCount: v83$("bingoCount")?.value || "10"
+    };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
+  }
+
+  function restoreDashboardSettings() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      if (raw.setCount && v83$("setCount")) v83$("setCount").value = raw.setCount;
+      if (raw.historyPeriods && v83$("historyPeriods")) v83$("historyPeriods").value = raw.historyPeriods;
+      if (raw.bingoCount && v83$("bingoCount")) v83$("bingoCount").value = raw.bingoCount;
+    } catch {}
+  }
+
+  function gameLabelOf(code) {
+    if (typeof GAME_CONFIG !== "undefined" && GAME_CONFIG?.[code]?.label) {
+      return GAME_CONFIG[code].label;
+    }
+    const map = {
+      bingo: "Bingo",
+      "649": "大樂透",
+      "638": "威力彩",
+      "539": "今彩 539"
+    };
+    return map[code] || code;
+  }
+
+  function renderHeroSummary(payload = {}) {
+    const box = v83$("v83HeroSummary");
+    if (!box) return;
+
+    box.innerHTML = `
+      <div class="hero-box">
+        <div class="hero-kicker">目前彩種</div>
+        <div class="hero-value">${safeText(payload.gameLabel, "待選擇")}</div>
+        <div class="hero-note">目前顯示中的分析頁</div>
+      </div>
+      <div class="hero-box">
+        <div class="hero-kicker">最新期數</div>
+        <div class="hero-value">${safeText(payload.latestPeriod)}</div>
+        <div class="hero-note">${safeText(payload.latestDate, "尚未載入")}</div>
+      </div>
+      <div class="hero-box">
+        <div class="hero-kicker">歷史學習期數</div>
+        <div class="hero-value">${safeText(payload.historyCount)}</div>
+        <div class="hero-note">本次分析使用樣本</div>
+      </div>
+      <div class="hero-box">
+        <div class="hero-kicker">推薦組數</div>
+        <div class="hero-value">${safeText(payload.setCount)}</div>
+        <div class="hero-note">目前設定值</div>
+      </div>
+    `;
+  }
+
+  function aggregateTrackingStats() {
+    const gameCodes = ["bingo", "649", "638", "539"];
+    let total = 0;
+    let checked = 0;
+    let waiting = 0;
+    let avgAccumulator = 0;
+    let avgCount = 0;
+
+    gameCodes.forEach(code => {
+      try {
+        if (typeof getTrackingSummary !== "function") return;
+        const summary = getTrackingSummary(code);
+        if (!summary) return;
+        total += Number(summary.total || 0);
+        checked += Number(summary.checked || 0);
+        waiting += Number(summary.waiting || 0);
+
+        const avg = Number(summary.avgHit || 0);
+        if (!Number.isNaN(avg) && Number(summary.checked || 0) > 0) {
+          avgAccumulator += avg;
+          avgCount += 1;
+        }
+      } catch {}
+    });
+
+    return {
+      total,
+      checked,
+      waiting,
+      avgHit: avgCount ? (avgAccumulator / avgCount).toFixed(2) : "0.00"
+    };
+  }
+
+  function renderDashboardStats() {
+    const grid = v83$("v83StatsGrid");
+    if (!grid) return;
+
+    const s = aggregateTrackingStats();
+    grid.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-label">已儲存預測</div>
+        <div class="stat-value">${s.total}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">已完成比對</div>
+        <div class="stat-value">${s.checked}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">等待比對</div>
+        <div class="stat-value">${s.waiting}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">平均命中</div>
+        <div class="stat-value">${s.avgHit}</div>
+      </div>
+    `;
+  }
+
+  function updateTopChips(gameCode, latestDraw) {
+    const gameChip = v83$("v83CurrentGameChip");
+    const updateChip = v83$("v83LastUpdateChip");
+
+    if (gameChip) {
+      gameChip.textContent = gameCode ? `目前彩種：${gameLabelOf(gameCode)}` : "尚未選擇彩種";
+    }
+
+    if (updateChip) {
+      const text = latestDraw?.drawDate
+        ? `最新開獎：${safeFormatDate(latestDraw.drawDate)}`
+        : "尚未載入資料";
+      updateChip.textContent = text;
+    }
+  }
+
+  function injectSectionAnchors() {
+    const container = v83$("predictionResult");
+    if (!container) return;
+
+    const html = container.innerHTML;
+    if (!html || html.includes('id="anchor-overview"')) return;
+
+    container.innerHTML = html
+      .replace(/資料狀態/g, '<div id="anchor-status" class="section-anchor"></div>資料狀態')
+      .replace(/命中追蹤/g, '<div id="anchor-tracking" class="section-anchor"></div>命中追蹤')
+      .replace(/AI 三模式推薦/g, '<div id="anchor-ai" class="section-anchor"></div>AI 三模式推薦')
+      .replace(/回測表現/g, '<div id="anchor-backtest" class="section-anchor"></div>回測表現')
+      .replace(/熱號分析/g, '<div id="anchor-analysis" class="section-anchor"></div><div id="anchor-overview" class="section-anchor"></div>熱號分析')
+      .replace(/最新五期/g, '<div id="anchor-latest" class="section-anchor"></div>最新五期');
+  }
+
+  function afterRenderV83(gameCode) {
+    try {
+      const latestDraw = typeof state !== "undefined" ? state.currentLatestDraw : null;
+      const historyCount = v83$("historyPeriods")?.value || "50";
+      const setCount = v83$("setCount")?.value || "3";
+
+      renderHeroSummary({
+        gameLabel: gameLabelOf(gameCode),
+        latestPeriod: latestDraw?.period || "—",
+        latestDate: latestDraw?.drawDate ? safeFormatDate(latestDraw.drawDate) : "尚未載入",
+        historyCount,
+        setCount
+      });
+
+      updateTopChips(gameCode, latestDraw);
+      renderDashboardStats();
+      injectSectionAnchors();
+      pushRecentOp(`已執行 ${gameLabelOf(gameCode)} 預測`);
+      saveDashboardSettings();
+
+      const nameEl = v83$("resultGameName");
+      if (nameEl) {
+        nameEl.textContent = `${gameLabelOf(gameCode)}｜${V83_VERSION} 產品化儀表板版`;
+      }
+    } catch (err) {
+      console.warn("V83 afterRender error:", err);
+    }
+  }
+
+  function wireV83Buttons() {
+    const saveBtn = v83$("v83SaveBtn");
+    const clearBtn = v83$("v83ClearBtn");
+    const topBtn = v83$("v83TopBtn");
+
+    if (saveBtn && !saveBtn.dataset.v83Bound) {
+      saveBtn.dataset.v83Bound = "1";
+      saveBtn.addEventListener("click", () => {
+        try {
+          if (typeof saveCurrentPrediction === "function") {
+            saveCurrentPrediction();
+            renderDashboardStats();
+            pushRecentOp("已儲存本次預測");
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    }
+
+    if (clearBtn && !clearBtn.dataset.v83Bound) {
+      clearBtn.dataset.v83Bound = "1";
+      clearBtn.addEventListener("click", () => {
+        try {
+          if (typeof clearPredictionRecords === "function") {
+            clearPredictionRecords();
+            renderDashboardStats();
+            pushRecentOp("已清空命中紀錄");
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    }
+
+    if (topBtn && !topBtn.dataset.v83Bound) {
+      topBtn.dataset.v83Bound = "1";
+      topBtn.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+
+    ["setCount", "historyPeriods", "bingoCount"].forEach(id => {
+      const el = v83$(id);
+      if (el && !el.dataset.v83Bound) {
+        el.dataset.v83Bound = "1";
+        el.addEventListener("change", saveDashboardSettings);
+      }
+    });
+  }
+
+  function wrapRunPrediction() {
+    if (typeof window.runPrediction !== "function") return;
+    if (window.runPrediction.__v83Wrapped) return;
+
+    const original = window.runPrediction;
+    window.runPrediction = function (gameCode) {
+      const result = original.apply(this, arguments);
+      setTimeout(() => afterRenderV83(gameCode), 30);
+      return result;
+    };
+    window.runPrediction.__v83Wrapped = true;
+  }
+
+  function initV83() {
+    restoreDashboardSettings();
+    renderRecentOps();
+    renderDashboardStats();
+    wireV83Buttons();
+    wrapRunPrediction();
+
+    const currentGameCode =
+      (typeof state !== "undefined" && state.currentGameCode) ? state.currentGameCode : null;
+
+    if (currentGameCode) {
+      setTimeout(() => afterRenderV83(currentGameCode), 30);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initV83);
+  } else {
+    initV83();
+  }
+})();
