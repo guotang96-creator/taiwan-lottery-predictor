@@ -53,9 +53,7 @@ function getMonthRange(monthCount = 3) {
 
 function toNumberArray(value) {
   if (!Array.isArray(value)) return [];
-  return value
-    .map(v => Number(v))
-    .filter(v => Number.isFinite(v));
+  return value.map(v => Number(v)).filter(v => Number.isFinite(v));
 }
 
 function latestByPeriod(list) {
@@ -80,12 +78,14 @@ function normalizeBingo(content) {
     content.drawNumberSize ||
     content.drawSizeNums ||
     content.drawNumberAppear ||
+    content.numberDrawOrder ||
     []
   );
 
   const orderNumbers = toNumberArray(
     content.drawOrderNums ||
     content.drawOrderNumbers ||
+    content.drawNumberAppear ||
     []
   );
 
@@ -116,7 +116,12 @@ function normalize539(item) {
 function normalize649(item) {
   const allNums = toNumberArray(item?.drawNumberSize || item?.numbers || []);
   const mainNumbers = allNums.slice(0, 6);
-  const specialNumber = Number(item?.specialNumber || item?.specialNum || allNums[6] || null) || null;
+  const specialNumber = Number(
+    item?.specialNumber ||
+    item?.specialNum ||
+    allNums[6] ||
+    null
+  ) || null;
 
   return {
     game: 'lotto649',
@@ -154,9 +159,6 @@ function normalize638(item) {
 async function main() {
   try {
     const { month, endMonth } = getMonthRange(3);
-
-    console.log('📡 抓取官方最新 API...');
-    console.log({ month, endMonth });
 
     const bingoRes = await fetchJson(
       'https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestBingoResult'
