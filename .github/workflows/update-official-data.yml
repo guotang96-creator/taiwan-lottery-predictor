@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: update-official-data-main
+  cancel-in-progress: false
+
 jobs:
   update-data:
     runs-on: ubuntu-latest
@@ -54,5 +58,6 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: update official lottery data"
-          git push
+          git commit -m "chore: update official lottery data" || exit 0
+          git pull --rebase origin main
+          git push origin main
