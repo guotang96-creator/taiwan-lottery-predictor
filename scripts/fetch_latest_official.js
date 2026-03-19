@@ -62,15 +62,14 @@ function latestByPeriod(list) {
 }
 
 function normalizeBingo(content) {
-  const raw = content && content.lotteryBingoLatestPost
-    ? content.lotteryBingoLatestPost
-    : content;
+  const raw = content?.lotteryBingoLatestPost || content || null;
 
   if (!raw) {
     return {
       game: 'bingo',
       period: '',
       drawDate: '',
+      redeemableDate: '',
       numbers: [],
       orderNumbers: [],
       specialNumber: null,
@@ -88,30 +87,7 @@ function normalizeBingo(content) {
     redeemableDate: raw.eDate || '',
     numbers,
     orderNumbers,
-    specialNumber: Number(raw.prizeNum?.bullEye || null) || null,
-    source: 'official-api'
-  };
-}
-
-  const orderNumbers = toNumberArray(
-    raw.openShowOrder ||
-    raw.drawOrderNums ||
-    raw.drawOrderNumbers ||
-    []
-  );
-
-  return {
-    game: 'bingo',
-    period: String(raw.drawTerm || raw.period || ''),
-    drawDate: raw.dDate || raw.lotteryDate || raw.drawDate || '',
-    numbers,
-    orderNumbers,
-    specialNumber: Number(
-      raw?.prizeNum?.bullEye ||
-      raw.superNum ||
-      raw.specialNumber ||
-      null
-    ) || null,
+    specialNumber: Number(raw?.prizeNum?.bullEye || null) || null,
     source: 'official-api'
   };
 }
