@@ -3,7 +3,7 @@ name: Update Official Lottery Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "0 * * * *"
 
 permissions:
   contents: write
@@ -22,15 +22,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Show repo files
-        run: |
-          echo "===== ROOT FILES ====="
-          ls -la
-          echo "===== SCRIPTS ====="
-          ls -la scripts || true
-          echo "===== ALL JS FILES ====="
-          find . -name "*.js" | sort
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -42,6 +33,12 @@ jobs:
 
       - name: Run official data pipeline
         run: npm run build:data
+
+      - name: Copy raw CSV to docs for GitHub Pages
+        run: |
+          mkdir -p docs/raw_data
+          cp raw_data/*.csv docs/raw_data/
+          ls -la docs/raw_data
 
       - name: Show changed files
         run: git status --short
