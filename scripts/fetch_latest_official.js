@@ -44,6 +44,21 @@ async function fetchJson(url) {
   return json;
 }
 
+async function fetchText(url) {
+  const res = await fetch(url, {
+    headers: {
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'user-agent': 'Mozilla/5.0'
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText} - ${url}`);
+  }
+
+  return await res.text();
+}
+
 function formatMonth(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -166,11 +181,124 @@ function toDrawStamp(draw) {
 }
 
 function isNewerDraw(nextDraw, prevDraw) {
+  if (!nextDraw) return false;
+  if (!prevDraw) return true;
+
   const next = toDrawStamp(nextDraw);
   const prev = toDrawStamp(prevDraw);
 
   if (next.time !== prev.time) return next.time > prev.time;
   return next.period > prev.period;
+}
+
+function decodeHtml(html) {
+  return html
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function parseRocDateToIso(text) {
+  const m = text.match(/(\d{2,3})\/(\d{1,2})\/(\d{1,2}).{0,10}?(\d{1,2}:\d{2})/);
+  if (!m) return '';
+  const year = Number(m[1]) + 1911;
+  const month = String(Number(m[2])).padStart(2, '0');
+  const day = String(Number(m[3])).padStart(2, '0');
+  const time = m[4];
+  return `${year}-${month}-${day}T${time}:00`;
+}
+
+function parseBingoFromOfficialHtml(html) {
+  const text = decodeHtml(html);
+
+  const anchorIndex = Math.max(
+    text.indexOf('最新開出獎號'),
+    text.indexOf('BINGO BINGO')
+  );
+
+  const scope = anchorIndex >= 0
+    ? text.slice(anchorIndex, anchorIndex + 2500)
+    : text;
+
+  const periodMatch = scope.match(/第\s*(\d{6,})\s*期/);
+  const drawDate = parseRocDateToIso(scope);
+
+  let sizeBlock = '';
+  const sizeStart = scope.indexOf('大小順序');
+  const specialStart = scope.indexOf('超級獎號');
+
+  if (sizeStart >= 0 && specialStart > sizeStart) {
+    sizeBlock = scope.slice(sizeStart, specialStart);
+  } else {
+    sizeBlock = scope;
+  }
+
+  const sizeNums = (sizeBlock.match(/\b\d{1,2}\b/g) || [])
+    .map(v => Number(v))
+    .filter(v => Number.isFinite(v) && v >= 1 && v <= 80);
+
+  const numbers = [...new Set(sizeNums)].slice(0, 20).sort((a, b) => a - b);
+
+  let specialNumber = null;
+  if (specialStart >= 0) {
+    const spBlock = scope.slice(specialStart, specialStart + 120);
+    const spMatch = spBlock.match(/\b(\d{1,2})\b/);
+    if (spMatch) {
+      const n = Number(spMatch[1]);
+      if (Number.isFinite(n) && n >= 1 && n <= 80) {
+        specialNumber = n;
+      }
+    }
+  }
+
+  if (!periodMatch || !drawDate || numbers.length < 20) {
+    return null;
+  }
+
+  return {
+    game: 'bingo',
+    period: String(periodMatch[1]),
+    drawDate,
+    redeemableDate: '',
+    numbers,
+    orderNumbers: numbers.slice(),
+    specialNumber,
+    source: 'official-web'
+  };
+}
+
+async function fetchBingoFromOfficialWeb() {
+  const urls = [
+    'https://www.taiwanlottery.com.tw/result_all.aspx',
+    'https://www.taiwanlottery.com.tw/'
+  ];
+
+  const errors = [];
+
+  for (const url of urls) {
+    try {
+      const html = await fetchText(url);
+      const parsed = parseBingoFromOfficialHtml(html);
+      if (parsed) {
+        console.log(`✅ 官網頁面 Bingo 解析成功: ${url}`);
+        return parsed;
+      }
+      errors.push(`${url}: parse failed`);
+    } catch (err) {
+      errors.push(`${url}: ${err.message}`);
+    }
+  }
+
+  console.warn('⚠️ 官網頁面 Bingo 解析失敗:', errors.join(' | '));
+  return null;
 }
 
 async function main() {
@@ -203,18 +331,25 @@ async function main() {
       null;
 
     const oldBingo = oldOfficial?.officialLatest?.bingo || null;
-    const newBingo = normalizeBingo(bingoRes?.content);
+    const apiBingo = normalizeBingo(bingoRes?.content);
+    const webBingo = await fetchBingoFromOfficialWeb();
 
-    const finalBingo =
-      oldBingo && !isNewerDraw(newBingo, oldBingo)
-        ? oldBingo
-        : newBingo;
+    let finalBingo = apiBingo;
 
-    if (oldBingo && finalBingo === oldBingo) {
-      console.log('⚠️ Bingo API 回傳較舊資料，保留本地較新版本');
-      console.log('oldBingo =', oldBingo);
-      console.log('newBingo =', newBingo);
+    if (isNewerDraw(webBingo, finalBingo)) {
+      finalBingo = webBingo;
     }
+
+    if (isNewerDraw(oldBingo, finalBingo)) {
+      finalBingo = oldBingo;
+    }
+
+    console.log('Bingo compare result:', {
+      oldBingo,
+      apiBingo,
+      webBingo,
+      finalBingo
+    });
 
     const data = {
       generatedAt: new Date().toISOString(),
@@ -226,7 +361,8 @@ async function main() {
         superLotto638: normalize638(latestByPeriod(res638?.content?.superLotto638Res))
       },
       debugRaw: {
-        bingo: bingoRes?.content || null
+        bingo: bingoRes?.content || null,
+        bingoWeb: webBingo || null
       }
     };
 
