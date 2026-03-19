@@ -53,7 +53,9 @@ function getMonthRange(monthCount = 3) {
 
 function toNumberArray(value) {
   if (!Array.isArray(value)) return [];
-  return value.map(v => Number(v)).filter(v => Number.isFinite(v));
+  return value
+    .map(v => Number(v))
+    .filter(v => Number.isFinite(v));
 }
 
 function latestByPeriod(list) {
@@ -62,53 +64,89 @@ function latestByPeriod(list) {
 }
 
 function normalizeBingo(content) {
+  if (!content) {
+    return {
+      game: 'bingo',
+      period: '',
+      drawDate: '',
+      numbers: [],
+      orderNumbers: [],
+      specialNumber: null,
+      source: 'official-api'
+    };
+  }
+
+  const numbers = toNumberArray(
+    content.drawNumberSize ||
+    content.drawSizeNums ||
+    content.drawNumberAppear ||
+    []
+  );
+
+  const orderNumbers = toNumberArray(
+    content.drawOrderNums ||
+    content.drawOrderNumbers ||
+    []
+  );
+
   return {
     game: 'bingo',
-    period: String(content?.drawTerm || content?.period || ''),
-    drawDate: content?.lotteryDate || content?.drawDate || '',
-    numbers: toNumberArray(
-      content?.drawNumberSize ||
-      content?.drawSizeNums ||
-      content?.drawNumberAppear ||
-      []
-    ),
-    orderNumbers: toNumberArray(content?.drawOrderNums || []),
-    specialNumber: Number(content?.superNum) || null,
+    period: String(content.drawTerm || content.period || ''),
+    drawDate: content.lotteryDate || content.drawDate || '',
+    numbers,
+    orderNumbers,
+    specialNumber: Number(content.superNum || content.specialNumber || null) || null,
     source: 'official-api'
   };
 }
 
 function normalize539(item) {
+  const numbers = toNumberArray(item?.drawNumberSize || item?.numbers || []);
+
   return {
     game: 'daily539',
     period: String(item?.period || ''),
-    drawDate: item?.lotteryDate || '',
+    drawDate: item?.lotteryDate || item?.drawDate || '',
     redeemableDate: item?.redeemableDate || '',
-    numbers: toNumberArray(item?.drawNumberSize || []),
+    numbers: numbers.slice(0, 5),
     source: 'official-api'
   };
 }
 
 function normalize649(item) {
+  const allNums = toNumberArray(item?.drawNumberSize || item?.numbers || []);
+  const mainNumbers = allNums.slice(0, 6);
+  const specialNumber = Number(item?.specialNumber || item?.specialNum || allNums[6] || null) || null;
+
   return {
     game: 'lotto649',
     period: String(item?.period || ''),
-    drawDate: item?.lotteryDate || '',
+    drawDate: item?.lotteryDate || item?.drawDate || '',
     redeemableDate: item?.redeemableDate || '',
-    numbers: toNumberArray(item?.drawNumberSize || []),
-    specialNumber: Number(item?.specialNumber) || null,
+    numbers: mainNumbers,
+    specialNumber,
     source: 'official-api'
   };
 }
 
 function normalize638(item) {
+  const allNums = toNumberArray(item?.drawNumberSize || item?.numbers || []);
+  const mainNumbers = allNums.slice(0, 6);
+  const specialNumber = Number(
+    item?.specialNumber ||
+    item?.specialNum ||
+    item?.secondAreaNumber ||
+    allNums[6] ||
+    null
+  ) || null;
+
   return {
     game: 'superLotto638',
     period: String(item?.period || ''),
-    drawDate: item?.lotteryDate || '',
+    drawDate: item?.lotteryDate || item?.drawDate || '',
     redeemableDate: item?.redeemableDate || '',
-    numbers: toNumberArray(item?.drawNumberSize || []),
-    specialNumber: Number(item?.specialNumber) || null,
+    numbers: mainNumbers,
+    specialNumber,
     source: 'official-api'
   };
 }
@@ -116,6 +154,9 @@ function normalize638(item) {
 async function main() {
   try {
     const { month, endMonth } = getMonthRange(3);
+
+    console.log('📡 抓取官方最新 API...');
+    console.log({ month, endMonth });
 
     const bingoRes = await fetchJson(
       'https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestBingoResult'
@@ -141,6 +182,9 @@ async function main() {
         daily539: normalize539(latestByPeriod(res539?.content?.daily539Res)),
         lotto649: normalize649(latestByPeriod(res649?.content?.lotto649Res)),
         superLotto638: normalize638(latestByPeriod(res638?.content?.superLotto638Res))
+      },
+      debugRaw: {
+        bingo: bingoRes?.content || null
       }
     };
 
@@ -148,7 +192,7 @@ async function main() {
     writeJson(path.join(ROOT, 'data', 'official_latest.json'), data);
     writeJson(path.join(ROOT, 'docs', 'official_latest.json'), data);
 
-    console.log('🎉 official_latest.json 已同步輸出到 root / data / docs');
+    console.log('🎉 official_latest.json 已同步到 root / data / docs');
   } catch (err) {
     console.error('❌ fetch_latest_official.js 失敗:', err);
     process.exit(1);
