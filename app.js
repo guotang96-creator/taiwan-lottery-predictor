@@ -1785,3 +1785,343 @@
     initV83();
   }
 })();
+/* =========================
+   V84 商用首頁版增強
+   直接追加到 app.js 最下方
+========================= */
+(function () {
+  const V84_OPS_KEY = "taiwanLotteryRecentOpsV84";
+  const V84_SETTINGS_KEY = "taiwanLotteryDashboardSettingsV84";
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function safe(v, fallback = "—") {
+    return v === null || v === undefined || v === "" ? fallback : String(v);
+  }
+
+  function toDateText(v) {
+    try {
+      if (!v) return "尚未取得";
+      const d = new Date(v);
+      if (Number.isNaN(d.getTime())) return String(v);
+      return d.toLocaleString("zh-TW");
+    } catch {
+      return safe(v, "尚未取得");
+    }
+  }
+
+  function gameName(code) {
+    const map = {
+      bingo: "Bingo Bingo",
+      "649": "大樂透",
+      "638": "威力彩",
+      "539": "今彩 539"
+    };
+    if (typeof GAME_CONFIG !== "undefined" && GAME_CONFIG && GAME_CONFIG[code] && GAME_CONFIG[code].label) {
+      return GAME_CONFIG[code].label;
+    }
+    return map[code] || code || "待選擇";
+  }
+
+  function getOps() {
+    try {
+      return JSON.parse(localStorage.getItem(V84_OPS_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function saveOps(list) {
+    localStorage.setItem(V84_OPS_KEY, JSON.stringify(list.slice(0, 12)));
+  }
+
+  function pushOp(text) {
+    const list = getOps();
+    list.unshift({
+      text,
+      time: new Date().toISOString()
+    });
+    saveOps(list);
+    renderOps();
+  }
+
+  function renderOps() {
+    const box = $("v84RecentOps");
+    if (!box) return;
+
+    const list = getOps();
+    if (!list.length) {
+      box.innerHTML = `<div class="v84-recent-item">尚未有操作紀錄</div>`;
+      return;
+    }
+
+    box.innerHTML = list.slice(0, 6).map(item => `
+      <div class="v84-recent-item">
+        <div style="font-weight:800;margin-bottom:6px;">${safe(item.text)}</div>
+        <div style="font-size:12px;opacity:.72;">${toDateText(item.time)}</div>
+      </div>
+    `).join("");
+  }
+
+  function saveUiSettings() {
+    try {
+      const payload = {
+        setCount: $("setCount")?.value || "3",
+        historyPeriods: $("historyPeriods")?.value || "50",
+        bingoCount: $("bingoCount")?.value || "10"
+      };
+      localStorage.setItem(V84_SETTINGS_KEY, JSON.stringify(payload));
+    } catch (e) {
+      console.warn("V84 saveUiSettings error:", e);
+    }
+  }
+
+  function restoreUiSettings() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(V84_SETTINGS_KEY) || "{}");
+      if (raw.setCount && $("setCount")) $("setCount").value = raw.setCount;
+      if (raw.historyPeriods && $("historyPeriods")) $("historyPeriods").value = raw.historyPeriods;
+      if (raw.bingoCount && $("bingoCount")) $("bingoCount").value = raw.bingoCount;
+    } catch (e) {
+      console.warn("V84 restoreUiSettings error:", e);
+    }
+  }
+
+  function getTrackingRollup() {
+    const gameCodes = ["bingo", "649", "638", "539"];
+    let total = 0;
+    let checked = 0;
+    let waiting = 0;
+    let avgTotal = 0;
+    let avgCount = 0;
+
+    for (const code of gameCodes) {
+      try {
+        if (typeof getTrackingSummary !== "function") continue;
+        const s = getTrackingSummary(code);
+        if (!s) continue;
+
+        total += Number(s.total || 0);
+        checked += Number(s.checked || 0);
+        waiting += Number(s.waiting || 0);
+
+        const avg = Number(s.avgHit || 0);
+        if (!Number.isNaN(avg) && Number(s.checked || 0) > 0) {
+          avgTotal += avg;
+          avgCount += 1;
+        }
+      } catch (e) {
+        console.warn("V84 tracking rollup error:", e);
+      }
+    }
+
+    return {
+      total,
+      checked,
+      waiting,
+      avgHit: avgCount ? (avgTotal / avgCount).toFixed(2) : "0.00"
+    };
+  }
+
+  function renderMiniStats() {
+    const box = $("v84MiniStats");
+    if (!box) return;
+    const s = getTrackingRollup();
+
+    box.innerHTML = `
+      <div class="v84-mini-stat">
+        <span>已儲存預測</span>
+        <strong>${s.total}</strong>
+      </div>
+      <div class="v84-mini-stat">
+        <span>已完成比對</span>
+        <strong>${s.checked}</strong>
+      </div>
+      <div class="v84-mini-stat">
+        <span>等待比對</span>
+        <strong>${s.waiting}</strong>
+      </div>
+      <div class="v84-mini-stat">
+        <span>平均命中</span>
+        <strong>${s.avgHit}</strong>
+      </div>
+    `;
+  }
+
+  function renderHeroKpis(gameCode) {
+    const box = $("v84HeroKpis");
+    if (!box) return;
+
+    const latestDraw = (typeof state !== "undefined" && state) ? state.currentLatestDraw : null;
+    const stat = getTrackingRollup();
+
+    box.innerHTML = `
+      <div class="v84-kpi-card">
+        <div class="v84-kpi-label">目前彩種</div>
+        <div class="v84-kpi-value">${safe(gameName(gameCode), "待選擇")}</div>
+        <div class="v84-kpi-note">目前顯示中的預測頁</div>
+      </div>
+      <div class="v84-kpi-card">
+        <div class="v84-kpi-label">最新期數</div>
+        <div class="v84-kpi-value">${safe(latestDraw?.period, "—")}</div>
+        <div class="v84-kpi-note">${latestDraw?.drawDate ? toDateText(latestDraw.drawDate) : "尚未載入"}</div>
+      </div>
+      <div class="v84-kpi-card">
+        <div class="v84-kpi-label">已儲存預測</div>
+        <div class="v84-kpi-value">${stat.total}</div>
+        <div class="v84-kpi-note">命中追蹤資料庫</div>
+      </div>
+      <div class="v84-kpi-card">
+        <div class="v84-kpi-label">平均命中</div>
+        <div class="v84-kpi-value">${stat.avgHit}</div>
+        <div class="v84-kpi-note">跨彩種統計</div>
+      </div>
+    `;
+  }
+
+  function updateTopStatus(gameCode) {
+    const latestDraw = (typeof state !== "undefined" && state) ? state.currentLatestDraw : null;
+
+    if ($("v84CurrentGameBadge")) {
+      $("v84CurrentGameBadge").textContent = gameCode ? `目前彩種：${gameName(gameCode)}` : "尚未選擇彩種";
+    }
+    if ($("v84SiteStateBadge")) {
+      $("v84SiteStateBadge").textContent = gameCode ? "系統運作中" : "系統待命中";
+    }
+    if ($("v84DataStateText")) {
+      $("v84DataStateText").textContent = latestDraw ? "已載入最新資料" : "待載入";
+    }
+    if ($("v84LastUpdateText")) {
+      $("v84LastUpdateText").textContent = latestDraw?.drawDate ? toDateText(latestDraw.drawDate) : "尚未取得";
+    }
+    if ($("v84TrackingStateText")) {
+      $("v84TrackingStateText").textContent = "可用";
+    }
+  }
+
+  function injectAnchors() {
+    const el = $("predictionResult");
+    if (!el) return;
+    if (!el.innerHTML) return;
+    if (el.innerHTML.includes('id="anchor-status"')) return;
+
+    el.innerHTML = el.innerHTML
+      .replace(/資料狀態/g, '<div id="anchor-status" class="section-anchor"></div>資料狀態')
+      .replace(/命中追蹤/g, '<div id="anchor-tracking" class="section-anchor"></div>命中追蹤')
+      .replace(/AI 三模式推薦/g, '<div id="anchor-ai" class="section-anchor"></div>AI 三模式推薦')
+      .replace(/回測表現/g, '<div id="anchor-backtest" class="section-anchor"></div>回測表現')
+      .replace(/熱號分析/g, '<div id="anchor-overview" class="section-anchor"></div><div id="anchor-analysis" class="section-anchor"></div>熱號分析')
+      .replace(/最新五期/g, '<div id="anchor-latest" class="section-anchor"></div>最新五期');
+  }
+
+  function afterPrediction(gameCode) {
+    try {
+      renderHeroKpis(gameCode);
+      renderMiniStats();
+      renderOps();
+      updateTopStatus(gameCode);
+      injectAnchors();
+      saveUiSettings();
+
+      if ($("resultGameName")) {
+        $("resultGameName").textContent = `${gameName(gameCode)}｜V84 商用首頁版`;
+      }
+
+      pushOp(`已執行 ${gameName(gameCode)} 預測`);
+    } catch (e) {
+      console.warn("V84 afterPrediction error:", e);
+    }
+  }
+
+  function wireToolbar() {
+    const saveBtn = $("v84SaveBtn");
+    const clearBtn = $("v84ClearBtn");
+    const topBtn = $("v84TopBtn");
+
+    if (saveBtn && !saveBtn.dataset.boundV84) {
+      saveBtn.dataset.boundV84 = "1";
+      saveBtn.addEventListener("click", () => {
+        try {
+          if (typeof saveCurrentPrediction === "function") {
+            saveCurrentPrediction();
+            renderMiniStats();
+            renderHeroKpis((typeof state !== "undefined" && state) ? state.currentGameCode : null);
+            pushOp("已儲存本次預測");
+          } else {
+            pushOp("目前版本未提供 saveCurrentPrediction()");
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      });
+    }
+
+    if (clearBtn && !clearBtn.dataset.boundV84) {
+      clearBtn.dataset.boundV84 = "1";
+      clearBtn.addEventListener("click", () => {
+        try {
+          if (typeof clearPredictionRecords === "function") {
+            clearPredictionRecords();
+            renderMiniStats();
+            renderHeroKpis((typeof state !== "undefined" && state) ? state.currentGameCode : null);
+            pushOp("已清空命中紀錄");
+          } else {
+            localStorage.removeItem("predictionTracking");
+            localStorage.removeItem("predictionTrackingV82");
+            renderMiniStats();
+            renderHeroKpis((typeof state !== "undefined" && state) ? state.currentGameCode : null);
+            pushOp("已清空本地命中紀錄");
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      });
+    }
+
+    if (topBtn && !topBtn.dataset.boundV84) {
+      topBtn.dataset.boundV84 = "1";
+      topBtn.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+
+    ["setCount", "historyPeriods", "bingoCount"].forEach(id => {
+      const el = $(id);
+      if (el && !el.dataset.boundV84) {
+        el.dataset.boundV84 = "1";
+        el.addEventListener("change", saveUiSettings);
+      }
+    });
+  }
+
+  function wrapRunPrediction() {
+    if (typeof window.runPrediction !== "function") return;
+    if (window.runPrediction.__wrappedV84) return;
+
+    const original = window.runPrediction;
+    window.runPrediction = function (gameCode) {
+      const result = original.apply(this, arguments);
+      setTimeout(() => afterPrediction(gameCode), 60);
+      return result;
+    };
+    window.runPrediction.__wrappedV84 = true;
+  }
+
+  function initV84Home() {
+    restoreUiSettings();
+    renderOps();
+    renderMiniStats();
+    renderHeroKpis((typeof state !== "undefined" && state) ? state.currentGameCode : null);
+    updateTopStatus((typeof state !== "undefined" && state) ? state.currentGameCode : null);
+    wireToolbar();
+    wrapRunPrediction();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initV84Home);
+  } else {
+    initV84Home();
+  }
+})();
