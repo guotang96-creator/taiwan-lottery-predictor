@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V77 回測強化版";
+  const APP_VERSION = "V78 模式強化版";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -138,10 +138,10 @@
   }
 
   function injectStyles() {
-    if (document.getElementById("v77-style")) return;
+    if (document.getElementById("v78-style")) return;
 
     const style = document.createElement("style");
-    style.id = "v77-style";
+    style.id = "v78-style";
     style.textContent = `
       .result-wrap{display:flex;flex-direction:column;gap:16px}
       .section-card,.summary-card{
@@ -160,6 +160,10 @@
       .prediction-sets{display:grid;gap:12px}
       .prediction-set{background:#f8fafc;border-radius:14px;padding:14px;border:1px solid #edf2f7}
       .set-title{font-size:15px;font-weight:800;margin-bottom:10px;color:#222}
+      .mode-badge{
+        display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;
+        background:#eef2ff;color:#2f3b8f;font-size:12px;font-weight:800;margin-bottom:10px
+      }
       .ball{
         display:inline-flex;align-items:center;justify-content:center;
         width:40px;height:40px;border-radius:999px;background:#d81b60;
@@ -185,9 +189,7 @@
         background:#fff3f3;border:1px solid #f3b7b7;color:#a40000;
         border-radius:16px;padding:16px;line-height:1.8
       }
-      .source-note{
-        font-size:12px;color:#666;margin-top:6px
-      }
+      .source-note{font-size:12px;color:#666;margin-top:6px}
       .backtest-grid{
         display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px
       }
@@ -197,9 +199,7 @@
       .backtest-title{
         font-size:14px;font-weight:800;color:#222;margin-bottom:6px
       }
-      .backtest-line{
-        font-size:13px;color:#444;line-height:1.8
-      }
+      .backtest-line{font-size:13px;color:#444;line-height:1.8}
     `;
     document.head.appendChild(style);
   }
@@ -475,11 +475,7 @@
     const dateValue = draw?.drawDate ? new Date(draw.drawDate).getTime() : 0;
     const safeDate = Number.isFinite(dateValue) ? dateValue : 0;
     const safePeriod = Number(draw?.period || 0);
-
-    return {
-      safeDate,
-      safePeriod
-    };
+    return { safeDate, safePeriod };
   }
 
   function sortDrawsDesc(draws) {
@@ -487,33 +483,16 @@
       const ta = toSortableTime(a);
       const tb = toSortableTime(b);
 
-      if (tb.safeDate !== ta.safeDate) {
-        return tb.safeDate - ta.safeDate;
-      }
-
+      if (tb.safeDate !== ta.safeDate) return tb.safeDate - ta.safeDate;
       return tb.safePeriod - ta.safePeriod;
     });
   }
 
   function getLatestDraw(gameKey) {
-    const latest =
-      state.latestJson?.[gameKey]?.latestOfficial ||
+    return state.latestJson?.[gameKey]?.latestOfficial ||
       state.latestJson?.[gameKey]?.latest ||
       state.latestJson?.officialLatest?.[gameKey] ||
       null;
-
-    return latest;
-  }
-
-  function isBingoLatestNewer(latest, historyTop) {
-    if (!latest) return false;
-    if (!historyTop) return true;
-
-    const lt = toSortableTime(latest);
-    const ht = toSortableTime(historyTop);
-
-    if (lt.safeDate !== ht.safeDate) return lt.safeDate > ht.safeDate;
-    return lt.safePeriod > ht.safePeriod;
   }
 
   function getHistory(gameKey, limit) {
@@ -521,22 +500,13 @@
     const latest = getLatestDraw(gameKey);
 
     const merged = [...history];
-
     if (latest) {
       const latestKey = `${latest.period || ""}__${latest.drawDate || ""}`;
       const idx = merged.findIndex(item => `${item.period || ""}__${item.drawDate || ""}` === latestKey);
-
       if (idx >= 0) {
         merged[idx] = latest;
       } else {
         merged.push(latest);
-      }
-
-      if (gameKey === "bingo" && merged.length) {
-        const top = sortDrawsDesc(merged)[0];
-        if (isBingoLatestNewer(latest, top) && !merged.some(x => String(x.period) === String(latest.period) && String(x.drawDate) === String(latest.drawDate))) {
-          merged.push(latest);
-        }
       }
     }
 
@@ -668,60 +638,123 @@
       .sort((a, b) => b.score - a.score || a.number - b.number);
   }
 
-  function shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
+  function buildSecondAreaPool(draws) {
+    const map = new Map(range(1, 8).map(n => [n, 0]));
+    const miss = new Map(range(1, 8).map(n => [n, 0]));
+
+    draws.forEach(draw => {
+      const s = Number(draw.specialNumber);
+      if (Number.isFinite(s) && s >= 1 && s <= 8) {
+        map.set(s, (map.get(s) || 0) + 1);
+      }
+    });
+
+    range(1, 8).forEach(n => {
+      let missCount = 0;
+      let found = false;
+      for (const draw of draws) {
+        if (Number(draw.specialNumber) === n) {
+          found = true;
+          break;
+        }
+        missCount += 1;
+      }
+      miss.set(n, found ? missCount : draws.length);
+    });
+
+    return range(1, 8)
+      .map(n => ({
+        number: n,
+        score: (map.get(n) || 0) * 2 + (miss.get(n) || 0) * 1.2
+      }))
+      .sort((a, b) => b.score - a.score || a.number - b.number);
   }
 
-  function buildPredictionSets(gameCode, draws, latestDraw, setCount) {
+  function pickNumbersFromPool(pool, count, strategy) {
+    if (!pool.length) return [];
+
+    if (strategy === "safe") {
+      return pool.slice(0, count).map(x => x.number).sort((a, b) => a - b);
+    }
+
+    if (strategy === "balanced") {
+      const top = pool.slice(0, count * 2);
+      const picked = [];
+      for (let i = 0; i < top.length && picked.length < count; i += 2) {
+        picked.push(top[i].number);
+      }
+      for (let i = 1; i < top.length && picked.length < count; i += 2) {
+        if (!picked.includes(top[i].number)) picked.push(top[i].number);
+      }
+      return picked.sort((a, b) => a - b);
+    }
+
+    const top = pool.slice(0, count * 3);
+    const picked = [];
+    for (let i = 0; i < top.length && picked.length < count; i += 1) {
+      const idx = i % 3 === 0 ? i : Math.min(i + 2, top.length - 1);
+      const n = top[idx]?.number;
+      if (n != null && !picked.includes(n)) picked.push(n);
+    }
+    for (const item of top) {
+      if (picked.length >= count) break;
+      if (!picked.includes(item.number)) picked.push(item.number);
+    }
+    return picked.sort((a, b) => a - b);
+  }
+
+  function buildPredictionModes(gameCode, draws, latestDraw) {
     const cfg = GAME_CONFIG[gameCode];
     const pickCount = cfg.mainCount();
     const pool = buildScorePool(draws, cfg.min, cfg.max, latestDraw);
-    const hot = pool.slice(0, Math.max(pickCount * 2, 12)).map(x => x.number);
-    const warm = pool.slice(0, Math.max(pickCount * 3, 18)).map(x => x.number);
 
-    const sets = [];
-    for (let s = 0; s < setCount; s += 1) {
-      const source = s === 0
-        ? hot
-        : s === 1
-          ? warm
-          : shuffle(warm);
+    const safeNumbers = pickNumbersFromPool(pool, pickCount, "safe");
+    const balancedNumbers = pickNumbersFromPool(pool, pickCount, "balanced");
+    const attackNumbers = pickNumbersFromPool(pool, pickCount, "attack");
 
-      const picked = [];
-      for (const n of source) {
-        if (!picked.includes(n)) picked.push(n);
-        if (picked.length >= pickCount) break;
-      }
+    let safeSpecial = null;
+    let balancedSpecial = null;
+    let attackSpecial = null;
 
-      let specialNumber = null;
-      if (gameCode === "649") {
-        specialNumber = latestDraw?.specialNumber ?? null;
-      } else if (gameCode === "638") {
-        const spMap = new Map();
-        draws.forEach(draw => {
-          const n = Number(draw.specialNumber);
-          if (Number.isFinite(n) && n >= 1 && n <= 8) {
-            spMap.set(n, (spMap.get(n) || 0) + 1);
-          }
-        });
-        const best = [...spMap.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0];
-        specialNumber = best ? best[0] : (latestDraw?.specialNumber ?? 1);
-      } else if (gameCode === "bingo") {
-        specialNumber = latestDraw?.specialNumber ?? null;
-      }
-
-      sets.push({
-        numbers: [...picked].sort((a, b) => a - b),
-        specialNumber
-      });
+    if (gameCode === "649") {
+      safeSpecial = latestDraw?.specialNumber ?? null;
+      balancedSpecial = latestDraw?.specialNumber ?? null;
+      attackSpecial = latestDraw?.specialNumber ?? null;
     }
 
-    return sets;
+    if (gameCode === "638") {
+      const spPool = buildSecondAreaPool(draws);
+      safeSpecial = spPool[0]?.number ?? latestDraw?.specialNumber ?? 1;
+      balancedSpecial = spPool[1]?.number ?? spPool[0]?.number ?? latestDraw?.specialNumber ?? 1;
+      attackSpecial = spPool[2]?.number ?? spPool[0]?.number ?? latestDraw?.specialNumber ?? 1;
+    }
+
+    if (gameCode === "bingo") {
+      safeSpecial = latestDraw?.specialNumber ?? null;
+      balancedSpecial = latestDraw?.specialNumber ?? null;
+      attackSpecial = latestDraw?.specialNumber ?? null;
+    }
+
+    return [
+      {
+        mode: "保守組",
+        desc: "偏重高頻熱號與穩定分布",
+        numbers: safeNumbers,
+        specialNumber: safeSpecial
+      },
+      {
+        mode: "平衡組",
+        desc: "兼顧熱號、遺漏與尾數平衡",
+        numbers: balancedNumbers,
+        specialNumber: balancedSpecial
+      },
+      {
+        mode: "進攻組",
+        desc: "提高冷熱混搭與追擊波動",
+        numbers: attackNumbers,
+        specialNumber: attackSpecial
+      }
+    ];
   }
 
   function countHits(predicted, actual) {
@@ -729,25 +762,25 @@
     return (predicted || []).filter(n => actualSet.has(n)).length;
   }
 
-  function simulatePredictionForIndex(gameCode, historyDraws, index, setCount) {
+  function simulatePredictionForIndex(gameCode, historyDraws) {
     const cfg = GAME_CONFIG[gameCode];
-    const futureDraw = historyDraws[index];
-    const train = historyDraws.slice(index + 1);
+    const target = historyDraws[0];
+    const train = historyDraws.slice(1);
 
-    if (!futureDraw || train.length < 5) return null;
+    if (!target || train.length < 5) return null;
 
-    const sets = buildPredictionSets(gameCode, train, train[0], setCount);
-    const hits = sets.map(set => countHits(set.numbers, futureDraw.numbers));
-    const bestHit = Math.max(...hits);
+    const modes = buildPredictionModes(gameCode, train, train[0]);
+    const bestHit = Math.max(...modes.map(mode => countHits(mode.numbers, target.numbers)));
 
     return {
-      period: futureDraw.period,
+      period: target.period,
       hit: bestHit,
-      numbers: futureDraw.numbers
+      targetNumbers: target.numbers,
+      pickCount: cfg.mainCount()
     };
   }
 
-  function runBacktest(gameCode, historyDraws, setCount) {
+  function runBacktest(gameCode, historyDraws) {
     const windows = [30, 50, 100];
 
     return windows.map(windowSize => {
@@ -755,7 +788,8 @@
       const results = [];
 
       for (let i = 0; i < Math.min(windowSize, usable.length - 5); i += 1) {
-        const result = simulatePredictionForIndex(gameCode, usable, i, setCount);
+        const segment = usable.slice(i);
+        const result = simulatePredictionForIndex(gameCode, segment);
         if (result) results.push(result);
       }
 
@@ -771,6 +805,7 @@
       }
 
       const totalHit = results.reduce((sum, r) => sum + r.hit, 0);
+
       return {
         windowSize,
         samples: results.length,
@@ -783,10 +818,7 @@
   }
 
   function renderBalls(numbers, specialNumber = null, specialLabel = "") {
-    const main = (numbers || [])
-      .map(n => `<span class="ball">${pad2(n)}</span>`)
-      .join("");
-
+    const main = (numbers || []).map(n => `<span class="ball">${pad2(n)}</span>`).join("");
     const special = specialNumber !== null && specialNumber !== undefined
       ? `
         <span class="mini-special-wrap">
@@ -851,10 +883,24 @@
     `;
   }
 
+  function renderModes(modes, gameCode) {
+    const cfg = GAME_CONFIG[gameCode];
+    return `
+      <div class="prediction-sets">
+        ${modes.map(mode => `
+          <div class="prediction-set">
+            <div class="mode-badge">${escapeHtml(mode.mode)}</div>
+            <div class="set-title">${escapeHtml(mode.desc)}</div>
+            <div>${renderBalls(mode.numbers, mode.specialNumber, cfg.specialLabel)}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function renderPrediction(gameCode) {
     const cfg = GAME_CONFIG[gameCode];
     const historyPeriods = Number($("historyPeriods")?.value || 50);
-    const setCount = Number($("setCount")?.value || 3);
 
     const latestDraw = getLatestDraw(cfg.key);
     const draws = getHistory(cfg.key, historyPeriods);
@@ -864,14 +910,14 @@
     const miss = missAnalysis(draws, cfg.min, cfg.max);
     const tails = tailAnalysis(draws);
     const consecutive = consecutiveAnalysis(draws);
-    const sets = buildPredictionSets(gameCode, draws, latestDraw, setCount);
-    const backtests = runBacktest(gameCode, fullHistory, setCount);
+    const modes = buildPredictionModes(gameCode, draws, latestDraw);
+    const backtests = runBacktest(gameCode, fullHistory);
 
     const container = $("predictionResult");
     const titleEl = $("resultGameName");
 
     if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜V77 回測強化版 + 官方最新資料`;
+      titleEl.textContent = `${cfg.label}｜V78 模式強化版 + 官方最新資料`;
     }
 
     setBadge("已完成", true);
@@ -898,15 +944,8 @@
         </div>
 
         <div class="section-card">
-          <div class="section-title">AI 主推薦號碼</div>
-          <div class="prediction-sets">
-            ${sets.map((set, i) => `
-              <div class="prediction-set">
-                <div class="set-title">第 ${i + 1} 組</div>
-                <div>${renderBalls(set.numbers, set.specialNumber, cfg.specialLabel)}</div>
-              </div>
-            `).join("")}
-          </div>
+          <div class="section-title">AI 三模式推薦</div>
+          ${renderModes(modes, gameCode)}
         </div>
 
         <div class="section-card">
@@ -979,8 +1018,8 @@
     state.history.lotto649 = lotto649History.data;
     state.history.superLotto638 = superLotto638History.data;
 
-    console.log("[V77] latest loaded:", latestResult.path);
-    console.log("[V77] history counts:", {
+    console.log("[V78] latest loaded:", latestResult.path);
+    console.log("[V78] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
