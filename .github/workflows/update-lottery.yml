@@ -30,7 +30,8 @@ jobs:
       - name: Debug bingo fallback file
         run: |
           ls -la
-          test -f bingo_fallback_debug.json && sed -n '1,120p' bingo_fallback_debug.json || echo "no bingo_fallback_debug.json"
+          test -f bingo_fallback_raw.txt && echo "===== bingo_fallback_raw.txt =====" && sed -n '1,120p' bingo_fallback_raw.txt || echo "no bingo_fallback_raw.txt"
+          test -f bingo_fallback_debug.json && echo "===== bingo_fallback_debug.json =====" && sed -n '1,120p' bingo_fallback_debug.json || echo "no bingo_fallback_debug.json"
 
       - name: Show repo files
         run: |
