@@ -6,7 +6,7 @@ const DOCS_DIR = path.join(ROOT, "docs");
 const RAW_DIR = path.join(DOCS_DIR, "raw_data");
 
 const API_BASE = "https://api.taiwanlottery.com/TLCAPIWeB/Lottery";
-const BINGO_FALLBACK_URL = "https://www.pilio.idv.tw/bingo/list.asp";
+const BINGO_FALLBACK_URL = "https://lotto.auzonet.com/bingobingoV1.php";
 
 const GAME_DEFS = {
   bingo: {
@@ -437,38 +437,24 @@ function parseBingoFallbackHtml(html) {
     .map(v => v.trim())
     .filter(Boolean);
 
-  for (let i = 0; i < lines.length; i += 1) {
-    const periodMatch = lines[i].match(/期別[:：]?\s*(\d{6,})/);
-    if (!periodMatch) continue;
+  for (const line of lines) {
+    // 格式參考：
+    // 115015975 18:45 06 07 09 ... 80 11 7－
+    const timeMatch = line.match(/(\d{9})\s+(\d{2}:\d{2})\s+(.+)/);
+    if (!timeMatch) continue;
 
-    const period = periodMatch[1];
-    let numberLine = "";
-    let specialLine = "";
+    const period = timeMatch[1];
+    const timeText = timeMatch[2];
+    const rest = timeMatch[3];
 
-    for (let j = i + 1; j < Math.min(i + 8, lines.length); j += 1) {
-      const line = lines[j];
-
-      if (!numberLine) {
-        const nums = line.match(/\d{1,2}/g) || [];
-        if (nums.length >= 20) {
-          numberLine = line;
-          continue;
-        }
-      }
-
-      if (!specialLine && /超級獎號/.test(line)) {
-        specialLine = line;
-      }
-    }
-
-    const orderNumbers = (numberLine.match(/\d{1,2}/g) || [])
+    const nums = (rest.match(/\d{1,2}/g) || [])
       .map(n => Number(n))
-      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80)
-      .slice(0, 20);
+      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80);
 
-    const specialMatch = specialLine.match(/超級獎號[:：]?\s*(\d{1,2}).*?(?:\((\d{2}:\d{2})\))?/);
-    const specialNumber = specialMatch ? Number(specialMatch[1]) : null;
-    const timeText = specialMatch?.[2] || "00:00";
+    if (nums.length < 21) continue;
+
+    const orderNumbers = nums.slice(0, 20);
+    const specialNumber = nums[20] ?? null;
 
     if (orderNumbers.length === 20) {
       rows.push({
