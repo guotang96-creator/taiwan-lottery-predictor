@@ -3,10 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券 AI 預測系統 V85.1</title>
+  <title>台灣彩券 AI 預測系統 V86</title>
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="台灣彩券 AI 預測系統 V85.1 按鈕互動優化版" />
+  <meta name="description" content="台灣彩券 AI 預測系統 V86 首頁按鈕高亮美化版" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .v86-top-btn-active{
+      background: rgba(255,255,255,.16) !important;
+      box-shadow: 0 8px 22px rgba(0,0,0,.18);
+      transform: translateY(-1px);
+    }
+
+    .v86-hero-btn-active{
+      box-shadow: 0 14px 32px rgba(34,197,94,.28), 0 6px 18px rgba(103,232,249,.18);
+      transform: translateY(-1px);
+    }
+
+    .v86-card-active{
+      border: 1px solid rgba(103,232,249,.72) !important;
+      box-shadow: 0 16px 36px rgba(6,182,212,.18), 0 8px 24px rgba(0,0,0,.18) !important;
+      transform: translateY(-3px) !important;
+      background:
+        linear-gradient(180deg, rgba(103,232,249,.12), rgba(34,197,94,.08)) !important;
+    }
+
+    .v86-card-active .v84-game-icon{
+      background: linear-gradient(135deg, rgba(103,232,249,.35), rgba(34,197,94,.30));
+      box-shadow: 0 10px 24px rgba(34,197,94,.18);
+    }
+
+    .v86-card-active .v84-game-title{
+      color: #ffffff;
+    }
+
+    .v86-card-active .v84-game-desc{
+      color: #dff7ff;
+    }
+
+    .v86-floating-tip{
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--v84-sub);
+      line-height: 1.7;
+    }
+
+    .v86-action-note{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--v84-sub);
+    }
+
+    .v86-section-mini{
+      margin-top: 10px;
+      color: var(--v84-sub);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .lottery-btn[disabled],
+    .v84-primary-btn[disabled],
+    .v84-game-card[disabled]{
+      cursor: not-allowed;
+      filter: saturate(.9);
+    }
+
+    @media (max-width: 760px){
+      .v84-top-actions{
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .v84-top-actions .v84-nav-btn{
+        width: 100%;
+        text-align: center;
+      }
+
+      .v84-hero-actions{
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .v84-mini-actions{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="v84-shell">
@@ -15,13 +97,13 @@
         <div class="v84-logo">AI</div>
         <div>
           <h1>台灣彩券 AI 預測系統</h1>
-          <p>V85.1｜按鈕互動優化版｜首頁入口＋儀表板總覽＋命中追蹤＋資料狀態</p>
+          <p>V86｜首頁按鈕高亮美化版｜首頁入口＋儀表板總覽＋命中追蹤＋資料狀態</p>
         </div>
       </div>
 
       <div class="v84-top-actions">
-        <button class="v84-nav-btn" type="button" onclick="goQuickStart()">快速開始</button>
-        <button class="v84-nav-btn" type="button" onclick="goResults()">查看結果</button>
+        <button id="topQuickStartBtn" class="v84-nav-btn" type="button" onclick="goQuickStart()">快速開始</button>
+        <button id="topResultsBtn" class="v84-nav-btn" type="button" onclick="goResults()">查看結果</button>
       </div>
     </header>
 
@@ -41,12 +123,16 @@
           </p>
 
           <div class="v84-hero-actions">
-            <button id="heroQuickPredictBtn" class="v84-primary-btn" type="button" onclick="quickPredict('bingo', this)">
+            <button id="heroQuickPredictBtn" class="v84-primary-btn v86-hero-btn-active" type="button" onclick="quickPredict('bingo', this)">
               立即預測 Bingo
             </button>
-            <button class="v84-secondary-btn" type="button" onclick="goQuickStart()">
+            <button id="heroChooseBtn" class="v84-secondary-btn" type="button" onclick="goQuickStart()">
               選擇彩種
             </button>
+          </div>
+
+          <div class="v86-floating-tip">
+            已選彩種會在下方彩種入口中高亮顯示，主按鈕也會同步切換文字。
           </div>
 
           <div id="v84HeroKpis" class="v84-kpi-grid">
@@ -113,6 +199,10 @@
               <button id="v84TopBtn" type="button">回到頂部</button>
               <button type="button" onclick="scrollToSection('anchor-latest')">最新五期</button>
             </div>
+
+            <div class="v86-action-note">
+              預測完成後，可直接從結果區儲存本次預測。
+            </div>
           </div>
         </div>
       </section>
@@ -126,29 +216,33 @@
         </div>
 
         <div class="v84-game-grid">
-          <button class="v84-game-card" type="button" onclick="selectGame('bingo', this)">
+          <button id="gameCard-bingo" class="v84-game-card v86-card-active" type="button" onclick="selectGame('bingo', this)">
             <div class="v84-game-icon">B</div>
             <div class="v84-game-title">Bingo Bingo</div>
             <div class="v84-game-desc">1-80 可選顆數，支援最新資料與快速預測。</div>
           </button>
 
-          <button class="v84-game-card" type="button" onclick="selectGame('649', this)">
+          <button id="gameCard-649" class="v84-game-card" type="button" onclick="selectGame('649', this)">
             <div class="v84-game-icon">6/49</div>
             <div class="v84-game-title">大樂透</div>
             <div class="v84-game-desc">預測 6 碼，含特別號資訊與歷史分析。</div>
           </button>
 
-          <button class="v84-game-card" type="button" onclick="selectGame('638', this)">
+          <button id="gameCard-638" class="v84-game-card" type="button" onclick="selectGame('638', this)">
             <div class="v84-game-icon">6/38</div>
             <div class="v84-game-title">威力彩</div>
             <div class="v84-game-desc">第一區與第二區分開分析，支援資料追蹤。</div>
           </button>
 
-          <button class="v84-game-card" type="button" onclick="selectGame('539', this)">
+          <button id="gameCard-539" class="v84-game-card" type="button" onclick="selectGame('539', this)">
             <div class="v84-game-icon">539</div>
             <div class="v84-game-title">今彩539</div>
             <div class="v84-game-desc">5 碼預測、熱冷號與拖號分析整合。</div>
           </button>
+        </div>
+
+        <div class="v86-section-mini">
+          點一下彩種卡會直接切換並執行預測，當前彩種會維持高亮。
         </div>
       </section>
 
@@ -243,7 +337,7 @@
               <button id="mainPredictBtn" class="lottery-btn" type="button" onclick="runSelectedPrediction(this)">
                 開始預測
               </button>
-              <button class="v84-secondary-btn" type="button" onclick="goResults()">查看分析區</button>
+              <button id="mainResultsBtn" class="v84-secondary-btn" type="button" onclick="goResults()">查看分析區</button>
             </div>
           </div>
 
@@ -293,7 +387,7 @@
           <div id="predictionArea" class="v84-panel">
             <div class="result-header">
               <div>
-                <h2 id="resultGameName" style="margin:0;">V85.1 按鈕互動優化版｜請先選擇彩種並開始預測</h2>
+                <h2 id="resultGameName" style="margin:0;">V86 首頁按鈕高亮美化版｜請先選擇彩種並開始預測</h2>
                 <p class="result-subtitle">首頁入口＋儀表板總覽＋命中追蹤＋資料狀態</p>
               </div>
               <div id="resultBadge" class="badge">待預測</div>
@@ -351,7 +445,63 @@
       };
     }
 
+    function getGameLabel(code) {
+      const map = {
+        bingo: "Bingo Bingo",
+        "649": "大樂透",
+        "638": "威力彩",
+        "539": "今彩539"
+      };
+      return map[code] || "Bingo Bingo";
+    }
+
+    function getHeroButtonText(code) {
+      const map = {
+        bingo: "立即預測 Bingo",
+        "649": "立即預測 大樂透",
+        "638": "立即預測 威力彩",
+        "539": "立即預測 今彩539"
+      };
+      return map[code] || "立即預測 Bingo";
+    }
+
+    function syncV86UiByCode(code) {
+      const currentCode = code || document.getElementById("lotterySelect")?.value || "bingo";
+
+      const currentBadge = document.getElementById("v84CurrentGameBadge");
+      if (currentBadge) {
+        currentBadge.textContent = `目前彩種：${getGameLabel(currentCode)}`;
+      }
+
+      const heroBtn = document.getElementById("heroQuickPredictBtn");
+      if (heroBtn) {
+        heroBtn.textContent = getHeroButtonText(currentCode);
+        heroBtn.setAttribute("onclick", `quickPredict('${currentCode}', this)`);
+      }
+
+      document.querySelectorAll(".v84-game-card").forEach(card => {
+        card.classList.remove("v86-card-active");
+      });
+
+      const activeCard = document.getElementById(`gameCard-${currentCode}`);
+      if (activeCard) {
+        activeCard.classList.add("v86-card-active");
+      }
+    }
+
+    function highlightTopButton(target) {
+      const quickBtn = document.getElementById("topQuickStartBtn");
+      const resultsBtn = document.getElementById("topResultsBtn");
+
+      if (quickBtn) quickBtn.classList.remove("v86-top-btn-active");
+      if (resultsBtn) resultsBtn.classList.remove("v86-top-btn-active");
+
+      if (target === "quick" && quickBtn) quickBtn.classList.add("v86-top-btn-active");
+      if (target === "results" && resultsBtn) resultsBtn.classList.add("v86-top-btn-active");
+    }
+
     function goQuickStart() {
+      highlightTopButton("quick");
       scrollToSection("dashboardSection");
       const select = document.getElementById("lotterySelect");
       if (select) {
@@ -362,11 +512,14 @@
     }
 
     function goResults() {
+      highlightTopButton("results");
       scrollToSection("predictionArea");
     }
 
     function runSelectedPrediction(btn) {
       const gameCode = document.getElementById("lotterySelect")?.value || "bingo";
+      syncV86UiByCode(gameCode);
+
       const done = setLoadingButton(btn, "預測中...", btn?.textContent || "開始預測");
 
       try {
@@ -384,6 +537,8 @@
     function quickPredict(gameCode, btn) {
       const select = document.getElementById("lotterySelect");
       if (select) select.value = gameCode;
+
+      syncV86UiByCode(gameCode);
 
       const done = setLoadingButton(btn, "預測中...", btn?.textContent || "立即預測");
 
@@ -403,15 +558,7 @@
       const select = document.getElementById("lotterySelect");
       if (select) select.value = gameCode;
 
-      document.querySelectorAll(".v84-game-card").forEach(card => {
-        card.style.outline = "";
-        card.style.transform = "";
-      });
-
-      if (btn) {
-        btn.style.outline = "2px solid rgba(103,232,249,.85)";
-        btn.style.transform = "translateY(-2px)";
-      }
+      syncV86UiByCode(gameCode);
 
       const done = setLoadingButton(btn, "切換中...", btn?.querySelector(".v84-game-title")?.textContent || "彩種");
 
@@ -426,7 +573,19 @@
         }, 500);
       }
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const select = document.getElementById("lotterySelect");
+      if (select) {
+        select.addEventListener("change", () => {
+          syncV86UiByCode(select.value);
+        });
+      }
+
+      syncV86UiByCode(select?.value || "bingo");
+      highlightTopButton("quick");
+    });
   </script>
-  <script src="app.js?v=851"></script>
+  <script src="app.js?v=86"></script>
 </body>
 </html>
