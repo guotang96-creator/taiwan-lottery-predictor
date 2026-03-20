@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V88.2 Bingo 最新五期修正版";
+  const APP_VERSION = "V88.3 Bingo 最近五期完整修正版";
   const STORAGE_KEY = "taiwan_lottery_prediction_history_v84";
   const OPS_KEY = "taiwan_lottery_recent_ops_v84";
   const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v84";
@@ -506,6 +506,56 @@
     };
   }
 
+  function normalizeDrawObject(gameKey, draw) {
+    if (!draw || typeof draw !== "object") return null;
+    const cfg = Object.values(GAME_CONFIG).find(g => g.key === gameKey);
+    if (!cfg) return null;
+
+    let numbers = [];
+    let specialNumber = null;
+
+    if (Array.isArray(draw.numbers)) {
+      numbers = numericArray(draw.numbers, cfg.min, cfg.max);
+    } else if (Array.isArray(draw.drawNumberSize)) {
+      numbers = numericArray(draw.drawNumberSize, cfg.min, cfg.max);
+    } else if (Array.isArray(draw.orderNumbers)) {
+      numbers = numericArray(draw.orderNumbers, cfg.min, cfg.max);
+    }
+
+    if (gameKey === "lotto649") {
+      specialNumber = Number(draw.specialNumber ?? draw.bonusNumber ?? draw.specialNum ?? null);
+      if (!Number.isFinite(specialNumber)) specialNumber = null;
+    }
+
+    if (gameKey === "superLotto638") {
+      specialNumber = Number(draw.specialNumber ?? draw.secondNumber ?? draw.secondAreaNumber ?? draw.specialNum ?? null);
+      if (!Number.isFinite(specialNumber)) specialNumber = null;
+    }
+
+    if (gameKey === "bingo") {
+      specialNumber = Number(draw.specialNumber ?? draw.superNumber ?? null);
+      if (!Number.isFinite(specialNumber)) specialNumber = null;
+    }
+
+    return {
+      period: String(draw.period ?? draw.issue ?? ""),
+      drawDate: String(draw.drawDate ?? draw.lotteryDate ?? draw.date ?? ""),
+      redeemableDate: String(draw.redeemableDate ?? ""),
+      numbers,
+      orderNumbers: Array.isArray(draw.orderNumbers) ? draw.orderNumbers : numbers.slice(),
+      specialNumber,
+      source: draw.source || "latest-json"
+    };
+  }
+
+  function normalizeDrawArray(gameKey, arr) {
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .map(item => normalizeDrawObject(gameKey, item))
+      .filter(Boolean)
+      .filter(item => item.period || item.drawDate || item.numbers.length);
+  }
+
   function toSortableTime(draw) {
     const raw = draw?.drawDate ? String(draw.drawDate).trim() : "";
     let safeDate = 0;
@@ -538,17 +588,50 @@
     });
   }
 
+  function dedupeDraws(draws) {
+    const map = new Map();
+
+    for (const item of draws) {
+      const key = `${item.period || ""}__${item.drawDate || ""}`;
+      if (!map.has(key)) {
+        map.set(key, item);
+      } else {
+        const oldItem = map.get(key);
+        const oldLen = oldItem?.numbers?.length || 0;
+        const newLen = item?.numbers?.length || 0;
+        if (newLen >= oldLen) {
+          map.set(key, item);
+        }
+      }
+    }
+
+    return [...map.values()];
+  }
+
   function getLatestDraw(gameKey) {
-    return state.latestJson?.[gameKey]?.latestOfficial ||
-      state.latestJson?.[gameKey]?.latest ||
-      state.latestJson?.officialLatest?.[gameKey] ||
-      null;
+    const candidates = [
+      state.latestJson?.[gameKey]?.latestOfficial,
+      state.latestJson?.[gameKey]?.latest,
+      state.latestJson?.officialLatest?.[gameKey],
+      state.latestJson?.latestOfficial?.[gameKey]
+    ];
+
+    for (const item of candidates) {
+      const normalized = normalizeDrawObject(gameKey, item);
+      if (normalized) return normalized;
+    }
+
+    return null;
   }
 
   function getRecentOfficialDraws(gameKey) {
     const candidates = [
       state.latestJson?.[gameKey]?.recentOfficial,
       state.latestJson?.[gameKey]?.recent,
+      state.latestJson?.[gameKey]?.history,
+      state.latestJson?.[gameKey]?.draws,
+      state.latestJson?.[gameKey]?.latestFive,
+      state.latestJson?.[gameKey]?.latest5,
       state.latestJson?.officialRecent?.[gameKey],
       state.latestJson?.recentOfficial?.[gameKey],
       state.latestJson?.latestFive?.[gameKey],
@@ -556,8 +639,9 @@
     ];
 
     for (const list of candidates) {
-      if (Array.isArray(list) && list.length) {
-        return sortDrawsDesc(list);
+      const normalized = normalizeDrawArray(gameKey, list);
+      if (normalized.length) {
+        return sortDrawsDesc(dedupeDraws(normalized));
       }
     }
 
@@ -570,33 +654,10 @@
     const latest = getLatestDraw(gameKey);
     const recentOfficial = getRecentOfficialDraws(gameKey);
 
-    const merged = [...history];
+    const merged = [...history, ...recentOfficial];
+    if (latest) merged.push(latest);
 
-    for (const item of recentOfficial) {
-      merged.push(item);
-    }
-
-    if (latest) {
-      merged.push(latest);
-    }
-
-    const dedupedMap = new Map();
-
-    for (const item of merged) {
-      const key = `${item.period || ""}__${item.drawDate || ""}`;
-      if (!dedupedMap.has(key)) {
-        dedupedMap.set(key, item);
-      } else {
-        const oldItem = dedupedMap.get(key);
-        const newLen = item?.numbers?.length || 0;
-        const oldLen = oldItem?.numbers?.length || 0;
-        if (newLen >= oldLen) {
-          dedupedMap.set(key, item);
-        }
-      }
-    }
-
-    return sortDrawsDesc([...dedupedMap.values()]).slice(0, limit);
+    return sortDrawsDesc(dedupeDraws(merged)).slice(0, limit);
   }
 
   function frequencyAnalysis(draws, min, max) {
@@ -1193,11 +1254,11 @@
     const latestPath = state.latestJsonPath || "";
     const generatedAt = state.latestJson?.generatedAt || "";
     const source = latestDraw?.source || state.latestJson?.source || "unknown";
+
     const latestStamp = latestDraw?.drawDate || "";
     const generatedStamp = state.latestJson?.generatedAt || "";
 
     let lagMin = getLagMinutesFromValue(generatedStamp);
-
     if (lagMin === null) {
       lagMin = getLagMinutesFromValue(latestStamp);
     }
@@ -1285,7 +1346,7 @@
         <div class="result-card highlight-card">
           <div class="card-title">資料提示</div>
           <div class="text-block">
-            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=882</b>。
+            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=883</b>。
           </div>
         </div>
       `;
@@ -1697,8 +1758,8 @@
     state.historySourcePath.lotto649 = lotto649History.path || "";
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
 
-    console.log("[V88.2] latest loaded:", latestResult.path);
-    console.log("[V88.2] history counts:", {
+    console.log("[V88.3] latest loaded:", latestResult.path);
+    console.log("[V88.3] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
