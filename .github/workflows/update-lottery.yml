@@ -27,6 +27,11 @@ jobs:
       - name: Run parse downloads
         run: node parse_downloads.js
 
+      - name: Debug bingo fallback file
+        run: |
+          ls -la
+          test -f bingo_fallback_debug.html && sed -n '1,120p' bingo_fallback_debug.html || echo "no bingo_fallback_debug.html"
+
       - name: Show repo files
         run: |
           pwd
