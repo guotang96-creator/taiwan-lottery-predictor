@@ -397,8 +397,8 @@ async function fetchGameRowsFromApi(gameKey) {
 
 function stripHtmlTags(html) {
   return String(html || "")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, "\n")
+    .replace(/<style[\s\S]*?<\/style>/gi, "\n")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n")
     .replace(/<\/div>/gi, "\n")
@@ -412,31 +412,63 @@ function stripHtmlTags(html) {
 }
 
 function parseBingoFallbackHtml(html) {
-  const text = stripHtmlTags(html);
+  const text = stripHtmlTags(html)
+    .replace(/\u3000/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n+/g, "\n");
+
+  fs.writeFileSync(
+    path.join(ROOT, "bingo_fallback_text.txt"),
+    text,
+    "utf8"
+  );
+
   const rows = [];
   const now = new Date();
 
-  // 先用今天日期；若頁首有明確日期，再覆蓋
   let datePart = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
-  const dateMatch = text.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})\s*BINGO BINGO/);
+  const dateMatch = text.match(/(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);
   if (dateMatch) {
     datePart = `${dateMatch[1]}-${pad2(dateMatch[2])}-${pad2(dateMatch[3])}`;
   }
 
-  const blockRegex =
-    /期別[:：]?\s*(\d{6,})\s*([\d,\s]{40,}?)\s*超級獎號[:：]?\s*(\d{1,2})[^\(]*\((\d{2}:\d{2})\)/g;
+  const lines = text
+    .split("\n")
+    .map(v => v.trim())
+    .filter(Boolean);
 
-  let match;
-  while ((match = blockRegex.exec(text)) !== null) {
-    const period = match[1];
-    const numberText = match[2];
-    const specialNumber = Number(match[3]);
-    const timeText = match[4];
+  for (let i = 0; i < lines.length; i += 1) {
+    const periodMatch = lines[i].match(/期別[:：]?\s*(\d{6,})/);
+    if (!periodMatch) continue;
 
-    const orderNumbers = (numberText.match(/\d{1,2}/g) || [])
+    const period = periodMatch[1];
+    let numberLine = "";
+    let specialLine = "";
+
+    for (let j = i + 1; j < Math.min(i + 8, lines.length); j += 1) {
+      const line = lines[j];
+
+      if (!numberLine) {
+        const nums = line.match(/\d{1,2}/g) || [];
+        if (nums.length >= 20) {
+          numberLine = line;
+          continue;
+        }
+      }
+
+      if (!specialLine && /超級獎號/.test(line)) {
+        specialLine = line;
+      }
+    }
+
+    const orderNumbers = (numberLine.match(/\d{1,2}/g) || [])
       .map(n => Number(n))
       .filter(n => Number.isFinite(n) && n >= 1 && n <= 80)
       .slice(0, 20);
+
+    const specialMatch = specialLine.match(/超級獎號[:：]?\s*(\d{1,2}).*?(?:\((\d{2}:\d{2})\))?/);
+    const specialNumber = specialMatch ? Number(specialMatch[1]) : null;
+    const timeText = specialMatch?.[2] || "00:00";
 
     if (orderNumbers.length === 20) {
       rows.push({
