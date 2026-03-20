@@ -143,7 +143,7 @@ function findPrimaryArray(content) {
     if (Array.isArray(content[key])) return content[key];
   }
 
-  for (const [_, value] of Object.entries(content)) {
+  for (const [, value] of Object.entries(content)) {
     if (Array.isArray(value) && value.length && typeof value[0] === "object") {
       return value;
     }
@@ -400,33 +400,75 @@ async function fetchGameRowsFromApi(gameKey) {
   return finalRows;
 }
 
-function parseBingoFallbackHtml(html) {
-  const rows = [];
-  const regex = /期別[:：]\s*(\d+)[\s\S]*?((?:\d{2},\s*){19}\d{2})[\s\S]*?超級獎號[:：]\s*(\d{1,2})[\s\S]*?\((\d{2}:\d{2})\)/g;
+function stripHtmlTags(html) {
+  return String(html || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "\n")
+    .replace(/<style[\s\S]*?<\/style>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#160;/g, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\r/g, "");
+}
 
-  let match;
+function parseBingoFallbackHtml(html) {
+  const text = stripHtmlTags(html);
+
+  const lines = text
+    .split("\n")
+    .map(line => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const rows = [];
   const today = new Date();
   const datePart = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
 
-  while ((match = regex.exec(html)) !== null) {
-    const period = match[1];
-    const numberText = match[2];
-    const specialNumber = Number(match[3]);
-    const timeText = match[4];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const periodMatch = line.match(/期別[:：]?\s*(\d{6,})/);
+    if (!periodMatch) continue;
 
-    const orderNumbers = numberText
-      .split(",")
-      .map(v => Number(String(v).trim()))
-      .filter(v => Number.isFinite(v) && v >= 1 && v <= 80);
+    const period = periodMatch[1];
 
-    const numbers = uniqSorted(orderNumbers);
+    let numberLine = "";
+    let specialLine = "";
+
+    for (let j = i + 1; j < Math.min(i + 8, lines.length); j += 1) {
+      const candidate = lines[j];
+
+      if (!numberLine) {
+        const nums = candidate.match(/\d{1,2}/g) || [];
+        if (nums.length >= 20) {
+          numberLine = candidate;
+          continue;
+        }
+      }
+
+      if (!specialLine && /超級獎號/.test(candidate)) {
+        specialLine = candidate;
+      }
+    }
+
+    const orderNumbers = (numberLine.match(/\d{1,2}/g) || [])
+      .map(n => Number(n))
+      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80)
+      .slice(0, 20);
+
+    const specialMatch = specialLine.match(/超級獎號[:：]?\s*(\d{1,2})(?:.*?\((\d{2}:\d{2})\))?/);
+    const specialNumber = specialMatch ? Number(specialMatch[1]) : null;
+    const timeText = specialMatch?.[2] || "00:00";
 
     if (orderNumbers.length === 20) {
       rows.push({
         period,
         drawDate: `${datePart} ${timeText}`,
         redeemableDate: "",
-        numbers,
+        numbers: uniqSorted(orderNumbers),
         orderNumbers,
         specialNumber: Number.isFinite(specialNumber) ? specialNumber : null
       });
@@ -441,6 +483,8 @@ async function fetchBingoFallbackRows() {
   const rows = parseBingoFallbackHtml(html);
 
   if (!rows.length) {
+    const debugPath = path.join(ROOT, "bingo_fallback_debug.html");
+    fs.writeFileSync(debugPath, html, "utf8");
     throw new Error("bingo 備援頁面解析失敗");
   }
 
