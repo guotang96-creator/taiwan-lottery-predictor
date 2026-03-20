@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣彩券 AI 預測系統 V87</title>
+  <title>台灣彩券 AI 預測系統 V88.1</title>
   <meta name="theme-color" content="#0f172a" />
-  <meta name="description" content="台灣彩券 AI 預測系統 V87 首頁資訊精簡＋速度優化版" />
+  <meta name="description" content="台灣彩券 AI 預測系統 V88.1 固定底部快捷列版" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    .v87-top-btn-active{
+    .v88-top-btn-active{
       background: rgba(255,255,255,.16) !important;
       box-shadow: 0 8px 22px rgba(0,0,0,.18);
       transform: translateY(-1px);
     }
 
-    .v87-card-active{
+    .v88-card-active{
       border: 1px solid rgba(103,232,249,.72) !important;
       box-shadow: 0 16px 36px rgba(6,182,212,.18), 0 8px 24px rgba(0,0,0,.18) !important;
       transform: translateY(-3px) !important;
@@ -22,209 +22,265 @@
         linear-gradient(180deg, rgba(103,232,249,.12), rgba(34,197,94,.08)) !important;
     }
 
-    .v87-card-active .v84-game-icon{
+    .v88-card-active .v84-game-icon{
       background: linear-gradient(135deg, rgba(103,232,249,.35), rgba(34,197,94,.30));
       box-shadow: 0 10px 24px rgba(34,197,94,.18);
     }
 
-    .v87-card-active .v84-game-title{
+    .v88-card-active .v84-game-title{
       color: #ffffff;
     }
 
-    .v87-card-active .v84-game-desc{
+    .v88-card-active .v84-game-desc{
       color: #dff7ff;
     }
 
-    .v87-hero-compact{
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 18px;
+    .v88-hero-compact{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
     }
 
-    .v87-hero-main{
-      border-radius: 28px;
-      padding: 24px;
-      border: 1px solid var(--v84-line);
+    .v88-hero-main{
+      border-radius:28px;
+      padding:24px;
+      border:1px solid var(--v84-line);
       background:
         radial-gradient(circle at top right, rgba(56,189,248,.12), transparent 28%),
         linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      box-shadow: var(--v84-shadow);
-      backdrop-filter: blur(12px);
+      box-shadow:var(--v84-shadow);
+      backdrop-filter:blur(12px);
     }
 
-    .v87-hero-main h2{
-      margin: 0 0 10px;
-      font-size: 40px;
-      line-height: 1.08;
-      letter-spacing: -.02em;
+    .v88-hero-main h2{
+      margin:0 0 10px;
+      font-size:40px;
+      line-height:1.08;
+      letter-spacing:-.02em;
     }
 
-    .v87-hero-note{
-      margin-top: 12px;
-      font-size: 13px;
-      color: var(--v84-sub);
-      line-height: 1.7;
+    .v88-hero-note{
+      margin-top:12px;
+      font-size:13px;
+      color:var(--v84-sub);
+      line-height:1.7;
     }
 
-    .v87-quick-panel{
-      border-radius: 22px;
-      padding: 18px;
-      border: 1px solid var(--v84-line);
-      background: rgba(255,255,255,.04);
-      box-shadow: var(--v84-shadow);
-      backdrop-filter: blur(12px);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+    .v88-quick-panel{
+      border-radius:22px;
+      padding:18px;
+      border:1px solid var(--v84-line);
+      background:rgba(255,255,255,.04);
+      box-shadow:var(--v84-shadow);
+      backdrop-filter:blur(12px);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
     }
 
-    .v87-quick-title{
-      margin: 0;
-      font-size: 18px;
+    .v88-quick-title{
+      margin:0;
+      font-size:18px;
     }
 
-    .v87-quick-sub{
-      margin: 6px 0 0;
-      color: var(--v84-sub);
-      font-size: 13px;
-      line-height: 1.6;
+    .v88-quick-sub{
+      margin:6px 0 0;
+      color:var(--v84-sub);
+      font-size:13px;
+      line-height:1.6;
     }
 
-    .v87-shortcuts{
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
+    .v88-shortcuts{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
     }
 
-    .v87-short-btn{
-      border: none;
-      border-radius: 16px;
-      padding: 14px 16px;
-      color: #fff;
-      cursor: pointer;
-      font-weight: 800;
-      background: rgba(255,255,255,.08);
-      transition: .2s ease;
+    .v88-short-btn{
+      border:none;
+      border-radius:16px;
+      padding:14px 16px;
+      color:#fff;
+      cursor:pointer;
+      font-weight:800;
+      background:rgba(255,255,255,.08);
+      transition:.2s ease;
     }
 
-    .v87-short-btn:hover{
-      transform: translateY(-2px);
-      background: rgba(255,255,255,.12);
+    .v88-short-btn:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,.12);
     }
 
-    .v87-main-kpis{
-      display: grid;
-      grid-template-columns: repeat(3,1fr);
-      gap: 12px;
-      margin-top: 18px;
+    .v88-main-kpis{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin-top:18px;
     }
 
-    .v87-mini-kpi{
-      padding: 14px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid var(--v84-line);
+    .v88-mini-kpi{
+      padding:14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--v84-line);
     }
 
-    .v87-mini-kpi span{
-      display: block;
-      font-size: 12px;
-      color: var(--v84-sub);
-      margin-bottom: 8px;
+    .v88-mini-kpi span{
+      display:block;
+      font-size:12px;
+      color:var(--v84-sub);
+      margin-bottom:8px;
     }
 
-    .v87-mini-kpi strong{
-      font-size: 24px;
-      line-height: 1.1;
+    .v88-mini-kpi strong{
+      font-size:24px;
+      line-height:1.1;
     }
 
-    .v87-fast-row{
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
+    .v88-fast-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
     }
 
-    .v87-fast-row button{
-      border: none;
-      border-radius: 16px;
-      padding: 14px 18px;
-      cursor: pointer;
-      font-weight: 800;
-      transition: .2s ease;
+    .v88-fast-row button{
+      border:none;
+      border-radius:16px;
+      padding:14px 18px;
+      cursor:pointer;
+      font-weight:800;
+      transition:.2s ease;
     }
 
-    .v87-primary{
-      color: #04111d;
-      background: linear-gradient(135deg, #67e8f9, #22c55e);
-      box-shadow: 0 14px 32px rgba(34,197,94,.28), 0 6px 18px rgba(103,232,249,.18);
+    .v88-primary{
+      color:#04111d;
+      background:linear-gradient(135deg, #67e8f9, #22c55e);
+      box-shadow:0 14px 32px rgba(34,197,94,.28), 0 6px 18px rgba(103,232,249,.18);
     }
 
-    .v87-secondary{
-      color: #fff;
-      background: rgba(255,255,255,.08);
+    .v88-secondary{
+      color:#fff;
+      background:rgba(255,255,255,.08);
     }
 
-    .v87-primary:hover,
-    .v87-secondary:hover{
-      transform: translateY(-2px);
+    .v88-primary:hover,
+    .v88-secondary:hover{
+      transform:translateY(-2px);
     }
 
-    .v87-game-grid{
-      display: grid;
-      grid-template-columns: repeat(4,1fr);
-      gap: 14px;
+    .v88-game-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
     }
 
-    .v87-toolbar-note{
-      margin-top: 8px;
-      color: var(--v84-sub);
-      font-size: 12px;
-      line-height: 1.7;
+    .v88-toolbar-note{
+      margin-top:8px;
+      color:var(--v84-sub);
+      font-size:12px;
+      line-height:1.7;
+    }
+
+    .v88-bottom-nav{
+      display:none;
+    }
+
+    .v88-bottom-nav button{
+      border:none;
+      background:transparent;
+      color:#dbe7ff;
+      font-size:12px;
+      font-weight:800;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      padding:8px 4px;
+      border-radius:14px;
+      transition:.2s ease;
+    }
+
+    .v88-bottom-nav button span:first-child{
+      font-size:20px;
+      line-height:1;
+    }
+
+    .v88-bottom-nav button.v88-bottom-active{
+      background:rgba(255,255,255,.10);
+      color:#ffffff;
+    }
+
+    .v88-bottom-spacer{
+      display:none;
+      height:84px;
     }
 
     @media (max-width: 1180px){
-      .v87-hero-compact{
-        grid-template-columns: 1fr;
+      .v88-hero-compact{
+        grid-template-columns:1fr;
       }
 
-      .v87-game-grid{
-        grid-template-columns: 1fr 1fr;
+      .v88-game-grid{
+        grid-template-columns:1fr 1fr;
       }
     }
 
     @media (max-width: 760px){
-      .v87-hero-main{
-        padding: 18px;
-        border-radius: 20px;
+      .v88-hero-main{
+        padding:18px;
+        border-radius:20px;
       }
 
-      .v87-hero-main h2{
-        font-size: 30px;
+      .v88-hero-main h2{
+        font-size:30px;
       }
 
-      .v87-main-kpis{
-        grid-template-columns: 1fr;
+      .v88-main-kpis{
+        grid-template-columns:1fr;
       }
 
-      .v87-game-grid{
-        grid-template-columns: 1fr;
+      .v88-game-grid{
+        grid-template-columns:1fr;
       }
 
       .v84-top-actions{
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        width:100%;
+        display:grid;
+        grid-template-columns:1fr 1fr;
       }
 
       .v84-top-actions .v84-nav-btn{
-        width: 100%;
-        text-align: center;
+        width:100%;
+        text-align:center;
       }
 
-      .v87-fast-row{
-        display: grid;
-        grid-template-columns: 1fr;
+      .v88-fast-row{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+
+      .v88-bottom-nav{
+        position:fixed;
+        left:12px;
+        right:12px;
+        bottom:12px;
+        z-index:999;
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:8px;
+        padding:10px;
+        border-radius:22px;
+        border:1px solid rgba(255,255,255,.12);
+        background:rgba(8,17,34,.92);
+        backdrop-filter:blur(16px);
+        box-shadow:0 18px 40px rgba(0,0,0,.35);
+      }
+
+      .v88-bottom-spacer{
+        display:block;
       }
     }
   </style>
@@ -236,7 +292,7 @@
         <div class="v84-logo">AI</div>
         <div>
           <h1>台灣彩券 AI 預測系統</h1>
-          <p>V87｜首頁資訊精簡＋速度優化版｜首頁入口＋儀表板總覽＋命中追蹤＋資料狀態</p>
+          <p>V88.1｜固定底部快捷列版｜首頁入口＋儀表板總覽＋命中追蹤＋資料狀態</p>
         </div>
       </div>
 
@@ -247,8 +303,8 @@
     </header>
 
     <main class="v84-main">
-      <section class="v87-hero-compact">
-        <div class="v87-hero-main">
+      <section class="v88-hero-compact">
+        <div class="v88-hero-main">
           <div class="v84-badge-row">
             <span class="v84-badge">商用首頁</span>
             <span class="v84-badge" id="v84SiteStateBadge">系統待命中</span>
@@ -261,49 +317,49 @@
             保留原本預測、回測、命中追蹤與資料狀態功能，首頁更精簡、手機操作更快。
           </p>
 
-          <div class="v87-fast-row">
-            <button id="heroQuickPredictBtn" class="v87-primary" type="button" onclick="quickPredict('bingo', this)">
+          <div class="v88-fast-row">
+            <button id="heroQuickPredictBtn" class="v88-primary" type="button" onclick="quickPredict('bingo', this)">
               立即預測 Bingo
             </button>
-            <button class="v87-secondary" type="button" onclick="goQuickStart()">
+            <button class="v88-secondary" type="button" onclick="goQuickStart()">
               選擇彩種
             </button>
-            <button class="v87-secondary" type="button" onclick="goResults()">
+            <button class="v88-secondary" type="button" onclick="goResults()">
               查看分析
             </button>
           </div>
 
-          <div id="v84HeroKpis" class="v87-main-kpis">
-            <div class="v87-mini-kpi">
+          <div id="v84HeroKpis" class="v88-main-kpis">
+            <div class="v88-mini-kpi">
               <span>目前彩種</span>
               <strong>待選擇</strong>
             </div>
-            <div class="v87-mini-kpi">
+            <div class="v88-mini-kpi">
               <span>最新期數</span>
               <strong>—</strong>
             </div>
-            <div class="v87-mini-kpi">
+            <div class="v88-mini-kpi">
               <span>平均命中</span>
               <strong>0.00</strong>
             </div>
           </div>
 
-          <div class="v87-hero-note">
+          <div class="v88-hero-note">
             已選彩種會在下方入口高亮顯示，主按鈕文字也會同步切換。
           </div>
         </div>
 
-        <div class="v87-quick-panel">
+        <div class="v88-quick-panel">
           <div>
-            <h3 class="v87-quick-title">快捷操作</h3>
-            <p class="v87-quick-sub">快速儲存、清除紀錄、回到結果區或最新五期。</p>
+            <h3 class="v88-quick-title">快捷操作</h3>
+            <p class="v88-quick-sub">快速儲存、清除紀錄、回到結果區或最新五期。</p>
           </div>
 
-          <div class="v87-shortcuts">
-            <button id="v84SaveBtn" class="v87-short-btn" type="button">儲存本次預測</button>
-            <button id="v84ClearBtn" class="v87-short-btn" type="button">清空命中紀錄</button>
-            <button id="v84TopBtn" class="v87-short-btn" type="button">回到頂部</button>
-            <button class="v87-short-btn" type="button" onclick="scrollToSection('anchor-latest')">最新五期</button>
+          <div class="v88-shortcuts">
+            <button id="v84SaveBtn" class="v88-short-btn" type="button">儲存本次預測</button>
+            <button id="v84ClearBtn" class="v88-short-btn" type="button">清空命中紀錄</button>
+            <button id="v84TopBtn" class="v88-short-btn" type="button">回到頂部</button>
+            <button class="v88-short-btn" type="button" onclick="scrollToSection('anchor-latest')">最新五期</button>
           </div>
 
           <div class="v84-status-list">
@@ -321,13 +377,13 @@
             </div>
           </div>
 
-          <div class="v87-toolbar-note">
+          <div class="v88-toolbar-note">
             預測完成後可直接從結果區儲存本次預測。
           </div>
         </div>
       </section>
 
-      <section class="v84-section">
+      <section id="gameSection" class="v84-section">
         <div class="v84-section-head">
           <div>
             <h3>彩種入口</h3>
@@ -335,8 +391,8 @@
           </div>
         </div>
 
-        <div class="v87-game-grid">
-          <button id="gameCard-bingo" class="v84-game-card v87-card-active" type="button" onclick="selectGame('bingo', this)">
+        <div class="v88-game-grid">
+          <button id="gameCard-bingo" class="v84-game-card v88-card-active" type="button" onclick="selectGame('bingo', this)">
             <div class="v84-game-icon">B</div>
             <div class="v84-game-title">Bingo Bingo</div>
             <div class="v84-game-desc">1-80 可選顆數，支援最新資料與快速預測。</div>
@@ -475,7 +531,7 @@
           <div id="predictionArea" class="v84-panel">
             <div class="result-header">
               <div>
-                <h2 id="resultGameName" style="margin:0;">V87 首頁資訊精簡＋速度優化版｜請先選擇彩種並開始預測</h2>
+                <h2 id="resultGameName" style="margin:0;">V88.1 固定底部快捷列版｜請先選擇彩種並開始預測</h2>
                 <p class="result-subtitle">首頁入口＋儀表板總覽＋命中追蹤＋資料狀態</p>
               </div>
               <div id="resultBadge" class="badge">待預測</div>
@@ -511,8 +567,29 @@
           </div>
         </div>
       </section>
+
+      <div class="v88-bottom-spacer"></div>
     </main>
   </div>
+
+  <nav class="v88-bottom-nav">
+    <button id="bottomHomeBtn" type="button" onclick="goHome()">
+      <span>🏠</span>
+      <span>首頁</span>
+    </button>
+    <button id="bottomSetupBtn" type="button" onclick="goQuickStart()">
+      <span>🎯</span>
+      <span>預測</span>
+    </button>
+    <button id="bottomResultBtn" type="button" onclick="goResults()">
+      <span>📊</span>
+      <span>結果</span>
+    </button>
+    <button id="bottomLatestBtn" type="button" onclick="scrollToSection('anchor-latest')">
+      <span>🕘</span>
+      <span>最新</span>
+    </button>
+  </nav>
 
   <script>
     function scrollToSection(id) {
@@ -553,7 +630,7 @@
       return map[code] || "立即預測 Bingo";
     }
 
-    function syncV87UiByCode(code) {
+    function syncV881UiByCode(code) {
       const currentCode = code || document.getElementById("lotterySelect")?.value || "bingo";
 
       const currentBadge = document.getElementById("v84CurrentGameBadge");
@@ -568,12 +645,12 @@
       }
 
       document.querySelectorAll(".v84-game-card").forEach(card => {
-        card.classList.remove("v87-card-active");
+        card.classList.remove("v88-card-active");
       });
 
       const activeCard = document.getElementById(`gameCard-${currentCode}`);
       if (activeCard) {
-        activeCard.classList.add("v87-card-active");
+        activeCard.classList.add("v88-card-active");
       }
     }
 
@@ -581,15 +658,38 @@
       const quickBtn = document.getElementById("topQuickStartBtn");
       const resultsBtn = document.getElementById("topResultsBtn");
 
-      if (quickBtn) quickBtn.classList.remove("v87-top-btn-active");
-      if (resultsBtn) resultsBtn.classList.remove("v87-top-btn-active");
+      if (quickBtn) quickBtn.classList.remove("v88-top-btn-active");
+      if (resultsBtn) resultsBtn.classList.remove("v88-top-btn-active");
 
-      if (target === "quick" && quickBtn) quickBtn.classList.add("v87-top-btn-active");
-      if (target === "results" && resultsBtn) resultsBtn.classList.add("v87-top-btn-active");
+      if (target === "quick" && quickBtn) quickBtn.classList.add("v88-top-btn-active");
+      if (target === "results" && resultsBtn) resultsBtn.classList.add("v88-top-btn-active");
+    }
+
+    function highlightBottomNav(target) {
+      ["bottomHomeBtn","bottomSetupBtn","bottomResultBtn","bottomLatestBtn"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("v88-bottom-active");
+      });
+
+      const targetMap = {
+        home: "bottomHomeBtn",
+        setup: "bottomSetupBtn",
+        result: "bottomResultBtn",
+        latest: "bottomLatestBtn"
+      };
+
+      const active = document.getElementById(targetMap[target]);
+      if (active) active.classList.add("v88-bottom-active");
+    }
+
+    function goHome() {
+      highlightBottomNav("home");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function goQuickStart() {
       highlightTopButton("quick");
+      highlightBottomNav("setup");
       scrollToSection("dashboardSection");
       const select = document.getElementById("lotterySelect");
       if (select) {
@@ -601,12 +701,18 @@
 
     function goResults() {
       highlightTopButton("results");
+      highlightBottomNav("result");
       scrollToSection("predictionArea");
+    }
+
+    function goLatest() {
+      highlightBottomNav("latest");
+      scrollToSection("anchor-latest");
     }
 
     function runSelectedPrediction(btn) {
       const gameCode = document.getElementById("lotterySelect")?.value || "bingo";
-      syncV87UiByCode(gameCode);
+      syncV881UiByCode(gameCode);
 
       const done = setLoadingButton(btn, "預測中...", btn?.textContent || "開始預測");
 
@@ -626,7 +732,7 @@
       const select = document.getElementById("lotterySelect");
       if (select) select.value = gameCode;
 
-      syncV87UiByCode(gameCode);
+      syncV881UiByCode(gameCode);
 
       const done = setLoadingButton(btn, "預測中...", btn?.textContent || "立即預測");
 
@@ -646,7 +752,7 @@
       const select = document.getElementById("lotterySelect");
       if (select) select.value = gameCode;
 
-      syncV87UiByCode(gameCode);
+      syncV881UiByCode(gameCode);
 
       const done = setLoadingButton(btn, "切換中...", btn?.querySelector(".v84-game-title")?.textContent || "彩種");
 
@@ -666,14 +772,20 @@
       const select = document.getElementById("lotterySelect");
       if (select) {
         select.addEventListener("change", () => {
-          syncV87UiByCode(select.value);
+          syncV881UiByCode(select.value);
         });
       }
 
-      syncV87UiByCode(select?.value || "bingo");
+      const latestBtn = document.getElementById("bottomLatestBtn");
+      if (latestBtn) {
+        latestBtn.onclick = goLatest;
+      }
+
+      syncV881UiByCode(select?.value || "bingo");
       highlightTopButton("quick");
+      highlightBottomNav("home");
     });
   </script>
-  <script src="app.js?v=87"></script>
+  <script src="app.js?v=881"></script>
 </body>
 </html>
