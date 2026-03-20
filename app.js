@@ -1,8 +1,9 @@
 (() => {
-  const APP_VERSION = "V89 最終穩定版";
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v89";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v89";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v89";
+  const APP_VERSION = "V90 自動學習權重版";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v90";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v90";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v90";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v90";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -119,6 +120,48 @@
     return String(n).padStart(2, "0");
   }
 
+  function defaultLearningWeights() {
+    return {
+      bingo: { freq: 2.0, miss: 1.3, tail: 0.15, latestPenalty: -1.2, special: 1.0 },
+      "539": { freq: 2.0, miss: 1.3, tail: 0.15, latestPenalty: -1.2, special: 0 },
+      "649": { freq: 2.0, miss: 1.3, tail: 0.15, latestPenalty: -1.2, special: 1.4 },
+      "638": { freq: 2.0, miss: 1.3, tail: 0.15, latestPenalty: -1.2, special: 1.8 }
+    };
+  }
+
+  function readLearningWeights() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(WEIGHTS_KEY) || "null");
+      const defaults = defaultLearningWeights();
+      if (!raw || typeof raw !== "object") return defaults;
+      return {
+        bingo: { ...defaults.bingo, ...(raw.bingo || {}) },
+        "539": { ...defaults["539"], ...(raw["539"] || {}) },
+        "649": { ...defaults["649"], ...(raw["649"] || {}) },
+        "638": { ...defaults["638"], ...(raw["638"] || {}) }
+      };
+    } catch {
+      return defaultLearningWeights();
+    }
+  }
+
+  function writeLearningWeights(weights) {
+    localStorage.setItem(WEIGHTS_KEY, JSON.stringify(weights));
+  }
+
+  function clampWeight(value, min, max) {
+    return Math.max(min, Math.min(max, Number(value)));
+  }
+
+  function getLearningWeights(gameCode) {
+    const all = readLearningWeights();
+    return all[gameCode] || defaultLearningWeights()[gameCode];
+  }
+
+  function resetLearningWeights() {
+    writeLearningWeights(defaultLearningWeights());
+  }
+
   function normalizeSpecialValue(value, min = 1, max = 99) {
     if (value === null || value === undefined || value === "") return null;
     const num = Number(value);
@@ -141,11 +184,7 @@
       orderNumbers: Array.isArray(draw.orderNumbers)
         ? draw.orderNumbers.map(v => Number(v)).filter(v => Number.isFinite(v))
         : [],
-      specialNumber: normalizeSpecialValue(
-        draw.specialNumber,
-        cfg.specialMin,
-        cfg.specialMax
-      )
+      specialNumber: normalizeSpecialValue(draw.specialNumber, cfg.specialMin, cfg.specialMax)
     };
   }
 
@@ -233,7 +272,6 @@
 
   async function fetchFirstText(paths) {
     const errors = [];
-
     for (const path of paths) {
       try {
         const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
@@ -246,7 +284,6 @@
         errors.push(`${path}: ${err.message}`);
       }
     }
-
     throw new Error(errors.join(" | "));
   }
 
@@ -291,7 +328,6 @@
       .filter(line => line.trim() !== "");
 
     if (!lines.length) return [];
-
     const headers = parseCsvLine(lines[0]).map(h => h.trim());
     const rows = [];
 
@@ -304,7 +340,6 @@
       row.__raw = cols;
       rows.push(row);
     }
-
     return rows;
   }
 
@@ -671,40 +706,57 @@
     return map;
   }
 
-  function buildScorePool(draws, min, max, latestDraw) {
+  function buildScorePool(gameCode, draws, min, max, latestDraw) {
     const freq = frequencyAnalysis(draws, min, max).map;
     const miss = missMap(draws, min, max);
     const tailHot = computeTailHotness(draws);
     const latestNums = new Set(latestDraw?.numbers || []);
+    const weights = getLearningWeights(gameCode);
 
     return range(min, max)
       .map(number => {
         const f = freq.get(number) || 0;
         const m = miss.get(number) || 0;
         const t = tailHot.get(number % 10) || 0;
-        const latestPenalty = latestNums.has(number) ? -1.2 : 0;
-        const score = f * 2.0 + m * 1.3 + t * 0.15 + latestPenalty;
-        return { number, score };
+        const latestPenalty = latestNums.has(number) ? weights.latestPenalty : 0;
+
+        const score =
+          f * weights.freq +
+          m * weights.miss +
+          t * weights.tail +
+          latestPenalty;
+
+        return {
+          number,
+          score,
+          features: {
+            freq: f,
+            miss: m,
+            tail: t,
+            latestPenalty: latestNums.has(number) ? 1 : 0
+          }
+        };
       })
       .sort((a, b) => b.score - a.score || a.number - b.number);
   }
 
-  function buildSecondAreaPool(draws) {
-    const map = new Map(range(1, 8).map(n => [n, 0]));
-    const miss = new Map(range(1, 8).map(n => [n, 0]));
+  function buildSecondAreaPool(gameCode, draws, min = 1, max = 8) {
+    const map = new Map(range(min, max).map(n => [n, 0]));
+    const miss = new Map(range(min, max).map(n => [n, 0]));
+    const weights = getLearningWeights(gameCode);
 
     draws.forEach(draw => {
-      const s = normalizeSpecialValue(draw.specialNumber, 1, 8);
-      if (s != null) {
+      const s = Number(draw.specialNumber);
+      if (Number.isFinite(s) && s >= min && s <= max) {
         map.set(s, (map.get(s) || 0) + 1);
       }
     });
 
-    range(1, 8).forEach(n => {
+    range(min, max).forEach(n => {
       let missCount = 0;
       let found = false;
       for (const draw of draws) {
-        if (normalizeSpecialValue(draw.specialNumber, 1, 8) === n) {
+        if (Number(draw.specialNumber) === n) {
           found = true;
           break;
         }
@@ -713,28 +765,31 @@
       miss.set(n, found ? missCount : draws.length);
     });
 
-    return range(1, 8)
+    return range(min, max)
       .map(n => ({
         number: n,
-        score: (map.get(n) || 0) * 2 + (miss.get(n) || 0) * 1.2
+        score: (map.get(n) || 0) * weights.special + (miss.get(n) || 0) * 1.1
       }))
       .sort((a, b) => b.score - a.score || a.number - b.number);
   }
 
-  function buildSpecialPool649(draws) {
-    const map = new Map(range(1, 49).map(n => [n, 0]));
-    const miss = new Map(range(1, 49).map(n => [n, 0]));
+  function buildSpecialPool649(gameCode, draws, min = 1, max = 49) {
+    const map = new Map(range(min, max).map(n => [n, 0]));
+    const miss = new Map(range(min, max).map(n => [n, 0]));
+    const weights = getLearningWeights(gameCode);
 
     draws.forEach(draw => {
-      const s = normalizeSpecialValue(draw.specialNumber, 1, 49);
-      if (s != null) map.set(s, (map.get(s) || 0) + 1);
+      const s = Number(draw.specialNumber);
+      if (Number.isFinite(s) && s >= min && s <= max) {
+        map.set(s, (map.get(s) || 0) + 1);
+      }
     });
 
-    range(1, 49).forEach(n => {
+    range(min, max).forEach(n => {
       let missCount = 0;
       let found = false;
       for (const draw of draws) {
-        if (normalizeSpecialValue(draw.specialNumber, 1, 49) === n) {
+        if (Number(draw.specialNumber) === n) {
           found = true;
           break;
         }
@@ -743,10 +798,10 @@
       miss.set(n, found ? missCount : draws.length);
     });
 
-    return range(1, 49)
+    return range(min, max)
       .map(n => ({
         number: n,
-        score: (map.get(n) || 0) * 2 + (miss.get(n) || 0) * 1.2
+        score: (map.get(n) || 0) * weights.special + (miss.get(n) || 0) * 1.05
       }))
       .sort((a, b) => b.score - a.score || a.number - b.number);
   }
@@ -791,7 +846,7 @@
     const cfg = GAME_CONFIG[gameCode];
     const pickCount = cfg.mainCount();
     const setCount = getSetCount();
-    const pool = buildScorePool(draws, cfg.min, cfg.max, latestDraw);
+    const pool = buildScorePool(gameCode, draws, cfg.min, cfg.max, latestDraw);
 
     const baseModes = [
       { mode: "保守組", desc: "偏重高頻熱號與穩定分布", strategy: "safe", shift: 0 },
@@ -801,8 +856,8 @@
       { mode: "衝刺組", desc: "加大變化幅度，做高低搭配", strategy: "attack", shift: 1 }
     ];
 
-    const spPool638 = gameCode === "638" ? buildSecondAreaPool(draws) : [];
-    const spPool649 = gameCode === "649" ? buildSpecialPool649(draws) : [];
+    const spPool638 = gameCode === "638" ? buildSecondAreaPool("638", draws, 1, 8) : [];
+    const spPool649 = gameCode === "649" ? buildSpecialPool649("649", draws, 1, 49) : [];
 
     return baseModes.slice(0, setCount).map((item, idx) => {
       let specialNumber = null;
@@ -921,7 +976,6 @@
   function savePredictionRecord(gameCode, latestDraw, modes) {
     const cfg = GAME_CONFIG[gameCode];
     const list = readPredictionHistory();
-
     const safeLatest = sanitizeDraw(gameCode, latestDraw);
 
     const record = {
@@ -932,6 +986,7 @@
       createdAt: new Date().toISOString(),
       referencePeriod: safeLatest?.period || "",
       referenceDrawDate: safeLatest?.drawDate || "",
+      learningWeights: getLearningWeights(gameCode),
       modes: modes.map(mode => ({
         mode: mode.mode,
         numbers: mode.numbers || [],
@@ -952,6 +1007,46 @@
     return record;
   }
 
+  function applyLearningFromRecord(record) {
+    if (!record || !record.checked) return;
+
+    const weightsAll = readLearningWeights();
+    const gameCode = record.gameCode;
+    const current = { ...(weightsAll[gameCode] || defaultLearningWeights()[gameCode]) };
+
+    const totalPredicted = Math.max(
+      ...record.modes.map(mode => Array.isArray(mode.numbers) ? mode.numbers.length : 0),
+      1
+    );
+
+    const hitRate = Number(record.bestHit || 0) / totalPredicted;
+    const specialBoost = Number(record.specialHit || 0) > 0 ? 0.04 : -0.02;
+
+    if (hitRate >= 0.5) {
+      current.freq = clampWeight(current.freq + 0.08, 0.8, 4.0);
+      current.miss = clampWeight(current.miss + 0.05, 0.4, 3.5);
+      current.tail = clampWeight(current.tail + 0.01, 0.01, 0.8);
+    } else if (hitRate >= 0.3) {
+      current.freq = clampWeight(current.freq + 0.03, 0.8, 4.0);
+      current.miss = clampWeight(current.miss + 0.02, 0.4, 3.5);
+    } else {
+      current.freq = clampWeight(current.freq - 0.04, 0.8, 4.0);
+      current.miss = clampWeight(current.miss - 0.03, 0.4, 3.5);
+      current.tail = clampWeight(current.tail - 0.005, 0.01, 0.8);
+    }
+
+    current.special = clampWeight((current.special || 1) + specialBoost, 0.2, 3.5);
+
+    if (hitRate < 0.25) {
+      current.latestPenalty = clampWeight(current.latestPenalty - 0.05, -3.0, 0);
+    } else {
+      current.latestPenalty = clampWeight(current.latestPenalty + 0.03, -3.0, 0);
+    }
+
+    weightsAll[gameCode] = current;
+    writeLearningWeights(weightsAll);
+  }
+
   function updatePredictionTracking() {
     const list = readPredictionHistory();
     let changed = false;
@@ -963,7 +1058,7 @@
       const latestPeriodNum = Number(latest.period || 0);
       const refPeriodNum = Number(item.referencePeriod || 0);
 
-      if (latestPeriodNum > refPeriodNum) {
+      if (latestPeriodNum > refPeriodNum && !item.checked) {
         const bestHit = Math.max(...item.modes.map(mode => countHits(mode.numbers || [], latest.numbers || [])));
         const bestSpecialHit = Math.max(...item.modes.map(mode => countSpecialHit(mode.specialNumber, latest.specialNumber, item.gameCode)));
 
@@ -974,6 +1069,8 @@
         item.resultSpecialNumber = latest.specialNumber ?? null;
         item.bestHit = bestHit;
         item.specialHit = bestSpecialHit;
+
+        applyLearningFromRecord(item);
         changed = true;
       }
     }
@@ -1190,6 +1287,35 @@
     `;
   }
 
+  function renderLearningWeights(gameCode) {
+    const w = getLearningWeights(gameCode);
+
+    return `
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="card-title">熱號權重</div>
+          <div class="text-block">${w.freq.toFixed(2)}</div>
+        </div>
+        <div class="result-card">
+          <div class="card-title">遺漏權重</div>
+          <div class="text-block">${w.miss.toFixed(2)}</div>
+        </div>
+        <div class="result-card">
+          <div class="card-title">尾數權重</div>
+          <div class="text-block">${w.tail.toFixed(2)}</div>
+        </div>
+        <div class="result-card">
+          <div class="card-title">避開上期權重</div>
+          <div class="text-block">${w.latestPenalty.toFixed(2)}</div>
+        </div>
+        <div class="result-card full-width">
+          <div class="card-title">特別號 / 第二區權重</div>
+          <div class="text-block">${Number(w.special || 0).toFixed(2)}</div>
+        </div>
+      </div>
+    `;
+  }
+
   function getDataStatus(gameCode, draws, latestDraw) {
     const historyPath = state.historySourcePath[GAME_CONFIG[gameCode].key] || "";
     const latestPath = state.latestJsonPath || "";
@@ -1283,7 +1409,7 @@
         <div class="result-card highlight-card">
           <div class="card-title">資料提示</div>
           <div class="text-block">
-            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=89</b>。
+            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=90</b>。
           </div>
         </div>
       `;
@@ -1446,6 +1572,7 @@
     el.innerHTML = el.innerHTML
       .replace(/資料狀態/g, '<div id="anchor-status" class="section-anchor"></div>資料狀態')
       .replace(/命中追蹤/g, '<div id="anchor-tracking" class="section-anchor"></div>命中追蹤')
+      .replace(/自動學習權重/g, '<div id="anchor-learning" class="section-anchor"></div>自動學習權重')
       .replace(/AI 推薦組合/g, '<div id="anchor-ai" class="section-anchor"></div>AI 推薦組合')
       .replace(/回測表現/g, '<div id="anchor-backtest" class="section-anchor"></div>回測表現')
       .replace(/熱號分析/g, '<div id="anchor-analysis" class="section-anchor"></div>熱號分析')
@@ -1456,13 +1583,8 @@
     const saveBtn = $("v84InlineSaveBtn");
     const clearBtn = $("v84InlineClearBtn");
 
-    if (saveBtn) {
-      saveBtn.onclick = () => saveCurrentPrediction();
-    }
-
-    if (clearBtn) {
-      clearBtn.onclick = () => clearPredictionRecords();
-    }
+    if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
+    if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
   }
 
   function renderPrediction(gameCode) {
@@ -1489,10 +1611,7 @@
 
     const container = $("predictionResult");
     const titleEl = $("resultGameName");
-
-    if (titleEl) {
-      titleEl.textContent = `${cfg.label}｜${APP_VERSION}`;
-    }
+    if (titleEl) titleEl.textContent = `${cfg.label}｜${APP_VERSION}`;
 
     setBadge("已完成", true);
 
@@ -1561,6 +1680,16 @@
               <div class="text-block" style="margin-top:10px;">歷史學習期數：${draws.length} 期</div>
             </div>
           </div>
+        </div>
+
+        <div class="v84-section">
+          <div class="v84-section-head">
+            <div>
+              <h3>自動學習權重</h3>
+              <p>依命中追蹤結果自動調整中的模型權重</p>
+            </div>
+          </div>
+          ${renderLearningWeights(gameCode)}
         </div>
 
         <div class="v84-section">
@@ -1738,25 +1867,28 @@
     const saveBtn = $("v84SaveBtn");
     const clearBtn = $("v84ClearBtn");
     const topBtn = $("v84TopBtn");
+    const resetWeightsBtn = $("v90ResetWeightsBtn");
 
-    if (saveBtn) {
-      saveBtn.onclick = () => saveCurrentPrediction();
-    }
-
-    if (clearBtn) {
-      clearBtn.onclick = () => clearPredictionRecords();
-    }
-
+    if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
+    if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
     if (topBtn) {
       topBtn.onclick = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       };
     }
 
+    if (resetWeightsBtn) {
+      resetWeightsBtn.onclick = () => {
+        resetLearningWeights();
+        if (state.currentGameCode) renderPrediction(state.currentGameCode);
+        alert("已重置自動學習權重。");
+      };
+    }
+
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV89) {
-        el.dataset.boundV89 = "1";
+      if (el && !el.dataset.boundV90) {
+        el.dataset.boundV90 = "1";
         el.addEventListener("change", saveUiSettings);
       }
     });
@@ -1765,6 +1897,7 @@
   window.runPrediction = runPrediction;
   window.saveCurrentPrediction = saveCurrentPrediction;
   window.clearPredictionRecords = clearPredictionRecords;
+  window.resetLearningWeights = resetLearningWeights;
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
