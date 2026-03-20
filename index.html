@@ -20,37 +20,36 @@
       </div>
 
       <div class="v84-top-actions">
-        <button class="v84-nav-btn" type="button" onclick="document.getElementById('v84QuickStart').scrollIntoView({behavior:'smooth'})">快速開始</button>
-        <button class="v84-nav-btn" type="button" onclick="document.getElementById('predictionResult').scrollIntoView({behavior:'smooth'})">查看結果</button>
+        <button class="v84-nav-btn" onclick="scrollToSection('heroSection')">快速開始</button>
+        <button class="v84-nav-btn" onclick="scrollToSection('dashboardSection')">查看結果</button>
       </div>
     </header>
 
     <main class="v84-main">
-      <!-- Hero -->
-      <section class="v84-hero">
+      <section id="heroSection" class="v84-hero">
         <div class="v84-hero-left">
           <div class="v84-badge-row">
             <span class="v84-badge">商用首頁</span>
             <span class="v84-badge" id="v84SiteStateBadge">系統待命中</span>
-            <span class="v84-badge" id="v84CurrentGameBadge">尚未選擇彩種</span>
+            <span class="v84-badge" id="v84CurrentGameBadge">目前彩種：Bingo Bingo</span>
           </div>
 
-          <h2>一頁式首頁，直接進入實戰預測</h2>
+          <h2>一頁式首頁，直接進入<br>實戰預測</h2>
           <p class="v84-hero-text">
             以首頁產品化方式整合 Bingo、大樂透、威力彩、今彩 539，
             保留原本預測、回測、命中追蹤與資料狀態邏輯，升級成更像正式上線產品的首頁。
           </p>
 
           <div class="v84-hero-actions">
-            <button class="v84-primary-btn" type="button" onclick="runPrediction('bingo')">立即預測 Bingo</button>
-            <button class="v84-secondary-btn" type="button" onclick="document.getElementById('v84QuickStart').scrollIntoView({behavior:'smooth'})">選擇彩種</button>
+            <button class="v84-primary-btn" onclick="quickPredict('bingo')">立即預測 Bingo</button>
+            <button class="v84-secondary-btn" onclick="scrollToSection('dashboardSection')">選擇彩種</button>
           </div>
 
-          <div class="v84-kpi-grid" id="v84HeroKpis">
+          <div id="v84HeroKpis" class="v84-kpi-grid">
             <div class="v84-kpi-card">
               <div class="v84-kpi-label">目前彩種</div>
               <div class="v84-kpi-value">待選擇</div>
-              <div class="v84-kpi-note">尚未執行預測</div>
+              <div class="v84-kpi-note">目前顯示中的預測頁</div>
             </div>
             <div class="v84-kpi-card">
               <div class="v84-kpi-label">最新期數</div>
@@ -70,23 +69,23 @@
           </div>
         </div>
 
-        <aside class="v84-hero-right">
+        <div class="v84-hero-right">
           <div class="v84-status-card">
             <div class="v84-card-title-row">
-              <h3>系統狀態</h3>
+              <div>
+                <h3>系統狀態</h3>
+                <p>首頁總覽與資料狀態</p>
+              </div>
               <span class="v84-inline-dot"></span>
             </div>
+
             <div class="v84-status-list">
-              <div class="v84-status-item">
-                <span>首頁版本</span>
-                <strong>V84 商用首頁版</strong>
-              </div>
               <div class="v84-status-item">
                 <span>資料狀態</span>
                 <strong id="v84DataStateText">待載入</strong>
               </div>
               <div class="v84-status-item">
-                <span>最新更新</span>
+                <span>最後更新</span>
                 <strong id="v84LastUpdateText">尚未取得</strong>
               </div>
               <div class="v84-status-item">
@@ -96,117 +95,161 @@
             </div>
           </div>
 
-          <div class="v84-status-card">
+          <div class="v84-panel">
             <div class="v84-card-title-row">
-              <h3>快捷操作</h3>
+              <div>
+                <h3>快捷操作</h3>
+                <p>快速儲存、清除、回到頂部</p>
+              </div>
             </div>
+
             <div class="v84-mini-actions">
-              <button type="button" onclick="runPrediction('649')">大樂透</button>
-              <button type="button" onclick="runPrediction('638')">威力彩</button>
-              <button type="button" onclick="runPrediction('539')">今彩 539</button>
-              <button type="button" onclick="runPrediction('bingo')">Bingo</button>
+              <button id="v84SaveBtn" type="button">儲存本次預測</button>
+              <button id="v84ClearBtn" type="button">清空命中紀錄</button>
+              <button id="v84TopBtn" type="button">回到頂部</button>
+              <button type="button" onclick="scrollToSection('anchor-latest')">最新五期</button>
             </div>
           </div>
-        </aside>
+        </div>
       </section>
 
-      <!-- Quick start -->
-      <section class="v84-section" id="v84QuickStart">
+      <section class="v84-section">
         <div class="v84-section-head">
           <div>
-            <h3>快速開始</h3>
-            <p>直接選擇彩種並執行預測</p>
+            <h3>彩種入口</h3>
+            <p>直接切換不同彩種進行預測</p>
           </div>
         </div>
 
         <div class="v84-game-grid">
-          <button class="v84-game-card" type="button" onclick="runPrediction('bingo')">
-            <div class="v84-game-icon">80</div>
+          <button class="v84-game-card" onclick="selectGame('bingo')">
+            <div class="v84-game-icon">B</div>
             <div class="v84-game-title">Bingo Bingo</div>
-            <div class="v84-game-desc">1-80 選號，支援 1-10 顆預測</div>
+            <div class="v84-game-desc">1-80 可選顆數，支援最新資料與快速預測。</div>
           </button>
 
-          <button class="v84-game-card" type="button" onclick="runPrediction('649')">
-            <div class="v84-game-icon">49</div>
+          <button class="v84-game-card" onclick="selectGame('649')">
+            <div class="v84-game-icon">6/49</div>
             <div class="v84-game-title">大樂透</div>
-            <div class="v84-game-desc">1-49 預測 6 號</div>
+            <div class="v84-game-desc">預測 6 碼，含特別號資訊與歷史分析。</div>
           </button>
 
-          <button class="v84-game-card" type="button" onclick="runPrediction('638')">
-            <div class="v84-game-icon">38</div>
+          <button class="v84-game-card" onclick="selectGame('638')">
+            <div class="v84-game-icon">6/38</div>
             <div class="v84-game-title">威力彩</div>
-            <div class="v84-game-desc">第一區 1-38，第二區 1-8</div>
+            <div class="v84-game-desc">第一區與第二區分開分析，支援資料追蹤。</div>
           </button>
 
-          <button class="v84-game-card" type="button" onclick="runPrediction('539')">
-            <div class="v84-game-icon">39</div>
-            <div class="v84-game-title">今彩 539</div>
-            <div class="v84-game-desc">1-39 預測 5 號</div>
+          <button class="v84-game-card" onclick="selectGame('539')">
+            <div class="v84-game-icon">539</div>
+            <div class="v84-game-title">今彩539</div>
+            <div class="v84-game-desc">5 碼預測、熱冷號與拖號分析整合。</div>
           </button>
         </div>
       </section>
 
-      <!-- Control + dashboard -->
-      <section class="v84-dashboard-grid">
-        <aside class="v84-left-panel">
-          <section class="v84-panel">
+      <section class="v84-section">
+        <div class="v84-section-head">
+          <div>
+            <h3>功能總覽</h3>
+            <p>保留原本預測核心，升級為首頁式體驗</p>
+          </div>
+        </div>
+
+        <div class="v84-feature-grid">
+          <div class="v84-feature-card">
+            <h4>AI 推薦組合</h4>
+            <p>依據熱號、冷號、尾數與遺漏狀態，生成多組預測號碼。</p>
+          </div>
+          <div class="v84-feature-card">
+            <h4>回測表現</h4>
+            <p>近 30／50／100 期回測，快速查看模型穩定度。</p>
+          </div>
+          <div class="v84-feature-card">
+            <h4>命中追蹤</h4>
+            <p>可儲存本次預測，等待下一期開獎後自動比對命中結果。</p>
+          </div>
+          <div class="v84-feature-card">
+            <h4>資料狀態</h4>
+            <p>查看 JSON、CSV 載入路徑與更新時間，方便排查同步問題。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboardSection" class="v84-dashboard-grid">
+        <div class="v84-left-panel">
+          <div class="v84-panel">
             <div class="v84-card-title-row">
-              <h3>預測設定</h3>
+              <div>
+                <h3>預測設定</h3>
+                <p>選擇彩種與分析參數</p>
+              </div>
             </div>
 
             <div class="v84-form-grid">
               <div class="field">
+                <label for="lotterySelect">彩種選擇</label>
+                <select id="lotterySelect">
+                  <option value="bingo">Bingo Bingo</option>
+                  <option value="649">大樂透</option>
+                  <option value="638">威力彩</option>
+                  <option value="539">今彩539</option>
+                </select>
+              </div>
+
+              <div class="field">
                 <label for="setCount">推薦組數</label>
                 <select id="setCount">
-                  <option value="1">1組</option>
-                  <option value="2">2組</option>
-                  <option value="3" selected>3組</option>
-                  <option value="5">5組</option>
+                  <option value="1">1 組</option>
+                  <option value="2">2 組</option>
+                  <option value="3" selected>3 組</option>
+                  <option value="4">4 組</option>
+                  <option value="5">5 組</option>
                 </select>
               </div>
 
               <div class="field">
-                <label for="historyPeriods">分析歷史期數</label>
+                <label for="historyPeriods">歷史學習期數</label>
                 <select id="historyPeriods">
-                  <option value="30">近30期</option>
-                  <option value="50" selected>近50期</option>
-                  <option value="80">近80期</option>
-                  <option value="100">近100期</option>
-                  <option value="150">近150期</option>
-                  <option value="200">近200期</option>
+                  <option value="30">30 期</option>
+                  <option value="50" selected>50 期</option>
+                  <option value="100">100 期</option>
+                  <option value="120">120 期</option>
                 </select>
               </div>
 
               <div class="field">
-                <label for="bingoCount">Bingo 選幾顆</label>
+                <label for="bingoCount">Bingo 預測顆數</label>
                 <select id="bingoCount">
-                  <option value="1">1顆</option>
-                  <option value="2">2顆</option>
-                  <option value="3">3顆</option>
-                  <option value="4">4顆</option>
-                  <option value="5">5顆</option>
-                  <option value="6">6顆</option>
-                  <option value="7">7顆</option>
-                  <option value="8">8顆</option>
-                  <option value="9">9顆</option>
-                  <option value="10" selected>10顆</option>
+                  <option value="1">1 顆</option>
+                  <option value="2">2 顆</option>
+                  <option value="3">3 顆</option>
+                  <option value="4">4 顆</option>
+                  <option value="5">5 顆</option>
+                  <option value="6">6 顆</option>
+                  <option value="7">7 顆</option>
+                  <option value="8">8 顆</option>
+                  <option value="9">9 顆</option>
+                  <option value="10" selected>10 顆</option>
                 </select>
               </div>
             </div>
 
             <div class="v84-action-stack">
-              <button class="lottery-btn" onclick="runPrediction('bingo')">預測 Bingo</button>
-              <button class="lottery-btn" onclick="runPrediction('649')">預測大樂透</button>
-              <button class="lottery-btn" onclick="runPrediction('638')">預測威力彩</button>
-              <button class="lottery-btn" onclick="runPrediction('539')">預測 539</button>
+              <button class="lottery-btn" type="button" onclick="runSelectedPrediction()">開始預測</button>
+              <button class="v84-secondary-btn" type="button" onclick="scrollToSection('predictionArea')">查看分析區</button>
             </div>
-          </section>
+          </div>
 
-          <section class="v84-panel">
+          <div class="v84-panel">
             <div class="v84-card-title-row">
-              <h3>命中總覽</h3>
+              <div>
+                <h3>統計摘要</h3>
+                <p>跨彩種命中追蹤概況</p>
+              </div>
             </div>
-            <div class="v84-mini-stat-grid" id="v84MiniStats">
+
+            <div id="v84MiniStats" class="v84-mini-stat-grid">
               <div class="v84-mini-stat">
                 <span>已儲存預測</span>
                 <strong>0</strong>
@@ -224,89 +267,98 @@
                 <strong>0.00</strong>
               </div>
             </div>
-          </section>
+          </div>
 
-          <section class="v84-panel">
+          <div class="v84-panel">
             <div class="v84-card-title-row">
-              <h3>最近操作</h3>
+              <div>
+                <h3>最近操作</h3>
+                <p>本機最近預測與操作紀錄</p>
+              </div>
             </div>
+
             <div id="v84RecentOps" class="v84-recent-list">
               <div class="v84-recent-item">尚未有操作紀錄</div>
             </div>
-          </section>
-        </aside>
-
-        <section class="v84-right-panel">
-          <section class="v84-panel">
-            <div class="v84-card-title-row">
-              <div>
-                <h3>結果總覽</h3>
-                <p id="resultGameName" class="v84-result-subtitle">請先選擇彩種並開始預測</p>
-              </div>
-              <span id="resultBadge" class="badge">待預測</span>
-            </div>
-
-            <div class="v84-anchor-row">
-              <a href="#anchor-overview">總覽</a>
-              <a href="#anchor-status">資料狀態</a>
-              <a href="#anchor-tracking">命中追蹤</a>
-              <a href="#anchor-ai">AI 推薦</a>
-              <a href="#anchor-backtest">回測</a>
-              <a href="#anchor-analysis">分析</a>
-              <a href="#anchor-latest">最新五期</a>
-            </div>
-
-            <div class="v84-toolbar">
-              <button id="v84SaveBtn" type="button">儲存本次預測</button>
-              <button id="v84ClearBtn" type="button">清空命中紀錄</button>
-              <button id="v84TopBtn" type="button">回到頂部</button>
-            </div>
-          </section>
-
-          <section class="v84-panel">
-            <div id="predictionResult" class="prediction-result">
-              <div class="empty-state">
-                <div class="empty-title">尚未產生預測</div>
-                <div class="empty-text">
-                  按上方按鈕後，這裡會顯示資料狀態、刷新提示、命中追蹤、AI 三模式推薦、
-                  回測表現、熱號、冷號、連號、尾數分析與最新五期。
-                </div>
-              </div>
-            </div>
-          </section>
-        </section>
-      </section>
-
-      <section class="v84-section">
-        <div class="v84-section-head">
-          <div>
-            <h3>產品特色</h3>
-            <p>首頁更像正式對外產品</p>
           </div>
         </div>
 
-        <div class="v84-feature-grid">
-          <div class="v84-feature-card">
-            <h4>商用首頁感</h4>
-            <p>首頁 Hero、快捷入口、狀態卡、指標總覽一次到位。</p>
+        <div class="v84-right-panel">
+          <div id="predictionArea" class="v84-panel">
+            <div class="result-header">
+              <div>
+                <h2 id="resultGameName" style="margin:0;">V84 商用首頁版｜請先選擇彩種並開始預測</h2>
+                <p class="result-subtitle">首頁入口＋儀表板總覽＋命中追蹤＋資料狀態</p>
+              </div>
+              <div id="resultBadge" class="badge">待預測</div>
+            </div>
+
+            <div id="predictionResult" class="prediction-result">
+              <div class="empty-state">
+                <div class="empty-icon">🎯</div>
+                <div class="empty-title">等待開始預測</div>
+                <div class="empty-text">
+                  請先在左側選擇彩種、推薦組數與歷史期數，然後按下「開始預測」。
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="v84-feature-card">
-            <h4>保留原核心</h4>
-            <p>不動既有預測與資料流程，降低改壞風險。</p>
-          </div>
-          <div class="v84-feature-card">
-            <h4>命中追蹤整合</h4>
-            <p>直接在首頁就能看到追蹤統計與最近操作。</p>
-          </div>
-          <div class="v84-feature-card">
-            <h4>手機優先</h4>
-            <p>版面針對手機與 GitHub Pages 瀏覽做相容調整。</p>
+
+          <div class="v84-panel">
+            <div class="v84-card-title-row">
+              <div>
+                <h3>快速導覽</h3>
+                <p>結果產生後可直接跳到指定區塊</p>
+              </div>
+            </div>
+
+            <div class="v84-anchor-row">
+              <a href="#anchor-status">資料狀態</a>
+              <a href="#anchor-tracking">命中追蹤</a>
+              <a href="#anchor-ai">AI 推薦</a>
+              <a href="#anchor-backtest">回測表現</a>
+              <a href="#anchor-analysis">分析區</a>
+              <a href="#anchor-latest">最新五期</a>
+            </div>
           </div>
         </div>
       </section>
     </main>
   </div>
 
+  <script>
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function runSelectedPrediction() {
+      const gameCode = document.getElementById("lotterySelect")?.value || "bingo";
+      if (typeof window.runPrediction === "function") {
+        window.runPrediction(gameCode);
+        setTimeout(() => {
+          scrollToSection("predictionArea");
+        }, 150);
+      }
+    }
+
+    function quickPredict(gameCode) {
+      const select = document.getElementById("lotterySelect");
+      if (select) select.value = gameCode;
+      if (typeof window.runPrediction === "function") {
+        window.runPrediction(gameCode);
+        setTimeout(() => {
+          scrollToSection("predictionArea");
+        }, 150);
+      }
+    }
+
+    function selectGame(gameCode) {
+      const select = document.getElementById("lotterySelect");
+      if (select) select.value = gameCode;
+      quickPredict(gameCode);
+    }
+  </script>
   <script src="app.js"></script>
 </body>
 </html>
