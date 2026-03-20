@@ -24,17 +24,30 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Show repo files
+        run: |
+          pwd
+          ls -la
+          ls -la tools || true
+          ls -la docs || true
+          ls -la docs/raw_data || true
+
       - name: Run parse downloads
         run: node parse_downloads.js
 
       - name: Build latest.json
         run: node tools/build_latest_json.js
 
+      - name: Debug latest.json
+        run: |
+          echo "===== docs/latest.json ====="
+          sed -n '1,220p' docs/latest.json
+
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/latest.json docs/raw_data/*.csv
+          git add docs/latest.json docs/raw_data/*.csv tools/build_latest_json.js .github/workflows/update-lottery.yml
           git diff --cached --quiet || git commit -m "chore: update lottery data"
 
       - name: Push changes
