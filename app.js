@@ -1,8 +1,8 @@
 (() => {
-  const APP_VERSION = "V88.3 Bingo 最近五期完整修正版";
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v84";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v84";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v84";
+  const APP_VERSION = "V89 最終穩定版";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v89";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v89";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v89";
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -49,7 +49,9 @@
       max: 80,
       mainCount: () => Number(document.getElementById("bingoCount")?.value || 10),
       historyMainCount: 20,
-      specialLabel: "超級獎號"
+      specialLabel: "超級獎號",
+      specialMin: 1,
+      specialMax: 80
     },
     "539": {
       code: "539",
@@ -59,7 +61,9 @@
       max: 39,
       mainCount: () => 5,
       historyMainCount: 5,
-      specialLabel: ""
+      specialLabel: "",
+      specialMin: null,
+      specialMax: null
     },
     "649": {
       code: "649",
@@ -69,7 +73,9 @@
       max: 49,
       mainCount: () => 6,
       historyMainCount: 6,
-      specialLabel: "特別號"
+      specialLabel: "特別號",
+      specialMin: 1,
+      specialMax: 49
     },
     "638": {
       code: "638",
@@ -79,9 +85,9 @@
       max: 38,
       mainCount: () => 6,
       historyMainCount: 6,
+      specialLabel: "第二區",
       specialMin: 1,
-      specialMax: 8,
-      specialLabel: "第二區"
+      specialMax: 8
     }
   };
 
@@ -113,6 +119,36 @@
     return String(n).padStart(2, "0");
   }
 
+  function normalizeSpecialValue(value, min = 1, max = 99) {
+    if (value === null || value === undefined || value === "") return null;
+    const num = Number(value);
+    if (!Number.isFinite(num)) return null;
+    if (min != null && num < min) return null;
+    if (max != null && num > max) return null;
+    return num;
+  }
+
+  function sanitizeDraw(gameCode, draw) {
+    if (!draw || typeof draw !== "object") return null;
+    const cfg = GAME_CONFIG[gameCode];
+    if (!cfg) return draw;
+
+    return {
+      ...draw,
+      numbers: Array.isArray(draw.numbers)
+        ? draw.numbers.map(v => Number(v)).filter(v => Number.isFinite(v))
+        : [],
+      orderNumbers: Array.isArray(draw.orderNumbers)
+        ? draw.orderNumbers.map(v => Number(v)).filter(v => Number.isFinite(v))
+        : [],
+      specialNumber: normalizeSpecialValue(
+        draw.specialNumber,
+        cfg.specialMin,
+        cfg.specialMax
+      )
+    };
+  }
+
   function escapeHtml(str) {
     return String(str ?? "")
       .replaceAll("&", "&amp;")
@@ -122,67 +158,28 @@
       .replaceAll("'", "&#039;");
   }
 
-  function parseStableDateParts(value) {
-    if (!value) return null;
-    const raw = String(value).trim();
-    const m = raw.match(
-      /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/
-    );
-    if (!m) return null;
-
-    return {
-      year: m[1],
-      month: m[2],
-      day: m[3],
-      hour: m[4] ?? "00",
-      minute: m[5] ?? "00",
-      second: m[6] ?? "00"
-    };
-  }
-
   function formatDate(value) {
     if (!value) return "—";
-
-    const stable = parseStableDateParts(value);
-    if (stable) {
-      return `${stable.year}-${stable.month}-${stable.day} ${stable.hour}:${stable.minute}`;
-    }
-
     const raw = String(value).trim();
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+    if (m) {
+      return `${m[1]}-${m[2]}-${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
+    }
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return raw;
-
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-  }
-
-  function formatDateOnly(value) {
-    if (!value) return "—";
-
-    const stable = parseStableDateParts(value);
-    if (stable) {
-      return `${stable.year}-${stable.month}-${stable.day}`;
-    }
-
-    const raw = String(value).trim();
-    const d = new Date(raw);
-    if (Number.isNaN(d.getTime())) return raw;
-
-    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   }
 
   function toLocaleDateText(value) {
     if (!value) return "尚未取得";
-
-    const stable = parseStableDateParts(value);
-    if (stable) {
-      return `${stable.year}-${stable.month}-${stable.day} ${stable.hour}:${stable.minute}`;
-    }
-
     const raw = String(value).trim();
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+    if (m) {
+      return `${m[1]}/${m[2]}/${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
+    }
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return raw;
-
-    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    return d.toLocaleString("zh-TW");
   }
 
   function range(min, max) {
@@ -388,9 +385,7 @@
 
   function inferSpecial(row, aliases, min, max) {
     const raw = firstMatchValue(row, aliases);
-    const num = Number(raw);
-    if (Number.isFinite(num) && num >= min && num <= max) return num;
-    return null;
+    return normalizeSpecialValue(raw, min, max);
   }
 
   function normalizeHistoryRows(gameKey, rows) {
@@ -403,13 +398,19 @@
 
       if (gameKey === "bingo") {
         const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 20);
+        const specialNumber = inferSpecial(
+          row,
+          ["special", "specialnumber", "supernumber", "超級獎號"],
+          cfg.specialMin,
+          cfg.specialMax
+        );
         return {
           period,
           drawDate,
           redeemableDate: "",
           numbers,
           orderNumbers: numbers.slice(),
-          specialNumber: null,
+          specialNumber,
           source: "history-csv"
         };
       }
@@ -432,17 +433,14 @@
         let specialNumber = inferSpecial(
           row,
           ["special", "specialnumber", "specialnum", "bonusnumber", "特別號"],
-          1,
-          49
+          cfg.specialMin,
+          cfg.specialMax
         );
 
         if (specialNumber == null) {
           const seqKeys = findSequentialNumberKeys(row);
           if (seqKeys.length >= 7) {
-            const specialRaw = Number(row[seqKeys[6]]);
-            if (Number.isFinite(specialRaw) && specialRaw >= 1 && specialRaw <= 49) {
-              specialNumber = specialRaw;
-            }
+            specialNumber = normalizeSpecialValue(row[seqKeys[6]], cfg.specialMin, cfg.specialMax);
           }
         }
 
@@ -464,15 +462,12 @@
         let specialNumber = inferSpecial(
           row,
           ["second", "special", "specialnumber", "specialnum", "secondareanumber", "第二區", "第二區號碼"],
-          1,
-          8
+          cfg.specialMin,
+          cfg.specialMax
         );
 
         if (specialNumber == null) {
-          const secondRaw = Number(firstMatchValue(row, ["second"]));
-          if (Number.isFinite(secondRaw) && secondRaw >= 1 && secondRaw <= 8) {
-            specialNumber = secondRaw;
-          }
+          specialNumber = normalizeSpecialValue(firstMatchValue(row, ["second"]), cfg.specialMin, cfg.specialMax);
         }
 
         if (numbers.length > 6) numbers = numbers.slice(0, 6);
@@ -506,75 +501,10 @@
     };
   }
 
-  function normalizeDrawObject(gameKey, draw) {
-    if (!draw || typeof draw !== "object") return null;
-    const cfg = Object.values(GAME_CONFIG).find(g => g.key === gameKey);
-    if (!cfg) return null;
-
-    let numbers = [];
-    let specialNumber = null;
-
-    if (Array.isArray(draw.numbers)) {
-      numbers = numericArray(draw.numbers, cfg.min, cfg.max);
-    } else if (Array.isArray(draw.drawNumberSize)) {
-      numbers = numericArray(draw.drawNumberSize, cfg.min, cfg.max);
-    } else if (Array.isArray(draw.orderNumbers)) {
-      numbers = numericArray(draw.orderNumbers, cfg.min, cfg.max);
-    }
-
-    if (gameKey === "lotto649") {
-      specialNumber = Number(draw.specialNumber ?? draw.bonusNumber ?? draw.specialNum ?? null);
-      if (!Number.isFinite(specialNumber)) specialNumber = null;
-    }
-
-    if (gameKey === "superLotto638") {
-      specialNumber = Number(draw.specialNumber ?? draw.secondNumber ?? draw.secondAreaNumber ?? draw.specialNum ?? null);
-      if (!Number.isFinite(specialNumber)) specialNumber = null;
-    }
-
-    if (gameKey === "bingo") {
-      specialNumber = Number(draw.specialNumber ?? draw.superNumber ?? null);
-      if (!Number.isFinite(specialNumber)) specialNumber = null;
-    }
-
-    return {
-      period: String(draw.period ?? draw.issue ?? ""),
-      drawDate: String(draw.drawDate ?? draw.lotteryDate ?? draw.date ?? ""),
-      redeemableDate: String(draw.redeemableDate ?? ""),
-      numbers,
-      orderNumbers: Array.isArray(draw.orderNumbers) ? draw.orderNumbers : numbers.slice(),
-      specialNumber,
-      source: draw.source || "latest-json"
-    };
-  }
-
-  function normalizeDrawArray(gameKey, arr) {
-    if (!Array.isArray(arr)) return [];
-    return arr
-      .map(item => normalizeDrawObject(gameKey, item))
-      .filter(Boolean)
-      .filter(item => item.period || item.drawDate || item.numbers.length);
-  }
-
   function toSortableTime(draw) {
-    const raw = draw?.drawDate ? String(draw.drawDate).trim() : "";
-    let safeDate = 0;
-
-    const stable = parseStableDateParts(raw);
-    if (stable) {
-      safeDate = Date.UTC(
-        Number(stable.year),
-        Number(stable.month) - 1,
-        Number(stable.day),
-        Number(stable.hour),
-        Number(stable.minute),
-        Number(stable.second)
-      );
-    } else {
-      const dateValue = raw ? new Date(raw).getTime() : 0;
-      safeDate = Number.isFinite(dateValue) ? dateValue : 0;
-    }
-
+    const raw = String(draw?.drawDate || "").replace(" ", "T");
+    const dateValue = raw ? new Date(raw).getTime() : 0;
+    const safeDate = Number.isFinite(dateValue) ? dateValue : 0;
     const safePeriod = Number(draw?.period || 0);
     return { safeDate, safePeriod };
   }
@@ -588,76 +518,63 @@
     });
   }
 
-  function dedupeDraws(draws) {
-    const map = new Map();
+  function getLatestDraw(gameKey) {
+    const raw =
+      state.latestJson?.[gameKey]?.latestOfficial ||
+      state.latestJson?.[gameKey]?.latest ||
+      state.latestJson?.officialLatest?.[gameKey] ||
+      null;
 
-    for (const item of draws) {
-      const key = `${item.period || ""}__${item.drawDate || ""}`;
-      if (!map.has(key)) {
-        map.set(key, item);
+    const gameCodeMap = {
+      bingo: "bingo",
+      daily539: "539",
+      lotto649: "649",
+      superLotto638: "638"
+    };
+
+    return sanitizeDraw(gameCodeMap[gameKey], raw);
+  }
+
+  function getHistory(gameKey, limit) {
+    const gameCodeMap = {
+      bingo: "bingo",
+      daily539: "539",
+      lotto649: "649",
+      superLotto638: "638"
+    };
+    const gameCode = gameCodeMap[gameKey];
+
+    const history = (state.history[gameKey] || [])
+      .map(item => sanitizeDraw(gameCode, item))
+      .filter(Boolean);
+
+    const latest = getLatestDraw(gameKey);
+
+    const merged = [...history];
+    if (latest) {
+      const latestKey = `${latest.period || ""}__${latest.drawDate || ""}`;
+      const idx = merged.findIndex(item => `${item.period || ""}__${item.drawDate || ""}` === latestKey);
+      if (idx >= 0) {
+        merged[idx] = latest;
       } else {
-        const oldItem = map.get(key);
-        const oldLen = oldItem?.numbers?.length || 0;
-        const newLen = item?.numbers?.length || 0;
-        if (newLen >= oldLen) {
-          map.set(key, item);
+        merged.push(latest);
+      }
+    }
+
+    const dedupedMap = new Map();
+    for (const item of merged) {
+      const key = `${item.period || ""}__${item.drawDate || ""}`;
+      if (!dedupedMap.has(key)) {
+        dedupedMap.set(key, item);
+      } else {
+        const oldItem = dedupedMap.get(key);
+        if ((item.numbers?.length || 0) >= (oldItem.numbers?.length || 0)) {
+          dedupedMap.set(key, item);
         }
       }
     }
 
-    return [...map.values()];
-  }
-
-  function getLatestDraw(gameKey) {
-    const candidates = [
-      state.latestJson?.[gameKey]?.latestOfficial,
-      state.latestJson?.[gameKey]?.latest,
-      state.latestJson?.officialLatest?.[gameKey],
-      state.latestJson?.latestOfficial?.[gameKey]
-    ];
-
-    for (const item of candidates) {
-      const normalized = normalizeDrawObject(gameKey, item);
-      if (normalized) return normalized;
-    }
-
-    return null;
-  }
-
-  function getRecentOfficialDraws(gameKey) {
-    const candidates = [
-      state.latestJson?.[gameKey]?.recentOfficial,
-      state.latestJson?.[gameKey]?.recent,
-      state.latestJson?.[gameKey]?.history,
-      state.latestJson?.[gameKey]?.draws,
-      state.latestJson?.[gameKey]?.latestFive,
-      state.latestJson?.[gameKey]?.latest5,
-      state.latestJson?.officialRecent?.[gameKey],
-      state.latestJson?.recentOfficial?.[gameKey],
-      state.latestJson?.latestFive?.[gameKey],
-      state.latestJson?.latest5?.[gameKey]
-    ];
-
-    for (const list of candidates) {
-      const normalized = normalizeDrawArray(gameKey, list);
-      if (normalized.length) {
-        return sortDrawsDesc(dedupeDraws(normalized));
-      }
-    }
-
-    const latest = getLatestDraw(gameKey);
-    return latest ? [latest] : [];
-  }
-
-  function getHistory(gameKey, limit) {
-    const history = state.history[gameKey] || [];
-    const latest = getLatestDraw(gameKey);
-    const recentOfficial = getRecentOfficialDraws(gameKey);
-
-    const merged = [...history, ...recentOfficial];
-    if (latest) merged.push(latest);
-
-    return sortDrawsDesc(dedupeDraws(merged)).slice(0, limit);
+    return sortDrawsDesc([...dedupedMap.values()]).slice(0, limit);
   }
 
   function frequencyAnalysis(draws, min, max) {
@@ -777,8 +694,8 @@
     const miss = new Map(range(1, 8).map(n => [n, 0]));
 
     draws.forEach(draw => {
-      const s = Number(draw.specialNumber);
-      if (Number.isFinite(s) && s >= 1 && s <= 8) {
+      const s = normalizeSpecialValue(draw.specialNumber, 1, 8);
+      if (s != null) {
         map.set(s, (map.get(s) || 0) + 1);
       }
     });
@@ -787,7 +704,7 @@
       let missCount = 0;
       let found = false;
       for (const draw of draws) {
-        if (Number(draw.specialNumber) === n) {
+        if (normalizeSpecialValue(draw.specialNumber, 1, 8) === n) {
           found = true;
           break;
         }
@@ -797,6 +714,36 @@
     });
 
     return range(1, 8)
+      .map(n => ({
+        number: n,
+        score: (map.get(n) || 0) * 2 + (miss.get(n) || 0) * 1.2
+      }))
+      .sort((a, b) => b.score - a.score || a.number - b.number);
+  }
+
+  function buildSpecialPool649(draws) {
+    const map = new Map(range(1, 49).map(n => [n, 0]));
+    const miss = new Map(range(1, 49).map(n => [n, 0]));
+
+    draws.forEach(draw => {
+      const s = normalizeSpecialValue(draw.specialNumber, 1, 49);
+      if (s != null) map.set(s, (map.get(s) || 0) + 1);
+    });
+
+    range(1, 49).forEach(n => {
+      let missCount = 0;
+      let found = false;
+      for (const draw of draws) {
+        if (normalizeSpecialValue(draw.specialNumber, 1, 49) === n) {
+          found = true;
+          break;
+        }
+        missCount += 1;
+      }
+      miss.set(n, found ? missCount : draws.length);
+    });
+
+    return range(1, 49)
       .map(n => ({
         number: n,
         score: (map.get(n) || 0) * 2 + (miss.get(n) || 0) * 1.2
@@ -854,21 +801,30 @@
       { mode: "衝刺組", desc: "加大變化幅度，做高低搭配", strategy: "attack", shift: 1 }
     ];
 
-    const spPool = gameCode === "638" ? buildSecondAreaPool(draws) : [];
+    const spPool638 = gameCode === "638" ? buildSecondAreaPool(draws) : [];
+    const spPool649 = gameCode === "649" ? buildSpecialPool649(draws) : [];
 
     return baseModes.slice(0, setCount).map((item, idx) => {
       let specialNumber = null;
 
       if (gameCode === "649") {
-        specialNumber = latestDraw?.specialNumber ?? null;
+        specialNumber =
+          spPool649[idx]?.number ??
+          spPool649[0]?.number ??
+          normalizeSpecialValue(latestDraw?.specialNumber, 1, 49) ??
+          null;
       }
 
       if (gameCode === "638") {
         specialNumber =
-          spPool[idx]?.number ??
-          spPool[0]?.number ??
-          latestDraw?.specialNumber ??
+          spPool638[idx]?.number ??
+          spPool638[0]?.number ??
+          normalizeSpecialValue(latestDraw?.specialNumber, 1, 8) ??
           1;
+      }
+
+      if (gameCode === "bingo") {
+        specialNumber = normalizeSpecialValue(latestDraw?.specialNumber, 1, 80);
       }
 
       return {
@@ -885,9 +841,12 @@
     return (predicted || []).filter(n => actualSet.has(n)).length;
   }
 
-  function countSpecialHit(predictedSpecial, actualSpecial) {
-    if (predictedSpecial == null || actualSpecial == null) return 0;
-    return Number(predictedSpecial) === Number(actualSpecial) ? 1 : 0;
+  function countSpecialHit(predictedSpecial, actualSpecial, gameCode) {
+    const cfg = GAME_CONFIG[gameCode];
+    const p = normalizeSpecialValue(predictedSpecial, cfg.specialMin, cfg.specialMax);
+    const a = normalizeSpecialValue(actualSpecial, cfg.specialMin, cfg.specialMax);
+    if (p == null || a == null) return 0;
+    return p === a ? 1 : 0;
   }
 
   function simulatePredictionForIndex(gameCode, historyDraws) {
@@ -963,18 +922,20 @@
     const cfg = GAME_CONFIG[gameCode];
     const list = readPredictionHistory();
 
+    const safeLatest = sanitizeDraw(gameCode, latestDraw);
+
     const record = {
       id: `${gameCode}_${Date.now()}`,
       gameCode,
       gameKey: cfg.key,
       gameLabel: cfg.label,
       createdAt: new Date().toISOString(),
-      referencePeriod: latestDraw?.period || "",
-      referenceDrawDate: latestDraw?.drawDate || "",
+      referencePeriod: safeLatest?.period || "",
+      referenceDrawDate: safeLatest?.drawDate || "",
       modes: modes.map(mode => ({
         mode: mode.mode,
         numbers: mode.numbers || [],
-        specialNumber: mode.specialNumber ?? null
+        specialNumber: normalizeSpecialValue(mode.specialNumber, cfg.specialMin, cfg.specialMax)
       })),
       checked: false,
       resultPeriod: "",
@@ -1004,7 +965,7 @@
 
       if (latestPeriodNum > refPeriodNum) {
         const bestHit = Math.max(...item.modes.map(mode => countHits(mode.numbers || [], latest.numbers || [])));
-        const bestSpecialHit = Math.max(...item.modes.map(mode => countSpecialHit(mode.specialNumber, latest.specialNumber)));
+        const bestSpecialHit = Math.max(...item.modes.map(mode => countSpecialHit(mode.specialNumber, latest.specialNumber, item.gameCode)));
 
         item.checked = true;
         item.resultPeriod = latest.period || "";
@@ -1117,6 +1078,7 @@
 
   function saveUiSettings() {
     const payload = {
+      lotterySelect: $("lotterySelect")?.value || "bingo",
       setCount: $("setCount")?.value || "3",
       historyPeriods: $("historyPeriods")?.value || "50",
       bingoCount: $("bingoCount")?.value || "10"
@@ -1127,6 +1089,7 @@
   function restoreUiSettings() {
     try {
       const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      if (raw.lotterySelect && $("lotterySelect")) $("lotterySelect").value = raw.lotterySelect;
       if (raw.setCount && $("setCount")) $("setCount").value = raw.setCount;
       if (raw.historyPeriods && $("historyPeriods")) $("historyPeriods").value = raw.historyPeriods;
       if (raw.bingoCount && $("bingoCount")) $("bingoCount").value = raw.bingoCount;
@@ -1135,13 +1098,20 @@
 
   function renderBalls(numbers, specialNumber = null, specialLabel = "", type = "dark") {
     const ballClass = type === "light" ? "ball main" : "ball";
-    const main = (numbers || []).map(n => `<span class="${ballClass}">${pad2(n)}</span>`).join("");
+    const main = (numbers || [])
+      .map(n => `<span class="${ballClass}">${pad2(n)}</span>`)
+      .join("");
 
-    const special = specialNumber !== null && specialNumber !== undefined
+    const safeSpecial =
+      specialNumber === null || specialNumber === undefined || specialNumber === ""
+        ? null
+        : Number(specialNumber);
+
+    const special = Number.isFinite(safeSpecial)
       ? `
         <div class="special-box">
           ${specialLabel ? `<span>${escapeHtml(specialLabel)}</span>` : ""}
-          <span class="ball special">${pad2(specialNumber)}</span>
+          <span class="ball special">${pad2(safeSpecial)}</span>
         </div>
       `
       : "";
@@ -1172,9 +1142,7 @@
     const cfg = GAME_CONFIG[gameCode];
     if (!draws.length) return `<div class="text-muted">尚無資料</div>`;
 
-    const recentFive = getHistory(cfg.key, 5);
-
-    return recentFive.map(draw => `
+    return sortDrawsDesc(draws).slice(0, 5).map(draw => `
       <div class="latest-five-item">
         <div class="latest-five-issue">
           第 ${escapeHtml(draw.period || "—")} 期｜${escapeHtml(formatDate(draw.drawDate || ""))}
@@ -1222,61 +1190,30 @@
     `;
   }
 
-  function getLagMinutesFromValue(value) {
-    if (!value) return null;
-
-    const stable = parseStableDateParts(value);
-    if (stable) {
-      const ts = new Date(
-        Number(stable.year),
-        Number(stable.month) - 1,
-        Number(stable.day),
-        Number(stable.hour),
-        Number(stable.minute),
-        Number(stable.second)
-      ).getTime();
-
-      if (Number.isFinite(ts)) {
-        return Math.max(0, Math.floor((Date.now() - ts) / 60000));
-      }
-    }
-
-    const ts = new Date(String(value).trim()).getTime();
-    if (Number.isFinite(ts)) {
-      return Math.max(0, Math.floor((Date.now() - ts) / 60000));
-    }
-
-    return null;
-  }
-
   function getDataStatus(gameCode, draws, latestDraw) {
     const historyPath = state.historySourcePath[GAME_CONFIG[gameCode].key] || "";
     const latestPath = state.latestJsonPath || "";
     const generatedAt = state.latestJson?.generatedAt || "";
     const source = latestDraw?.source || state.latestJson?.source || "unknown";
-
     const latestStamp = latestDraw?.drawDate || "";
-    const generatedStamp = state.latestJson?.generatedAt || "";
-
-    let lagMin = getLagMinutesFromValue(generatedStamp);
-    if (lagMin === null) {
-      lagMin = getLagMinutesFromValue(latestStamp);
-    }
+    const lagMin = latestStamp
+      ? Math.max(0, Math.floor((Date.now() - new Date(String(latestStamp).replace(" ", "T")).getTime()) / 60000))
+      : null;
 
     let syncText = "—";
     let compareText = "—";
     let refreshText = "資料已更新";
 
     if (gameCode === "bingo") {
-      if (lagMin === null) {
+      if (lagMin === null || Number.isNaN(lagMin)) {
         syncText = "未知";
         compareText = "無法判定";
         refreshText = "請稍後重整頁面";
-      } else if (lagMin <= 10) {
+      } else if (lagMin <= 15) {
         syncText = `正常（落後約 ${lagMin} 分鐘）`;
         compareText = "與官方站接近同步";
         refreshText = "目前資料新鮮，可直接使用";
-      } else if (lagMin <= 30) {
+      } else if (lagMin <= 60) {
         syncText = `稍慢（落後約 ${lagMin} 分鐘）`;
         compareText = "可能比官方站慢一到數期";
         refreshText = "可稍後再重整，或等待 workflow 更新";
@@ -1346,7 +1283,7 @@
         <div class="result-card highlight-card">
           <div class="card-title">資料提示</div>
           <div class="text-block">
-            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=883</b>。
+            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=89</b>。
           </div>
         </div>
       `;
@@ -1442,7 +1379,7 @@
       <div class="v84-kpi-card">
         <div class="v84-kpi-label">最新期數</div>
         <div class="v84-kpi-value">${escapeHtml(latestDraw?.period || "—")}</div>
-        <div class="v84-kpi-note">${escapeHtml(latestDraw?.drawDate ? formatDateOnly(latestDraw.drawDate) : "尚未載入")}</div>
+        <div class="v84-kpi-note">${escapeHtml(latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未載入")}</div>
       </div>
       <div class="v84-kpi-card">
         <div class="v84-kpi-label">已儲存預測</div>
@@ -1511,7 +1448,7 @@
       .replace(/命中追蹤/g, '<div id="anchor-tracking" class="section-anchor"></div>命中追蹤')
       .replace(/AI 推薦組合/g, '<div id="anchor-ai" class="section-anchor"></div>AI 推薦組合')
       .replace(/回測表現/g, '<div id="anchor-backtest" class="section-anchor"></div>回測表現')
-      .replace(/熱號分析/g, '<div id="anchor-overview" class="section-anchor"></div><div id="anchor-analysis" class="section-anchor"></div>熱號分析')
+      .replace(/熱號分析/g, '<div id="anchor-analysis" class="section-anchor"></div>熱號分析')
       .replace(/最新五期/g, '<div id="anchor-latest" class="section-anchor"></div>最新五期');
   }
 
@@ -1519,14 +1456,12 @@
     const saveBtn = $("v84InlineSaveBtn");
     const clearBtn = $("v84InlineClearBtn");
 
-    if (saveBtn && !saveBtn.dataset.bound) {
-      saveBtn.dataset.bound = "1";
-      saveBtn.addEventListener("click", () => saveCurrentPrediction());
+    if (saveBtn) {
+      saveBtn.onclick = () => saveCurrentPrediction();
     }
 
-    if (clearBtn && !clearBtn.dataset.bound) {
-      clearBtn.dataset.bound = "1";
-      clearBtn.addEventListener("click", () => clearPredictionRecords());
+    if (clearBtn) {
+      clearBtn.onclick = () => clearPredictionRecords();
     }
   }
 
@@ -1537,7 +1472,7 @@
     state.currentGameCode = gameCode;
     updatePredictionTracking();
 
-    const latestDraw = getLatestDraw(cfg.key);
+    const latestDraw = sanitizeDraw(gameCode, getLatestDraw(cfg.key));
     const draws = getHistory(cfg.key, historyPeriods);
     const fullHistory = getHistory(cfg.key, 120);
     const status = getDataStatus(gameCode, draws, latestDraw);
@@ -1722,10 +1657,39 @@
   }
 
   function saveCurrentPrediction() {
-    if (!state.currentGameCode || !state.currentLatestDraw || !state.currentModes?.length) return;
-    savePredictionRecord(state.currentGameCode, state.currentLatestDraw, state.currentModes);
+    if (!state.currentGameCode) {
+      alert("請先執行一次預測。");
+      return;
+    }
+
+    if (!state.currentLatestDraw) {
+      alert("目前沒有可儲存的最新期數資料。");
+      return;
+    }
+
+    if (!state.currentModes || !state.currentModes.length) {
+      alert("目前沒有可儲存的預測組合。");
+      return;
+    }
+
+    const record = savePredictionRecord(
+      state.currentGameCode,
+      sanitizeDraw(state.currentGameCode, state.currentLatestDraw),
+      state.currentModes.map(mode => ({
+        ...mode,
+        specialNumber: normalizeSpecialValue(
+          mode.specialNumber,
+          GAME_CONFIG[state.currentGameCode].specialMin,
+          GAME_CONFIG[state.currentGameCode].specialMax
+        )
+      }))
+    );
+
+    pushOp(`已儲存 ${record.gameLabel} 預測`);
+    renderMiniStats();
+    renderHeroKpis(state.currentGameCode);
     renderPrediction(state.currentGameCode);
-    alert("已儲存本次預測，之後會自動追蹤命中。");
+    alert("已儲存本次預測。");
   }
 
   function clearPredictionRecords() {
@@ -1757,14 +1721,6 @@
     state.historySourcePath.daily539 = daily539History.path || "";
     state.historySourcePath.lotto649 = lotto649History.path || "";
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
-
-    console.log("[V88.3] latest loaded:", latestResult.path);
-    console.log("[V88.3] history counts:", {
-      bingo: state.history.bingo.length,
-      daily539: state.history.daily539.length,
-      lotto649: state.history.lotto649.length,
-      superLotto638: state.history.superLotto638.length
-    });
   }
 
   async function runPrediction(gameCode) {
@@ -1783,27 +1739,24 @@
     const clearBtn = $("v84ClearBtn");
     const topBtn = $("v84TopBtn");
 
-    if (saveBtn && !saveBtn.dataset.boundV84) {
-      saveBtn.dataset.boundV84 = "1";
-      saveBtn.addEventListener("click", () => saveCurrentPrediction());
+    if (saveBtn) {
+      saveBtn.onclick = () => saveCurrentPrediction();
     }
 
-    if (clearBtn && !clearBtn.dataset.boundV84) {
-      clearBtn.dataset.boundV84 = "1";
-      clearBtn.addEventListener("click", () => clearPredictionRecords());
+    if (clearBtn) {
+      clearBtn.onclick = () => clearPredictionRecords();
     }
 
-    if (topBtn && !topBtn.dataset.boundV84) {
-      topBtn.dataset.boundV84 = "1";
-      topBtn.addEventListener("click", () => {
+    if (topBtn) {
+      topBtn.onclick = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
-      });
+      };
     }
 
-    ["setCount", "historyPeriods", "bingoCount"].forEach(id => {
+    ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV84) {
-        el.dataset.boundV84 = "1";
+      if (el && !el.dataset.boundV89) {
+        el.dataset.boundV89 = "1";
         el.addEventListener("change", saveUiSettings);
       }
     });
@@ -1834,119 +1787,4 @@
       showError(err.message || "初始化失敗");
     }
   });
-})();
-
-(() => {
-  function v851$(id) {
-    return document.getElementById(id);
-  }
-
-  function getGameLabel(code) {
-    const map = {
-      bingo: "Bingo Bingo",
-      "649": "大樂透",
-      "638": "威力彩",
-      "539": "今彩539"
-    };
-    return map[code] || "Bingo Bingo";
-  }
-
-  function getHeroButtonText(code) {
-    const map = {
-      bingo: "立即預測 Bingo",
-      "649": "立即預測 大樂透",
-      "638": "立即預測 威力彩",
-      "539": "立即預測 今彩539"
-    };
-    return map[code] || "立即預測 Bingo";
-  }
-
-  function syncCurrentGameUi() {
-    const select = v851$("lotterySelect");
-    const code = select?.value || "bingo";
-    const label = getGameLabel(code);
-
-    const badge = v851$("v84CurrentGameBadge");
-    if (badge) {
-      badge.textContent = `目前彩種：${label}`;
-    }
-
-    const heroBtn = v851$("heroQuickPredictBtn");
-    if (heroBtn) {
-      heroBtn.textContent = getHeroButtonText(code);
-      heroBtn.setAttribute("onclick", `quickPredict('${code}', this)`);
-    }
-
-    document.querySelectorAll(".v84-game-card").forEach(card => {
-      card.style.outline = "";
-      card.style.transform = "";
-    });
-
-    const cardMap = {
-      bingo: 0,
-      "649": 1,
-      "638": 2,
-      "539": 3
-    };
-
-    const cards = document.querySelectorAll(".v84-game-card");
-    const activeCard = cards[cardMap[code]];
-    if (activeCard) {
-      activeCard.style.outline = "2px solid rgba(103,232,249,.85)";
-      activeCard.style.transform = "translateY(-2px)";
-    }
-  }
-
-  function bindV851SelectSync() {
-    const select = v851$("lotterySelect");
-    if (!select || select.dataset.v851Bound === "1") return;
-
-    select.dataset.v851Bound = "1";
-    select.addEventListener("change", syncCurrentGameUi);
-  }
-
-  function initV851() {
-    bindV851SelectSync();
-    syncCurrentGameUi();
-  }
-
-  const originalRunPrediction = window.runPrediction;
-  if (typeof originalRunPrediction === "function" && !originalRunPrediction.__v851Wrapped) {
-    window.runPrediction = function () {
-      const result = originalRunPrediction.apply(this, arguments);
-      setTimeout(() => {
-        syncCurrentGameUi();
-      }, 80);
-      return result;
-    };
-    window.runPrediction.__v851Wrapped = true;
-  }
-
-  const originalQuickPredict = window.quickPredict;
-  if (typeof originalQuickPredict === "function" && !originalQuickPredict.__v851Wrapped) {
-    window.quickPredict = function (gameCode, btn) {
-      const select = v851$("lotterySelect");
-      if (select) select.value = gameCode;
-      syncCurrentGameUi();
-      return originalQuickPredict.apply(this, arguments);
-    };
-    window.quickPredict.__v851Wrapped = true;
-  }
-
-  const originalSelectGame = window.selectGame;
-  if (typeof originalSelectGame === "function" && !originalSelectGame.__v851Wrapped) {
-    window.selectGame = function (gameCode, btn) {
-      const select = v851$("lotterySelect");
-      if (select) select.value = gameCode;
-      syncCurrentGameUi();
-      return originalSelectGame.apply(this, arguments);
-    };
-    window.selectGame.__v851Wrapped = true;
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initV851);
-  } else {
-    initV851();
-  }
 })();
