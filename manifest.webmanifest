@@ -1,14 +1,22 @@
 {
-  "name": "台灣彩券預測助手 V60",
-  "short_name": "彩券V60",
-  "start_url": "/",
+  "name": "台灣彩券 AI 預測系統",
+  "short_name": "彩券AI",
+  "description": "Bingo、今彩539、大樂透、威力彩｜首頁入口＋儀表板總覽＋命中追蹤＋資料狀態",
+  "start_url": "./?v=89",
   "display": "standalone",
-  "background_color": "#2563eb",
-  "theme_color": "#2563eb",
+  "background_color": "#071021",
+  "theme_color": "#081224",
+  "lang": "zh-Hant",
+  "scope": "./",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
