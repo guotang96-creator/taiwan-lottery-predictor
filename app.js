@@ -1653,3 +1653,117 @@
     }
   });
 })();
+(() => {
+  function v851$(id) {
+    return document.getElementById(id);
+  }
+
+  function getGameLabel(code) {
+    const map = {
+      bingo: "Bingo Bingo",
+      "649": "大樂透",
+      "638": "威力彩",
+      "539": "今彩539"
+    };
+    return map[code] || "Bingo Bingo";
+  }
+
+  function getHeroButtonText(code) {
+    const map = {
+      bingo: "立即預測 Bingo",
+      "649": "立即預測 大樂透",
+      "638": "立即預測 威力彩",
+      "539": "立即預測 今彩539"
+    };
+    return map[code] || "立即預測 Bingo";
+  }
+
+  function syncCurrentGameUi() {
+    const select = v851$("lotterySelect");
+    const code = select?.value || "bingo";
+    const label = getGameLabel(code);
+
+    const badge = v851$("v84CurrentGameBadge");
+    if (badge) {
+      badge.textContent = `目前彩種：${label}`;
+    }
+
+    const heroBtn = v851$("heroQuickPredictBtn");
+    if (heroBtn) {
+      heroBtn.textContent = getHeroButtonText(code);
+      heroBtn.setAttribute("onclick", `quickPredict('${code}', this)`);
+    }
+
+    document.querySelectorAll(".v84-game-card").forEach(card => {
+      card.style.outline = "";
+      card.style.transform = "";
+    });
+
+    const cardMap = {
+      bingo: 0,
+      "649": 1,
+      "638": 2,
+      "539": 3
+    };
+
+    const cards = document.querySelectorAll(".v84-game-card");
+    const activeCard = cards[cardMap[code]];
+    if (activeCard) {
+      activeCard.style.outline = "2px solid rgba(103,232,249,.85)";
+      activeCard.style.transform = "translateY(-2px)";
+    }
+  }
+
+  function bindV851SelectSync() {
+    const select = v851$("lotterySelect");
+    if (!select || select.dataset.v851Bound === "1") return;
+
+    select.dataset.v851Bound = "1";
+    select.addEventListener("change", syncCurrentGameUi);
+  }
+
+  function initV851() {
+    bindV851SelectSync();
+    syncCurrentGameUi();
+  }
+
+  const originalRunPrediction = window.runPrediction;
+  if (typeof originalRunPrediction === "function" && !originalRunPrediction.__v851Wrapped) {
+    window.runPrediction = function () {
+      const result = originalRunPrediction.apply(this, arguments);
+      setTimeout(() => {
+        syncCurrentGameUi();
+      }, 80);
+      return result;
+    };
+    window.runPrediction.__v851Wrapped = true;
+  }
+
+  const originalQuickPredict = window.quickPredict;
+  if (typeof originalQuickPredict === "function" && !originalQuickPredict.__v851Wrapped) {
+    window.quickPredict = function (gameCode, btn) {
+      const select = v851$("lotterySelect");
+      if (select) select.value = gameCode;
+      syncCurrentGameUi();
+      return originalQuickPredict.apply(this, arguments);
+    };
+    window.quickPredict.__v851Wrapped = true;
+  }
+
+  const originalSelectGame = window.selectGame;
+  if (typeof originalSelectGame === "function" && !originalSelectGame.__v851Wrapped) {
+    window.selectGame = function (gameCode, btn) {
+      const select = v851$("lotterySelect");
+      if (select) select.value = gameCode;
+      syncCurrentGameUi();
+      return originalSelectGame.apply(this, arguments);
+    };
+    window.selectGame.__v851Wrapped = true;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initV851);
+  } else {
+    initV851();
+  }
+})();
