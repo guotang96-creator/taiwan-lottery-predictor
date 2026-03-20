@@ -1,9 +1,11 @@
 (() => {
-  const APP_VERSION = "V90 自動學習權重版";
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v90";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v90";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v90";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v90";
+  const APP_VERSION = "V91 自動學習排程版";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v91";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v91";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v91";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v91";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v91";
+  const AUTO_REFRESH_MS = 5 * 60 * 1000;
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -98,6 +100,9 @@
     currentGameCode: null,
     currentModes: [],
     currentLatestDraw: null,
+    autoTimer: null,
+    autoRefreshing: false,
+    lastAutoRefreshAt: null,
     history: {
       bingo: [],
       daily539: [],
@@ -118,6 +123,130 @@
 
   function pad2(n) {
     return String(n).padStart(2, "0");
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function range(min, max) {
+    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  }
+
+  function uniqSorted(arr) {
+    return [...new Set(arr)].sort((a, b) => a - b);
+  }
+
+  function numericArray(arr, min, max) {
+    if (!Array.isArray(arr)) return [];
+    return uniqSorted(
+      arr.map(v => Number(v)).filter(v => Number.isFinite(v) && v >= min && v <= max)
+    );
+  }
+
+  function setBadge(text, ok = true) {
+    const badge = $("resultBadge");
+    if (!badge) return;
+    badge.textContent = text;
+    if (ok) {
+      badge.style.background = "rgba(255,255,255,.08)";
+      badge.style.color = "#ffffff";
+      badge.style.border = "1px solid rgba(255,255,255,.10)";
+    } else {
+      badge.style.background = "rgba(255,193,7,.15)";
+      badge.style.color = "#ffe08a";
+      badge.style.border = "1px solid rgba(255,193,7,.25)";
+    }
+  }
+
+  function showToast(text) {
+    try {
+      const old = document.getElementById("v91Toast");
+      if (old) old.remove();
+
+      const el = document.createElement("div");
+      el.id = "v91Toast";
+      el.textContent = text;
+      el.style.position = "fixed";
+      el.style.left = "50%";
+      el.style.bottom = "110px";
+      el.style.transform = "translateX(-50%)";
+      el.style.background = "rgba(6,17,32,.95)";
+      el.style.color = "#fff";
+      el.style.padding = "12px 18px";
+      el.style.borderRadius = "999px";
+      el.style.zIndex = "3000";
+      el.style.fontWeight = "800";
+      el.style.fontSize = "14px";
+      el.style.border = "1px solid rgba(255,255,255,.1)";
+      el.style.boxShadow = "0 10px 30px rgba(0,0,0,.28)";
+      document.body.appendChild(el);
+
+      setTimeout(() => {
+        el.style.transition = "opacity .2s ease";
+        el.style.opacity = "0";
+        setTimeout(() => el.remove(), 220);
+      }, 1400);
+    } catch {}
+  }
+
+  function formatDate(value) {
+    if (!value) return "—";
+    const raw = String(value).trim();
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+    if (m) {
+      return `${m[1]}-${m[2]}-${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
+    }
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return raw;
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
+  function toLocaleDateText(value) {
+    if (!value) return "尚未取得";
+    const raw = String(value).trim();
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+    if (m) {
+      return `${m[1]}/${m[2]}/${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
+    }
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return raw;
+    return d.toLocaleString("zh-TW");
+  }
+
+  function getSetCount() {
+    return Math.max(1, Math.min(5, Number($("setCount")?.value || 3)));
+  }
+
+  function normalizeSpecialValue(value, min = 1, max = 99) {
+    if (value === null || value === undefined || value === "") return null;
+    const num = Number(value);
+    if (!Number.isFinite(num)) return null;
+    if (min != null && num < min) return null;
+    if (max != null && num > max) return null;
+    return num;
+  }
+
+  function sanitizeDraw(gameCode, draw) {
+    if (!draw || typeof draw !== "object") return null;
+    const cfg = GAME_CONFIG[gameCode];
+    if (!cfg) return draw;
+
+    return {
+      ...draw,
+      numbers: Array.isArray(draw.numbers)
+        ? draw.numbers.map(v => Number(v)).filter(v => Number.isFinite(v))
+        : [],
+      orderNumbers: Array.isArray(draw.orderNumbers)
+        ? draw.orderNumbers.map(v => Number(v)).filter(v => Number.isFinite(v))
+        : [],
+      specialNumber: normalizeSpecialValue(draw.specialNumber, cfg.specialMin, cfg.specialMax)
+    };
   }
 
   function defaultLearningWeights() {
@@ -162,112 +291,17 @@
     writeLearningWeights(defaultLearningWeights());
   }
 
-  function normalizeSpecialValue(value, min = 1, max = 99) {
-    if (value === null || value === undefined || value === "") return null;
-    const num = Number(value);
-    if (!Number.isFinite(num)) return null;
-    if (min != null && num < min) return null;
-    if (max != null && num > max) return null;
-    return num;
-  }
-
-  function sanitizeDraw(gameCode, draw) {
-    if (!draw || typeof draw !== "object") return null;
-    const cfg = GAME_CONFIG[gameCode];
-    if (!cfg) return draw;
-
-    return {
-      ...draw,
-      numbers: Array.isArray(draw.numbers)
-        ? draw.numbers.map(v => Number(v)).filter(v => Number.isFinite(v))
-        : [],
-      orderNumbers: Array.isArray(draw.orderNumbers)
-        ? draw.orderNumbers.map(v => Number(v)).filter(v => Number.isFinite(v))
-        : [],
-      specialNumber: normalizeSpecialValue(draw.specialNumber, cfg.specialMin, cfg.specialMax)
-    };
-  }
-
-  function escapeHtml(str) {
-    return String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  function formatDate(value) {
-    if (!value) return "—";
-    const raw = String(value).trim();
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
-    if (m) {
-      return `${m[1]}-${m[2]}-${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
-    }
-    const d = new Date(raw);
-    if (Number.isNaN(d.getTime())) return raw;
-    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-  }
-
-  function toLocaleDateText(value) {
-    if (!value) return "尚未取得";
-    const raw = String(value).trim();
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
-    if (m) {
-      return `${m[1]}/${m[2]}/${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
-    }
-    const d = new Date(raw);
-    if (Number.isNaN(d.getTime())) return raw;
-    return d.toLocaleString("zh-TW");
-  }
-
-  function range(min, max) {
-    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
-  }
-
-  function uniqSorted(arr) {
-    return [...new Set(arr)].sort((a, b) => a - b);
-  }
-
-  function numericArray(arr, min, max) {
-    if (!Array.isArray(arr)) return [];
-    return uniqSorted(
-      arr.map(v => Number(v)).filter(v => Number.isFinite(v) && v >= min && v <= max)
-    );
-  }
-
-  function getSetCount() {
-    return Math.max(1, Math.min(5, Number($("setCount")?.value || 3)));
-  }
-
-  function setBadge(text, ok = true) {
-    const badge = $("resultBadge");
-    if (!badge) return;
-    badge.textContent = text;
-    if (ok) {
-      badge.style.background = "rgba(255,255,255,.08)";
-      badge.style.color = "#ffffff";
-      badge.style.border = "1px solid rgba(255,255,255,.10)";
-    } else {
-      badge.style.background = "rgba(255,193,7,.15)";
-      badge.style.color = "#ffe08a";
-      badge.style.border = "1px solid rgba(255,193,7,.25)";
+  function readAutoState() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(AUTO_STATE_KEY) || "{}");
+      return raw && typeof raw === "object" ? raw : {};
+    } catch {
+      return {};
     }
   }
 
-  function showError(message) {
-    const container = $("predictionResult");
-    if (!container) return;
-    setBadge("載入失敗", false);
-    container.innerHTML = `
-      <div class="v84-panel">
-        <div class="empty-state">
-          <div class="empty-icon">⚠️</div>
-          <div class="empty-title">資料載入失敗</div>
-          <div class="empty-text">${escapeHtml(message || "未知錯誤")}</div>
-        </div>
-      </div>
-    `;
+  function writeAutoState(data) {
+    localStorage.setItem(AUTO_STATE_KEY, JSON.stringify(data || {}));
   }
 
   async function fetchFirstText(paths) {
@@ -300,7 +334,6 @@
     for (let i = 0; i < line.length; i += 1) {
       const ch = line[i];
       const next = line[i + 1];
-
       if (ch === '"') {
         if (inQuotes && next === '"') {
           current += '"';
@@ -385,7 +418,6 @@
     for (const key of numberKeys) {
       const raw = String(row[key] ?? "").trim();
       if (!raw) continue;
-
       if (raw.includes(" ") || raw.includes("-") || raw.includes("|") || raw.includes("/")) {
         const parts = raw.split(/[\s|/-]+/).filter(Boolean);
         const nums = numericArray(parts, min, max);
@@ -396,7 +428,6 @@
     const rawValues = row.__raw || [];
     const nums = numericArray(rawValues, min, max);
     if (nums.length >= desiredCount) return nums.slice(0, desiredCount);
-
     return nums.slice(0, desiredCount);
   }
 
@@ -584,32 +615,23 @@
       .filter(Boolean);
 
     const latest = getLatestDraw(gameKey);
-
     const merged = [...history];
+
     if (latest) {
       const latestKey = `${latest.period || ""}__${latest.drawDate || ""}`;
       const idx = merged.findIndex(item => `${item.period || ""}__${item.drawDate || ""}` === latestKey);
-      if (idx >= 0) {
-        merged[idx] = latest;
-      } else {
-        merged.push(latest);
-      }
+      if (idx >= 0) merged[idx] = latest;
+      else merged.push(latest);
     }
 
-    const dedupedMap = new Map();
+    const deduped = new Map();
     for (const item of merged) {
       const key = `${item.period || ""}__${item.drawDate || ""}`;
-      if (!dedupedMap.has(key)) {
-        dedupedMap.set(key, item);
-      } else {
-        const oldItem = dedupedMap.get(key);
-        if ((item.numbers?.length || 0) >= (oldItem.numbers?.length || 0)) {
-          dedupedMap.set(key, item);
-        }
-      }
+      if (!deduped.has(key)) deduped.set(key, item);
+      else if ((item.numbers?.length || 0) >= (deduped.get(key).numbers?.length || 0)) deduped.set(key, item);
     }
 
-    return sortDrawsDesc([...dedupedMap.values()]).slice(0, limit);
+    return sortDrawsDesc([...deduped.values()]).slice(0, limit);
   }
 
   function frequencyAnalysis(draws, min, max) {
@@ -726,16 +748,7 @@
           t * weights.tail +
           latestPenalty;
 
-        return {
-          number,
-          score,
-          features: {
-            freq: f,
-            miss: m,
-            tail: t,
-            latestPenalty: latestNums.has(number) ? 1 : 0
-          }
-        };
+        return { number, score };
       })
       .sort((a, b) => b.score - a.score || a.number - b.number);
   }
@@ -908,7 +921,6 @@
     const cfg = GAME_CONFIG[gameCode];
     const target = historyDraws[0];
     const train = historyDraws.slice(1);
-
     if (!target || train.length < 5) return null;
 
     const modes = buildPredictionModes(gameCode, train, train[0]);
@@ -936,14 +948,7 @@
       }
 
       if (!results.length) {
-        return {
-          windowSize,
-          samples: 0,
-          avgHit: 0,
-          hit1: 0,
-          hit2: 0,
-          hit3: 0
-        };
+        return { windowSize, samples: 0, avgHit: 0, hit1: 0, hit2: 0, hit3: 0 };
       }
 
       const totalHit = results.reduce((sum, r) => sum + r.hit, 0);
@@ -993,6 +998,7 @@
         specialNumber: normalizeSpecialValue(mode.specialNumber, cfg.specialMin, cfg.specialMax)
       })),
       checked: false,
+      learned: false,
       resultPeriod: "",
       resultDrawDate: "",
       resultNumbers: [],
@@ -1008,7 +1014,7 @@
   }
 
   function applyLearningFromRecord(record) {
-    if (!record || !record.checked) return;
+    if (!record || !record.checked || record.learned) return false;
 
     const weightsAll = readLearningWeights();
     const gameCode = record.gameCode;
@@ -1045,11 +1051,14 @@
 
     weightsAll[gameCode] = current;
     writeLearningWeights(weightsAll);
+    record.learned = true;
+    return true;
   }
 
   function updatePredictionTracking() {
     const list = readPredictionHistory();
     let changed = false;
+    let learnedCount = 0;
 
     for (const item of list) {
       const latest = getLatestDraw(item.gameKey);
@@ -1069,14 +1078,17 @@
         item.resultSpecialNumber = latest.specialNumber ?? null;
         item.bestHit = bestHit;
         item.specialHit = bestSpecialHit;
+        changed = true;
+      }
 
-        applyLearningFromRecord(item);
+      if (applyLearningFromRecord(item)) {
+        learnedCount += 1;
         changed = true;
       }
     }
 
     if (changed) writePredictionHistory(list);
-    return list;
+    return { list, learnedCount };
   }
 
   function clearPredictionHistory() {
@@ -1328,25 +1340,23 @@
 
     let syncText = "—";
     let compareText = "—";
-    let refreshText = "資料已更新";
+    let refreshText = state.lastAutoRefreshAt
+      ? `系統最近自動檢查：${toLocaleDateText(state.lastAutoRefreshAt)}`
+      : "等待第一次自動檢查";
 
     if (gameCode === "bingo") {
       if (lagMin === null || Number.isNaN(lagMin)) {
         syncText = "未知";
         compareText = "無法判定";
-        refreshText = "請稍後重整頁面";
       } else if (lagMin <= 15) {
         syncText = `正常（落後約 ${lagMin} 分鐘）`;
         compareText = "與官方站接近同步";
-        refreshText = "目前資料新鮮，可直接使用";
       } else if (lagMin <= 60) {
         syncText = `稍慢（落後約 ${lagMin} 分鐘）`;
         compareText = "可能比官方站慢一到數期";
-        refreshText = "可稍後再重整，或等待 workflow 更新";
       } else {
         syncText = `偏慢（落後約 ${lagMin} 分鐘）`;
         compareText = "大機率落後官方站最新 Bingo";
-        refreshText = "建議稍後重新整理，或先查看官方站最新期別";
       }
     }
 
@@ -1389,12 +1399,16 @@
           <div class="card-title">歷史學習期數</div>
           <div class="text-block">${escapeHtml(String(status.historyCount))} 期</div>
         </div>
+        <div class="result-card full-width">
+          <div class="card-title">自動檢查狀態</div>
+          <div class="text-block">${escapeHtml(status.refreshText)}</div>
+        </div>
         ${
           gameCode === "bingo"
             ? `
               <div class="result-card full-width">
                 <div class="card-title">Bingo 即時同步狀態</div>
-                <div class="text-block">${escapeHtml(status.bingoSyncText)}</div>
+                <div class="text-block">${escapeHtml(status.bingoSyncText)}｜${escapeHtml(status.bingoCompareText)}</div>
               </div>
             `
             : ""
@@ -1409,7 +1423,7 @@
         <div class="result-card highlight-card">
           <div class="card-title">資料提示</div>
           <div class="text-block">
-            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=90</b>。
+            系統會每 5 分鐘自動檢查新資料。只有出現新一期時，才會自動比對與學習，不會重複學同一批資料。
           </div>
         </div>
       `;
@@ -1420,7 +1434,7 @@
         <div class="card-title">Bingo 官方比對提示</div>
         <div class="text-block">
           官方比對：${escapeHtml(status.bingoCompareText)}<br>
-          刷新建議：${escapeHtml(status.refreshText)}
+          自動檢查：${escapeHtml(status.refreshText)}
         </div>
       </div>
     `;
@@ -1442,8 +1456,9 @@
       </div>
 
       <div class="v84-toolbar">
-        <button id="v84InlineSaveBtn" type="button">儲存本次預測</button>
-        <button id="v84InlineClearBtn" type="button">清空命中紀錄</button>
+        <button id="v84InlineSaveBtn" class="toolbar-btn" type="button">儲存本次預測</button>
+        <button id="v84InlineClearBtn" class="toolbar-btn" type="button">清空命中紀錄</button>
+        <button id="v91InlineResetWeightsBtn" class="toolbar-btn" type="button">重置學習權重</button>
       </div>
 
       <div class="group-list" style="margin-top:14px;">
@@ -1455,7 +1470,8 @@
                 <div class="text-block" style="margin-bottom:10px;">
                   建立：${escapeHtml(formatDate(item.createdAt))}<br>
                   參考期數：${escapeHtml(item.referencePeriod || "—")}<br>
-                  ${item.checked ? `比對期數：${escapeHtml(item.resultPeriod || "—")}` : "尚未比對"}
+                  ${item.checked ? `比對期數：${escapeHtml(item.resultPeriod || "—")}` : "尚未比對"}<br>
+                  學習狀態：${item.learned ? "已學習" : (item.checked ? "待學習" : "等待比對")}
                 </div>
 
                 <div class="group-list" style="margin-bottom:12px;">
@@ -1552,7 +1568,7 @@
       $("v84CurrentGameBadge").textContent = gameCode ? `目前彩種：${GAME_CONFIG[gameCode].label}` : "尚未選擇彩種";
     }
     if ($("v84SiteStateBadge")) {
-      $("v84SiteStateBadge").textContent = gameCode ? "系統運作中" : "系統待命中";
+      $("v84SiteStateBadge").textContent = state.autoRefreshing ? "自動更新中" : "系統運作中";
     }
     if ($("v84DataStateText")) {
       $("v84DataStateText").textContent = latestDraw ? "已載入最新資料" : "待載入";
@@ -1561,7 +1577,7 @@
       $("v84LastUpdateText").textContent = latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未取得";
     }
     if ($("v84TrackingStateText")) {
-      $("v84TrackingStateText").textContent = "可用";
+      $("v84TrackingStateText").textContent = state.autoRefreshing ? "更新中" : "可用";
     }
   }
 
@@ -1582,9 +1598,21 @@
   function bindInlineTrackingButtons() {
     const saveBtn = $("v84InlineSaveBtn");
     const clearBtn = $("v84InlineClearBtn");
+    const resetBtn = $("v91InlineResetWeightsBtn");
 
     if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
     if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
+    if (resetBtn) {
+      resetBtn.onclick = () => {
+        resetLearningWeights();
+        if (state.currentGameCode) renderPrediction(state.currentGameCode);
+        showToast("已重置學習權重");
+      };
+    }
+  }
+
+  function getDataStatusForCurrent(gameCode, draws, latestDraw) {
+    return getDataStatus(gameCode, draws, latestDraw);
   }
 
   function renderPrediction(gameCode) {
@@ -1592,12 +1620,11 @@
     const historyPeriods = Number($("historyPeriods")?.value || 50);
 
     state.currentGameCode = gameCode;
-    updatePredictionTracking();
 
     const latestDraw = sanitizeDraw(gameCode, getLatestDraw(cfg.key));
     const draws = getHistory(cfg.key, historyPeriods);
     const fullHistory = getHistory(cfg.key, 120);
-    const status = getDataStatus(gameCode, draws, latestDraw);
+    const status = getDataStatusForCurrent(gameCode, draws, latestDraw);
 
     const frequency = frequencyAnalysis(draws, cfg.min, cfg.max);
     const miss = missAnalysis(draws, cfg.min, cfg.max);
@@ -1612,7 +1639,6 @@
     const container = $("predictionResult");
     const titleEl = $("resultGameName");
     if (titleEl) titleEl.textContent = `${cfg.label}｜${APP_VERSION}`;
-
     setBadge("已完成", true);
 
     container.innerHTML = `
@@ -1623,7 +1649,7 @@
               <h2 style="margin:0;">${escapeHtml(cfg.label)} 智慧預測結果</h2>
               <p class="result-subtitle">版本：${escapeHtml(APP_VERSION)}｜推薦組數：${getSetCount()} 組</p>
             </div>
-            <div class="badge">已完成分析</div>
+            <div class="badge">${state.autoRefreshing ? "自動更新中" : "已完成分析"}</div>
           </div>
         </div>
 
@@ -1782,22 +1808,19 @@
     renderOps();
     updateTopStatus(gameCode);
     injectAnchors();
-    pushOp(`已執行 ${cfg.label} 預測`);
   }
 
   function saveCurrentPrediction() {
     if (!state.currentGameCode) {
-      alert("請先執行一次預測。");
+      showToast("請先執行一次預測");
       return;
     }
-
     if (!state.currentLatestDraw) {
-      alert("目前沒有可儲存的最新期數資料。");
+      showToast("目前沒有可儲存的最新期數資料");
       return;
     }
-
     if (!state.currentModes || !state.currentModes.length) {
-      alert("目前沒有可儲存的預測組合。");
+      showToast("目前沒有可儲存的預測組合");
       return;
     }
 
@@ -1818,7 +1841,7 @@
     renderMiniStats();
     renderHeroKpis(state.currentGameCode);
     renderPrediction(state.currentGameCode);
-    alert("已儲存本次預測。");
+    showToast("已儲存本次預測");
   }
 
   function clearPredictionRecords() {
@@ -1826,7 +1849,7 @@
     renderMiniStats();
     renderHeroKpis(state.currentGameCode);
     if (state.currentGameCode) renderPrediction(state.currentGameCode);
-    alert("已清空命中紀錄。");
+    showToast("已清空命中紀錄");
   }
 
   async function initData() {
@@ -1852,15 +1875,112 @@
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
   }
 
+  function getPeriodSnapshot() {
+    return {
+      bingo: getLatestDraw("bingo")?.period || "",
+      daily539: getLatestDraw("daily539")?.period || "",
+      lotto649: getLatestDraw("lotto649")?.period || "",
+      superLotto638: getLatestDraw("superLotto638")?.period || ""
+    };
+  }
+
+  async function refreshAllDataSilently() {
+    if (state.autoRefreshing) return;
+    state.autoRefreshing = true;
+    updateTopStatus(state.currentGameCode);
+
+    try {
+      const before = state.latestJson ? getPeriodSnapshot() : {};
+      await initData();
+      const after = getPeriodSnapshot();
+      const trackingResult = updatePredictionTracking();
+
+      const changedGames = Object.keys(after).filter(key => String(before[key] || "") !== String(after[key] || ""));
+      const hasNewDraw = changedGames.length > 0;
+
+      state.lastAutoRefreshAt = new Date().toISOString();
+      writeAutoState({
+        lastAutoRefreshAt: state.lastAutoRefreshAt,
+        lastPeriods: after
+      });
+
+      if (state.currentGameCode) renderPrediction(state.currentGameCode);
+      else {
+        renderHeroKpis(null);
+        renderMiniStats();
+        updateTopStatus(null);
+      }
+
+      if (hasNewDraw) {
+        pushOp(`系統自動更新：${changedGames.join("、")} 有新一期`);
+        showToast(`已自動更新 ${changedGames.length} 個彩種`);
+      } else if (trackingResult.learnedCount > 0) {
+        pushOp(`系統自動學習：完成 ${trackingResult.learnedCount} 筆`);
+        showToast(`已自動學習 ${trackingResult.learnedCount} 筆`);
+      }
+    } catch (err) {
+      console.error("auto refresh failed:", err);
+      pushOp(`自動更新失敗：${err.message || "未知錯誤"}`);
+    } finally {
+      state.autoRefreshing = false;
+      updateTopStatus(state.currentGameCode);
+    }
+  }
+
+  function startAutoRefresh() {
+    if (state.autoTimer) clearInterval(state.autoTimer);
+    state.autoTimer = setInterval(() => {
+      refreshAllDataSilently();
+    }, AUTO_REFRESH_MS);
+  }
+
   async function runPrediction(gameCode) {
     try {
       if (!state.latestJson) await initData();
       saveUiSettings();
+      const trackingResult = updatePredictionTracking();
+      if (trackingResult.learnedCount > 0) {
+        pushOp(`自動學習完成 ${trackingResult.learnedCount} 筆`);
+      }
       renderPrediction(gameCode);
+      pushOp(`已執行 ${GAME_CONFIG[gameCode].label} 預測`);
     } catch (err) {
       console.error(err);
       showError(err.message || "未知錯誤");
     }
+  }
+
+  function showError(message) {
+    const container = $("predictionResult");
+    if (!container) return;
+    setBadge("載入失敗", false);
+    container.innerHTML = `
+      <div class="v84-panel">
+        <div class="empty-state">
+          <div class="empty-icon">⚠️</div>
+          <div class="empty-title">資料載入失敗</div>
+          <div class="empty-text">${escapeHtml(message || "未知錯誤")}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function bindBottomNav() {
+    document.querySelectorAll(".bottom-nav .nav-pill").forEach((btn, index) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".bottom-nav .nav-pill").forEach(x => x.classList.remove("active"));
+        btn.classList.add("active");
+
+        if (index === 0) window.scrollTo({ top: 0, behavior: "smooth" });
+        if (index === 1) $("controlSection")?.scrollIntoView({ behavior: "smooth" });
+        if (index === 2) $("predictionSection")?.scrollIntoView({ behavior: "smooth" });
+        if (index === 3) {
+          const latestAnchor = $("anchor-latest");
+          if (latestAnchor) latestAnchor.scrollIntoView({ behavior: "smooth" });
+          else $("predictionSection")?.scrollIntoView({ behavior: "smooth" });
+        }
+      });
+    });
   }
 
   function wireToolbar() {
@@ -1871,25 +1991,26 @@
 
     if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
     if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
-    if (topBtn) {
-      topBtn.onclick = () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      };
-    }
+    if (topBtn) topBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
     if (resetWeightsBtn) {
       resetWeightsBtn.onclick = () => {
         resetLearningWeights();
         if (state.currentGameCode) renderPrediction(state.currentGameCode);
-        alert("已重置自動學習權重。");
+        showToast("已重置學習權重");
       };
     }
 
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV90) {
-        el.dataset.boundV90 = "1";
-        el.addEventListener("change", saveUiSettings);
+      if (el && !el.dataset.boundV91) {
+        el.dataset.boundV91 = "1";
+        el.addEventListener("change", () => {
+          saveUiSettings();
+          if (id === "lotterySelect" && el.value) {
+            runPrediction(el.value);
+          }
+        });
       }
     });
   }
@@ -1898,23 +2019,36 @@
   window.saveCurrentPrediction = saveCurrentPrediction;
   window.clearPredictionRecords = clearPredictionRecords;
   window.resetLearningWeights = resetLearningWeights;
+  window.refreshAllDataSilently = refreshAllDataSilently;
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       restoreUiSettings();
+      const autoState = readAutoState();
+      if (autoState?.lastAutoRefreshAt) state.lastAutoRefreshAt = autoState.lastAutoRefreshAt;
+
       wireToolbar();
+      bindBottomNav();
       renderOps();
       renderMiniStats();
       renderHeroKpis(null);
       updateTopStatus(null);
 
       await initData();
-      updatePredictionTracking();
+      const trackingResult = updatePredictionTracking();
+      if (trackingResult.learnedCount > 0) {
+        pushOp(`初始化自動學習 ${trackingResult.learnedCount} 筆`);
+      }
+
       setBadge("待預測", true);
 
       if ($("resultGameName")) {
         $("resultGameName").textContent = `${APP_VERSION}｜請先選擇彩種並開始預測`;
       }
+
+      const defaultGame = $("lotterySelect")?.value || "bingo";
+      await runPrediction(defaultGame);
+      startAutoRefresh();
     } catch (err) {
       console.error(err);
       showError(err.message || "初始化失敗");
