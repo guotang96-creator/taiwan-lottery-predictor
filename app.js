@@ -1,10 +1,11 @@
 (() => {
-  const APP_VERSION = "V91 自動學習排程版";
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v91";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v91";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v91";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v91";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v91";
+  const BUILD = window.__APP_BUILD__ || "91.2";
+  const APP_VERSION = `V91.2 防快取版（build ${BUILD}）`;
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v912";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v912";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v912";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v912";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v912";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
 
   const JSON_CANDIDATES = [
@@ -103,6 +104,7 @@
     autoTimer: null,
     autoRefreshing: false,
     lastAutoRefreshAt: null,
+    lastCacheBust: "",
     history: {
       bingo: [],
       daily539: [],
@@ -123,6 +125,15 @@
 
   function pad2(n) {
     return String(n).padStart(2, "0");
+  }
+
+  function nowStamp() {
+    return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function cacheBustUrl(url) {
+    const joiner = url.includes("?") ? "&" : "?";
+    return `${url}${joiner}v=${encodeURIComponent(state.lastCacheBust || nowStamp())}&t=${Date.now()}`;
   }
 
   function escapeHtml(str) {
@@ -165,34 +176,32 @@
   }
 
   function showToast(text) {
-    try {
-      const old = document.getElementById("v91Toast");
-      if (old) old.remove();
+    const old = document.getElementById("v912Toast");
+    if (old) old.remove();
 
-      const el = document.createElement("div");
-      el.id = "v91Toast";
-      el.textContent = text;
-      el.style.position = "fixed";
-      el.style.left = "50%";
-      el.style.bottom = "110px";
-      el.style.transform = "translateX(-50%)";
-      el.style.background = "rgba(6,17,32,.95)";
-      el.style.color = "#fff";
-      el.style.padding = "12px 18px";
-      el.style.borderRadius = "999px";
-      el.style.zIndex = "3000";
-      el.style.fontWeight = "800";
-      el.style.fontSize = "14px";
-      el.style.border = "1px solid rgba(255,255,255,.1)";
-      el.style.boxShadow = "0 10px 30px rgba(0,0,0,.28)";
-      document.body.appendChild(el);
+    const el = document.createElement("div");
+    el.id = "v912Toast";
+    el.textContent = text;
+    el.style.position = "fixed";
+    el.style.left = "50%";
+    el.style.bottom = "110px";
+    el.style.transform = "translateX(-50%)";
+    el.style.background = "rgba(6,17,32,.96)";
+    el.style.color = "#fff";
+    el.style.padding = "12px 18px";
+    el.style.borderRadius = "999px";
+    el.style.zIndex = "4000";
+    el.style.fontWeight = "800";
+    el.style.fontSize = "14px";
+    el.style.border = "1px solid rgba(255,255,255,.10)";
+    el.style.boxShadow = "0 10px 30px rgba(0,0,0,.3)";
+    document.body.appendChild(el);
 
-      setTimeout(() => {
-        el.style.transition = "opacity .2s ease";
-        el.style.opacity = "0";
-        setTimeout(() => el.remove(), 220);
-      }, 1400);
-    } catch {}
+    setTimeout(() => {
+      el.style.transition = "opacity .2s ease";
+      el.style.opacity = "0";
+      setTimeout(() => el.remove(), 220);
+    }, 1500);
   }
 
   function formatDate(value) {
@@ -308,7 +317,14 @@
     const errors = [];
     for (const path of paths) {
       try {
-        const res = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+        const busted = cacheBustUrl(path);
+        const res = await fetch(busted, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache"
+          }
+        });
         if (!res.ok) {
           errors.push(`${path}: HTTP ${res.status}`);
           continue;
@@ -1131,7 +1147,6 @@
       total += Number(summary.total || 0);
       checked += Number(summary.checked || 0);
       waiting += Number(summary.waiting || 0);
-
       const avg = Number(summary.avgHit || 0);
       if (!Number.isNaN(avg) && Number(summary.checked || 0) > 0) {
         avgAccumulator += avg;
@@ -1170,7 +1185,6 @@
   function renderOps() {
     const box = $("v84RecentOps");
     if (!box) return;
-
     const list = getOps();
     if (!list.length) {
       box.innerHTML = `<div class="v84-recent-item">尚未有操作紀錄</div>`;
@@ -1207,9 +1221,7 @@
 
   function renderBalls(numbers, specialNumber = null, specialLabel = "", type = "dark") {
     const ballClass = type === "light" ? "ball main" : "ball";
-    const main = (numbers || [])
-      .map(n => `<span class="${ballClass}">${pad2(n)}</span>`)
-      .join("");
+    const main = (numbers || []).map(n => `<span class="${ballClass}">${pad2(n)}</span>`).join("");
 
     const safeSpecial =
       specialNumber === null || specialNumber === undefined || specialNumber === ""
@@ -1231,19 +1243,9 @@
 
   function renderTagList(items, type) {
     if (!items.length) return `<span class="text-muted">無資料</span>`;
-
-    if (type === "tail") {
-      return items.map(item => `<span class="badge">尾${item.tail}（${item.count}）</span>`).join("");
-    }
-
-    if (type === "pair") {
-      return items.map(item => `<span class="badge">${item.pair}（${item.count}）</span>`).join("");
-    }
-
-    if (type === "miss") {
-      return items.map(item => `<span class="badge">${pad2(item.number)}（${item.miss}）</span>`).join("");
-    }
-
+    if (type === "tail") return items.map(item => `<span class="badge">尾${item.tail}（${item.count}）</span>`).join("");
+    if (type === "pair") return items.map(item => `<span class="badge">${item.pair}（${item.count}）</span>`).join("");
+    if (type === "miss") return items.map(item => `<span class="badge">${pad2(item.number)}（${item.miss}）</span>`).join("");
     return items.map(item => `<span class="badge">${pad2(item.number)}（${item.count}）</span>`).join("");
   }
 
@@ -1301,29 +1303,13 @@
 
   function renderLearningWeights(gameCode) {
     const w = getLearningWeights(gameCode);
-
     return `
       <div class="result-grid">
-        <div class="result-card">
-          <div class="card-title">熱號權重</div>
-          <div class="text-block">${w.freq.toFixed(2)}</div>
-        </div>
-        <div class="result-card">
-          <div class="card-title">遺漏權重</div>
-          <div class="text-block">${w.miss.toFixed(2)}</div>
-        </div>
-        <div class="result-card">
-          <div class="card-title">尾數權重</div>
-          <div class="text-block">${w.tail.toFixed(2)}</div>
-        </div>
-        <div class="result-card">
-          <div class="card-title">避開上期權重</div>
-          <div class="text-block">${w.latestPenalty.toFixed(2)}</div>
-        </div>
-        <div class="result-card full-width">
-          <div class="card-title">特別號 / 第二區權重</div>
-          <div class="text-block">${Number(w.special || 0).toFixed(2)}</div>
-        </div>
+        <div class="result-card"><div class="card-title">熱號權重</div><div class="text-block">${w.freq.toFixed(2)}</div></div>
+        <div class="result-card"><div class="card-title">遺漏權重</div><div class="text-block">${w.miss.toFixed(2)}</div></div>
+        <div class="result-card"><div class="card-title">尾數權重</div><div class="text-block">${w.tail.toFixed(2)}</div></div>
+        <div class="result-card"><div class="card-title">避開上期權重</div><div class="text-block">${w.latestPenalty.toFixed(2)}</div></div>
+        <div class="result-card full-width"><div class="card-title">特別號 / 第二區權重</div><div class="text-block">${Number(w.special || 0).toFixed(2)}</div></div>
       </div>
     `;
   }
@@ -1375,42 +1361,16 @@
   function renderStatus(status, gameCode) {
     return `
       <div class="result-grid">
-        <div class="result-card">
-          <div class="card-title">版本</div>
-          <div class="text-block">${escapeHtml(APP_VERSION)}</div>
-        </div>
-        <div class="result-card">
-          <div class="card-title">資料最後更新</div>
-          <div class="text-block">${escapeHtml(formatDate(status.generatedAt))}</div>
-        </div>
-        <div class="result-card">
-          <div class="card-title">最新資料來源</div>
-          <div class="text-block">${escapeHtml(status.source)}</div>
-        </div>
-        <div class="result-card">
-          <div class="card-title">JSON 載入路徑</div>
-          <div class="text-block">${escapeHtml(status.latestPath || "—")}</div>
-        </div>
-        <div class="result-card">
-          <div class="card-title">歷史 CSV 路徑</div>
-          <div class="text-block">${escapeHtml(status.historyPath || "—")}</div>
-        </div>
-        <div class="result-card">
-          <div class="card-title">歷史學習期數</div>
-          <div class="text-block">${escapeHtml(String(status.historyCount))} 期</div>
-        </div>
-        <div class="result-card full-width">
-          <div class="card-title">自動檢查狀態</div>
-          <div class="text-block">${escapeHtml(status.refreshText)}</div>
-        </div>
+        <div class="result-card"><div class="card-title">版本</div><div class="text-block">${escapeHtml(APP_VERSION)}</div></div>
+        <div class="result-card"><div class="card-title">資料最後更新</div><div class="text-block">${escapeHtml(formatDate(status.generatedAt))}</div></div>
+        <div class="result-card"><div class="card-title">最新資料來源</div><div class="text-block">${escapeHtml(status.source)}</div></div>
+        <div class="result-card"><div class="card-title">JSON 載入路徑</div><div class="text-block">${escapeHtml(status.latestPath || "—")}</div></div>
+        <div class="result-card"><div class="card-title">歷史 CSV 路徑</div><div class="text-block">${escapeHtml(status.historyPath || "—")}</div></div>
+        <div class="result-card"><div class="card-title">歷史學習期數</div><div class="text-block">${escapeHtml(String(status.historyCount))} 期</div></div>
+        <div class="result-card full-width"><div class="card-title">自動檢查狀態</div><div class="text-block">${escapeHtml(status.refreshText)}</div></div>
         ${
           gameCode === "bingo"
-            ? `
-              <div class="result-card full-width">
-                <div class="card-title">Bingo 即時同步狀態</div>
-                <div class="text-block">${escapeHtml(status.bingoSyncText)}｜${escapeHtml(status.bingoCompareText)}</div>
-              </div>
-            `
+            ? `<div class="result-card full-width"><div class="card-title">Bingo 即時同步狀態</div><div class="text-block">${escapeHtml(status.bingoSyncText)}｜${escapeHtml(status.bingoCompareText)}</div></div>`
             : ""
         }
       </div>
@@ -1423,7 +1383,7 @@
         <div class="result-card highlight-card">
           <div class="card-title">資料提示</div>
           <div class="text-block">
-            系統會每 5 分鐘自動檢查新資料。只有出現新一期時，才會自動比對與學習，不會重複學同一批資料。
+            系統會每 5 分鐘自動檢查新資料，且所有資料抓取都會強制防快取。只有出現新一期時，才會自動比對與學習。
           </div>
         </div>
       `;
@@ -1542,33 +1502,20 @@
     const s = getTrackingRollup();
 
     box.innerHTML = `
-      <div class="v84-mini-stat">
-        <span>已儲存預測</span>
-        <strong>${s.total}</strong>
-      </div>
-      <div class="v84-mini-stat">
-        <span>已完成比對</span>
-        <strong>${s.checked}</strong>
-      </div>
-      <div class="v84-mini-stat">
-        <span>等待比對</span>
-        <strong>${s.waiting}</strong>
-      </div>
-      <div class="v84-mini-stat">
-        <span>平均命中</span>
-        <strong>${s.avgHit}</strong>
-      </div>
+      <div class="v84-mini-stat"><span>已儲存預測</span><strong>${s.total}</strong></div>
+      <div class="v84-mini-stat"><span>已完成比對</span><strong>${s.checked}</strong></div>
+      <div class="v84-mini-stat"><span>等待比對</span><strong>${s.waiting}</strong></div>
+      <div class="v84-mini-stat"><span>平均命中</span><strong>${s.avgHit}</strong></div>
     `;
   }
 
   function updateTopStatus(gameCode) {
     const latestDraw = state.currentLatestDraw;
-
     if ($("v84CurrentGameBadge")) {
       $("v84CurrentGameBadge").textContent = gameCode ? `目前彩種：${GAME_CONFIG[gameCode].label}` : "尚未選擇彩種";
     }
     if ($("v84SiteStateBadge")) {
-      $("v84SiteStateBadge").textContent = state.autoRefreshing ? "自動更新中" : "系統運作中";
+      $("v84SiteStateBadge").textContent = state.autoRefreshing ? "自動更新中" : `系統運作中 ${BUILD}`;
     }
     if ($("v84DataStateText")) {
       $("v84DataStateText").textContent = latestDraw ? "已載入最新資料" : "待載入";
@@ -1584,7 +1531,6 @@
   function injectAnchors() {
     const el = $("predictionResult");
     if (!el || !el.innerHTML || el.innerHTML.includes('id="anchor-status"')) return;
-
     el.innerHTML = el.innerHTML
       .replace(/資料狀態/g, '<div id="anchor-status" class="section-anchor"></div>資料狀態')
       .replace(/命中追蹤/g, '<div id="anchor-tracking" class="section-anchor"></div>命中追蹤')
@@ -1611,20 +1557,15 @@
     }
   }
 
-  function getDataStatusForCurrent(gameCode, draws, latestDraw) {
-    return getDataStatus(gameCode, draws, latestDraw);
-  }
-
   function renderPrediction(gameCode) {
     const cfg = GAME_CONFIG[gameCode];
     const historyPeriods = Number($("historyPeriods")?.value || 50);
 
     state.currentGameCode = gameCode;
-
     const latestDraw = sanitizeDraw(gameCode, getLatestDraw(cfg.key));
     const draws = getHistory(cfg.key, historyPeriods);
     const fullHistory = getHistory(cfg.key, 120);
-    const status = getDataStatusForCurrent(gameCode, draws, latestDraw);
+    const status = getDataStatus(gameCode, draws, latestDraw);
 
     const frequency = frequencyAnalysis(draws, cfg.min, cfg.max);
     const miss = missAnalysis(draws, cfg.min, cfg.max);
@@ -1647,59 +1588,32 @@
           <div class="result-header">
             <div>
               <h2 style="margin:0;">${escapeHtml(cfg.label)} 智慧預測結果</h2>
-              <p class="result-subtitle">版本：${escapeHtml(APP_VERSION)}｜推薦組數：${getSetCount()} 組</p>
+              <p class="result-subtitle">版本：${escapeHtml(APP_VERSION)}｜推薦組數：${getSetCount()} 組｜cache bust：${escapeHtml(state.lastCacheBust)}</p>
             </div>
             <div class="badge">${state.autoRefreshing ? "自動更新中" : "已完成分析"}</div>
           </div>
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>資料狀態</h3>
-              <p>來源、更新時間、載入路徑與樣本期數</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>資料狀態</h3><p>來源、更新時間、載入路徑與樣本期數</p></div></div>
           ${renderStatus(status, gameCode)}
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>資料提示</h3>
-              <p>目前同步狀態與刷新建議</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>資料提示</h3><p>目前同步狀態與刷新建議</p></div></div>
           ${renderHints(status, gameCode)}
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>命中追蹤</h3>
-              <p>本地預測紀錄與自動比對結果</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>命中追蹤</h3><p>本地預測紀錄與自動比對結果</p></div></div>
           ${renderTracking(gameCode)}
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>最新一期</h3>
-              <p>官方最新資料摘要</p>
-            </div>
-          </div>
-
+          <div class="v84-section-head"><div><h3>最新一期</h3><p>官方最新資料摘要</p></div></div>
           <div class="result-grid">
-            <div class="result-card">
-              <div class="card-title">最新期數</div>
-              <div class="text-block">${escapeHtml(latestDraw?.period || "—")}</div>
-            </div>
-            <div class="result-card">
-              <div class="card-title">開獎時間</div>
-              <div class="text-block">${escapeHtml(formatDate(latestDraw?.drawDate || ""))}</div>
-            </div>
+            <div class="result-card"><div class="card-title">最新期數</div><div class="text-block">${escapeHtml(latestDraw?.period || "—")}</div></div>
+            <div class="result-card"><div class="card-title">開獎時間</div><div class="text-block">${escapeHtml(formatDate(latestDraw?.drawDate || ""))}</div></div>
             <div class="result-card full-width">
               <div class="card-title">最新號碼</div>
               <div class="ball-row">${renderBalls(latestDraw?.numbers || [], latestDraw?.specialNumber, cfg.specialLabel, "light")}</div>
@@ -1709,94 +1623,47 @@
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>自動學習權重</h3>
-              <p>依命中追蹤結果自動調整中的模型權重</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>自動學習權重</h3><p>依命中追蹤結果自動調整中的模型權重</p></div></div>
           ${renderLearningWeights(gameCode)}
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>AI 推薦組合</h3>
-              <p>依目前設定自動生成的推薦號碼</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>AI 推薦組合</h3><p>依目前設定自動生成的推薦號碼</p></div></div>
           ${renderModes(modes, gameCode)}
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>回測表現</h3>
-              <p>近 30 / 50 / 100 期模擬命中結果</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>回測表現</h3><p>近 30 / 50 / 100 期模擬命中結果</p></div></div>
           ${renderBacktest(backtests)}
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>熱號分析</h3>
-              <p>近期高頻號碼</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>熱號分析</h3><p>近期高頻號碼</p></div></div>
           <div class="ball-row">${renderTagList(frequency.hot, "count")}</div>
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>冷號分析</h3>
-              <p>近期低頻號碼</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>冷號分析</h3><p>近期低頻號碼</p></div></div>
           <div class="ball-row">${renderTagList(frequency.cold, "count")}</div>
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>拖號 / 遺漏分析</h3>
-              <p>近期較久未出的號碼</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>拖號 / 遺漏分析</h3><p>近期較久未出的號碼</p></div></div>
           <div class="ball-row">${renderTagList(miss, "miss")}</div>
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>連號偵測</h3>
-              <p>近期常見連號組合</p>
-            </div>
-          </div>
-          <div class="ball-row">
-            ${consecutive.length ? renderTagList(consecutive, "pair") : `<span class="text-muted">無資料</span>`}
-          </div>
+          <div class="v84-section-head"><div><h3>連號偵測</h3><p>近期常見連號組合</p></div></div>
+          <div class="ball-row">${consecutive.length ? renderTagList(consecutive, "pair") : `<span class="text-muted">無資料</span>`}</div>
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>尾數分析</h3>
-              <p>近期熱門尾數分布</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>尾數分析</h3><p>近期熱門尾數分布</p></div></div>
           <div class="ball-row">${renderTagList(tails, "tail")}</div>
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>最新五期</h3>
-              <p>最近五期實際開獎資料</p>
-            </div>
-          </div>
+          <div class="v84-section-head"><div><h3>最新五期</h3><p>最近五期實際開獎資料</p></div></div>
           <div class="latest-five-list">${renderLatestFive(draws, gameCode)}</div>
         </div>
       </div>
@@ -1853,6 +1720,8 @@
   }
 
   async function initData() {
+    state.lastCacheBust = nowStamp();
+
     const latestResult = await fetchFirstJson(JSON_CANDIDATES);
     state.latestJson = latestResult.json;
     state.latestJsonPath = latestResult.path;
@@ -1901,7 +1770,8 @@
       state.lastAutoRefreshAt = new Date().toISOString();
       writeAutoState({
         lastAutoRefreshAt: state.lastAutoRefreshAt,
-        lastPeriods: after
+        lastPeriods: after,
+        build: BUILD
       });
 
       if (state.currentGameCode) renderPrediction(state.currentGameCode);
@@ -1917,6 +1787,8 @@
       } else if (trackingResult.learnedCount > 0) {
         pushOp(`系統自動學習：完成 ${trackingResult.learnedCount} 筆`);
         showToast(`已自動學習 ${trackingResult.learnedCount} 筆`);
+      } else {
+        pushOp("系統自動檢查：無新一期");
       }
     } catch (err) {
       console.error("auto refresh failed:", err);
@@ -1966,9 +1838,10 @@
   }
 
   function bindBottomNav() {
-    document.querySelectorAll(".bottom-nav .nav-pill").forEach((btn, index) => {
+    const items = document.querySelectorAll(".bottom-nav .nav-pill");
+    items.forEach((btn, index) => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".bottom-nav .nav-pill").forEach(x => x.classList.remove("active"));
+        items.forEach(x => x.classList.remove("active"));
         btn.classList.add("active");
 
         if (index === 0) window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2003,12 +1876,14 @@
 
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV91) {
-        el.dataset.boundV91 = "1";
+      if (el && !el.dataset.boundV912) {
+        el.dataset.boundV912 = "1";
         el.addEventListener("change", () => {
           saveUiSettings();
           if (id === "lotterySelect" && el.value) {
             runPrediction(el.value);
+          } else if (state.currentGameCode) {
+            renderPrediction($("lotterySelect")?.value || state.currentGameCode);
           }
         });
       }
@@ -2049,6 +1924,7 @@
       const defaultGame = $("lotterySelect")?.value || "bingo";
       await runPrediction(defaultGame);
       startAutoRefresh();
+      showToast(`已載入 ${APP_VERSION}`);
     } catch (err) {
       console.error(err);
       showError(err.message || "初始化失敗");
