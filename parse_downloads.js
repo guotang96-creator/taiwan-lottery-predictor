@@ -437,20 +437,21 @@ function parseBingoFallbackHtml(html) {
 
     if (!/^\d{9}$/.test(periodLine)) continue;
 
-    const m = nextLine.match(
-      /^(\d{2}:\d{2})\s+((?:\d{1,2}\s+){20})(\d{1,2})(?:\s+\d{1,2})?(?:\s+\S+)?$/
-    );
-    if (!m) continue;
+    const timeMatch = nextLine.match(/^(\d{2}:\d{2})\s+(.+)$/);
+    if (!timeMatch) continue;
 
     const period = periodLine;
-    const timeText = m[1];
-    const numberText = m[2];
-    const specialNumber = Number(m[3]);
+    const timeText = timeMatch[1];
+    const rest = timeMatch[2];
 
-    const orderNumbers = (numberText.match(/\d{1,2}/g) || [])
+    const nums = (rest.match(/\d{1,2}/g) || [])
       .map(n => Number(n))
-      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80)
-      .slice(0, 20);
+      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80);
+
+    if (nums.length < 21) continue;
+
+    const orderNumbers = nums.slice(0, 20);
+    const specialNumber = nums[20];
 
     if (orderNumbers.length !== 20) continue;
 
