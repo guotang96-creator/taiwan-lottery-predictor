@@ -6,7 +6,7 @@ const DOCS_DIR = path.join(ROOT, "docs");
 const RAW_DIR = path.join(DOCS_DIR, "raw_data");
 
 const API_BASE = "https://api.taiwanlottery.com/TLCAPIWeB/Lottery";
-const BINGO_FALLBACK_URL = "https://www.pilio.idv.tw/bingo/Json_bingo.asp?Lindex=0";
+const BINGO_FALLBACK_URL = "https://www.pilio.idv.tw/bingo/list.asp";
 
 const GAME_DEFS = {
   bingo: {
@@ -103,6 +103,22 @@ async function fetchJson(url) {
   }
 
   return await res.json();
+}
+
+async function fetchText(url) {
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "User-Agent": "Mozilla/5.0"
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  return await res.text();
 }
 
 function findPrimaryArray(content) {
@@ -398,8 +414,14 @@ function stripHtmlTags(html) {
 function parseBingoFallbackHtml(html) {
   const text = stripHtmlTags(html);
   const rows = [];
-  const today = new Date();
-  const datePart = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
+  const now = new Date();
+
+  // 先用今天日期；若頁首有明確日期，再覆蓋
+  let datePart = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  const dateMatch = text.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})\s*BINGO BINGO/);
+  if (dateMatch) {
+    datePart = `${dateMatch[1]}-${pad2(dateMatch[2])}-${pad2(dateMatch[3])}`;
+  }
 
   const blockRegex =
     /期別[:：]?\s*(\d{6,})\s*([\d,\s]{40,}?)\s*超級獎號[:：]?\s*(\d{1,2})[^\(]*\((\d{2}:\d{2})\)/g;
@@ -432,33 +454,19 @@ function parseBingoFallbackHtml(html) {
 }
 
 async function fetchBingoFallbackRows() {
-  const res = await fetch(BINGO_FALLBACK_URL, {
-    method: "POST",
-    headers: {
-      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "User-Agent": "Mozilla/5.0",
-      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
-    },
-    body: ""
-  });
-
-  const rawText = await res.text();
+  const html = await fetchText(BINGO_FALLBACK_URL);
 
   fs.writeFileSync(
     path.join(ROOT, "bingo_fallback_raw.txt"),
-    rawText,
+    html,
     "utf8"
   );
 
-  if (!res.ok) {
-    throw new Error(`bingo 備援 HTML HTTP ${res.status}`);
-  }
-
-  if (!rawText.trim()) {
+  if (!html.trim()) {
     throw new Error("bingo 備援回傳空內容");
   }
 
-  const rows = parseBingoFallbackHtml(rawText);
+  const rows = parseBingoFallbackHtml(html);
 
   if (!rows.length) {
     throw new Error("bingo 備援 HTML 解析失敗");
