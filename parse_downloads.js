@@ -98,10 +98,7 @@ async function fetchJson(url) {
     }
   });
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
-
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.json();
 }
 
@@ -114,10 +111,7 @@ async function fetchText(url) {
     }
   });
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
-
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.text();
 }
 
@@ -437,35 +431,37 @@ function parseBingoFallbackHtml(html) {
     .map(v => v.trim())
     .filter(Boolean);
 
-  for (const line of lines) {
-    // 格式參考：
-    // 115015975 18:45 06 07 09 ... 80 11 7－
-    const timeMatch = line.match(/(\d{9})\s+(\d{2}:\d{2})\s+(.+)/);
-    if (!timeMatch) continue;
+  for (let i = 0; i < lines.length - 1; i += 1) {
+    const periodLine = lines[i];
+    const nextLine = lines[i + 1];
 
-    const period = timeMatch[1];
-    const timeText = timeMatch[2];
-    const rest = timeMatch[3];
+    if (!/^\d{9}$/.test(periodLine)) continue;
 
-    const nums = (rest.match(/\d{1,2}/g) || [])
+    const m = nextLine.match(
+      /^(\d{2}:\d{2})\s+((?:\d{1,2}\s+){20})(\d{1,2})(?:\s+\d{1,2})?(?:\s+\S+)?$/
+    );
+    if (!m) continue;
+
+    const period = periodLine;
+    const timeText = m[1];
+    const numberText = m[2];
+    const specialNumber = Number(m[3]);
+
+    const orderNumbers = (numberText.match(/\d{1,2}/g) || [])
       .map(n => Number(n))
-      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80);
+      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80)
+      .slice(0, 20);
 
-    if (nums.length < 21) continue;
+    if (orderNumbers.length !== 20) continue;
 
-    const orderNumbers = nums.slice(0, 20);
-    const specialNumber = nums[20] ?? null;
-
-    if (orderNumbers.length === 20) {
-      rows.push({
-        period,
-        drawDate: `${datePart} ${timeText}`,
-        redeemableDate: "",
-        numbers: uniqSorted(orderNumbers),
-        orderNumbers,
-        specialNumber: Number.isFinite(specialNumber) ? specialNumber : null
-      });
-    }
+    rows.push({
+      period,
+      drawDate: `${datePart} ${timeText}`,
+      redeemableDate: "",
+      numbers: uniqSorted(orderNumbers),
+      orderNumbers,
+      specialNumber: Number.isFinite(specialNumber) ? specialNumber : null
+    });
   }
 
   return sortRowsDesc(dedupeRows(rows));
