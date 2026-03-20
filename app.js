@@ -122,18 +122,52 @@
       .replaceAll("'", "&#039;");
   }
 
+  function parseStableDateParts(value) {
+    if (!value) return null;
+    const raw = String(value).trim();
+    const m = raw.match(
+      /^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/
+    );
+    if (!m) return null;
+
+    return {
+      year: m[1],
+      month: m[2],
+      day: m[3],
+      hour: m[4] ?? "00",
+      minute: m[5] ?? "00",
+      second: m[6] ?? "00"
+    };
+  }
+
   function formatDate(value) {
     if (!value) return "—";
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return String(value);
+
+    const stable = parseStableDateParts(value);
+    if (stable) {
+      return `${stable.year}-${stable.month}-${stable.day} ${stable.hour}:${stable.minute}`;
+    }
+
+    const raw = String(value).trim();
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return raw;
+
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
   }
 
   function toLocaleDateText(value) {
     if (!value) return "尚未取得";
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return String(value);
-    return d.toLocaleString("zh-TW");
+
+    const stable = parseStableDateParts(value);
+    if (stable) {
+      return `${stable.year}-${stable.month}-${stable.day} ${stable.hour}:${stable.minute}`;
+    }
+
+    const raw = String(value).trim();
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return raw;
+
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
   }
 
   function range(min, max) {
@@ -1576,8 +1610,8 @@
     state.historySourcePath.lotto649 = lotto649History.path || "";
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
 
-    console.log("[V85.1] latest loaded:", latestResult.path);
-    console.log("[V84] history counts:", {
+    console.log("[V88.1] latest loaded:", latestResult.path);
+    console.log("[V88.1] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
@@ -1653,6 +1687,7 @@
     }
   });
 })();
+
 (() => {
   function v851$(id) {
     return document.getElementById(id);
