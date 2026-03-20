@@ -437,11 +437,13 @@ function parseBingoNumberText(numText) {
 
 async function fetchBingoFallbackRows() {
   const res = await fetch(BINGO_FALLBACK_URL, {
-    method: "GET",
+    method: "POST",
     headers: {
       Accept: "application/json, text/plain, */*",
-      "User-Agent": "Mozilla/5.0"
-    }
+      "User-Agent": "Mozilla/5.0",
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+    },
+    body: ""
   });
 
   const rawText = await res.text();
@@ -454,6 +456,10 @@ async function fetchBingoFallbackRows() {
 
   if (!res.ok) {
     throw new Error(`bingo 備援 JSON HTTP ${res.status}`);
+  }
+
+  if (!rawText.trim()) {
+    throw new Error("bingo 備援回傳空內容");
   }
 
   let json;
