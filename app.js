@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V84 商用首頁版";
+  const APP_VERSION = "V85 按鈕互動優化版";
   const STORAGE_KEY = "taiwan_lottery_prediction_history_v84";
   const OPS_KEY = "taiwan_lottery_recent_ops_v84";
   const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v84";
