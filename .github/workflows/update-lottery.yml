@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run parse downloads
+        run: node parse_downloads.js
+
       - name: Show repo files
         run: |
           pwd
@@ -44,7 +47,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/latest.json docs/raw_data/*.csv tools/build_latest_json.js .github/workflows/update-lottery.yml
+          git add docs/latest.json docs/raw_data/*.csv tools/build_latest_json.js .github/workflows/update-lottery.yml parse_downloads.js
           git diff --cached --quiet || git commit -m "chore: update lottery data"
 
       - name: Push changes
