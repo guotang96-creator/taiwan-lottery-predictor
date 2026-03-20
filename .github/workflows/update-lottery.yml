@@ -32,8 +32,7 @@ jobs:
           ls -la docs || true
           ls -la docs/raw_data || true
 
-      - name: Run parse downloads
-        run: node parse_downloads.js
+      
 
       - name: Build latest.json
         run: node tools/build_latest_json.js
