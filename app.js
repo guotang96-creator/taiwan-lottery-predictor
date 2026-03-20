@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "V88.1 固定底部快捷列版";
+  const APP_VERSION = "V88.2 Bingo 最新五期修正版";
   const STORAGE_KEY = "taiwan_lottery_prediction_history_v84";
   const OPS_KEY = "taiwan_lottery_recent_ops_v84";
   const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v84";
@@ -153,6 +153,21 @@
     if (Number.isNaN(d.getTime())) return raw;
 
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
+  function formatDateOnly(value) {
+    if (!value) return "—";
+
+    const stable = parseStableDateParts(value);
+    if (stable) {
+      return `${stable.year}-${stable.month}-${stable.day}`;
+    }
+
+    const raw = String(value).trim();
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return raw;
+
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   }
 
   function toLocaleDateText(value) {
@@ -492,8 +507,24 @@
   }
 
   function toSortableTime(draw) {
-    const dateValue = draw?.drawDate ? new Date(draw.drawDate).getTime() : 0;
-    const safeDate = Number.isFinite(dateValue) ? dateValue : 0;
+    const raw = draw?.drawDate ? String(draw.drawDate).trim() : "";
+    let safeDate = 0;
+
+    const stable = parseStableDateParts(raw);
+    if (stable) {
+      safeDate = Date.UTC(
+        Number(stable.year),
+        Number(stable.month) - 1,
+        Number(stable.day),
+        Number(stable.hour),
+        Number(stable.minute),
+        Number(stable.second)
+      );
+    } else {
+      const dateValue = raw ? new Date(raw).getTime() : 0;
+      safeDate = Number.isFinite(dateValue) ? dateValue : 0;
+    }
+
     const safePeriod = Number(draw?.period || 0);
     return { safeDate, safePeriod };
   }
@@ -514,29 +545,52 @@
       null;
   }
 
-  function getHistory(gameKey, limit) {
-    const history = state.history[gameKey] || [];
-    const latest = getLatestDraw(gameKey);
+  function getRecentOfficialDraws(gameKey) {
+    const candidates = [
+      state.latestJson?.[gameKey]?.recentOfficial,
+      state.latestJson?.[gameKey]?.recent,
+      state.latestJson?.officialRecent?.[gameKey],
+      state.latestJson?.recentOfficial?.[gameKey],
+      state.latestJson?.latestFive?.[gameKey],
+      state.latestJson?.latest5?.[gameKey]
+    ];
 
-    const merged = [...history];
-    if (latest) {
-      const latestKey = `${latest.period || ""}__${latest.drawDate || ""}`;
-      const idx = merged.findIndex(item => `${item.period || ""}__${item.drawDate || ""}` === latestKey);
-      if (idx >= 0) {
-        merged[idx] = latest;
-      } else {
-        merged.push(latest);
+    for (const list of candidates) {
+      if (Array.isArray(list) && list.length) {
+        return sortDrawsDesc(list);
       }
     }
 
+    const latest = getLatestDraw(gameKey);
+    return latest ? [latest] : [];
+  }
+
+  function getHistory(gameKey, limit) {
+    const history = state.history[gameKey] || [];
+    const latest = getLatestDraw(gameKey);
+    const recentOfficial = getRecentOfficialDraws(gameKey);
+
+    const merged = [...history];
+
+    for (const item of recentOfficial) {
+      merged.push(item);
+    }
+
+    if (latest) {
+      merged.push(latest);
+    }
+
     const dedupedMap = new Map();
+
     for (const item of merged) {
       const key = `${item.period || ""}__${item.drawDate || ""}`;
       if (!dedupedMap.has(key)) {
         dedupedMap.set(key, item);
       } else {
         const oldItem = dedupedMap.get(key);
-        if ((item.numbers?.length || 0) >= (oldItem.numbers?.length || 0)) {
+        const newLen = item?.numbers?.length || 0;
+        const oldLen = oldItem?.numbers?.length || 0;
+        if (newLen >= oldLen) {
           dedupedMap.set(key, item);
         }
       }
@@ -1057,7 +1111,9 @@
     const cfg = GAME_CONFIG[gameCode];
     if (!draws.length) return `<div class="text-muted">尚無資料</div>`;
 
-    return sortDrawsDesc(draws).slice(0, 5).map(draw => `
+    const recentFive = getHistory(cfg.key, 5);
+
+    return recentFive.map(draw => `
       <div class="latest-five-item">
         <div class="latest-five-issue">
           第 ${escapeHtml(draw.period || "—")} 期｜${escapeHtml(formatDate(draw.drawDate || ""))}
@@ -1105,15 +1161,46 @@
     `;
   }
 
+  function getLagMinutesFromValue(value) {
+    if (!value) return null;
+
+    const stable = parseStableDateParts(value);
+    if (stable) {
+      const ts = new Date(
+        Number(stable.year),
+        Number(stable.month) - 1,
+        Number(stable.day),
+        Number(stable.hour),
+        Number(stable.minute),
+        Number(stable.second)
+      ).getTime();
+
+      if (Number.isFinite(ts)) {
+        return Math.max(0, Math.floor((Date.now() - ts) / 60000));
+      }
+    }
+
+    const ts = new Date(String(value).trim()).getTime();
+    if (Number.isFinite(ts)) {
+      return Math.max(0, Math.floor((Date.now() - ts) / 60000));
+    }
+
+    return null;
+  }
+
   function getDataStatus(gameCode, draws, latestDraw) {
     const historyPath = state.historySourcePath[GAME_CONFIG[gameCode].key] || "";
     const latestPath = state.latestJsonPath || "";
     const generatedAt = state.latestJson?.generatedAt || "";
     const source = latestDraw?.source || state.latestJson?.source || "unknown";
     const latestStamp = latestDraw?.drawDate || "";
-    const lagMin = latestStamp
-      ? Math.max(0, Math.floor((Date.now() - new Date(latestStamp).getTime()) / 60000))
-      : null;
+    const generatedStamp = state.latestJson?.generatedAt || "";
+
+    let lagMin = getLagMinutesFromValue(generatedStamp);
+
+    if (lagMin === null) {
+      lagMin = getLagMinutesFromValue(latestStamp);
+    }
 
     let syncText = "—";
     let compareText = "—";
@@ -1124,11 +1211,11 @@
         syncText = "未知";
         compareText = "無法判定";
         refreshText = "請稍後重整頁面";
-      } else if (lagMin <= 15) {
+      } else if (lagMin <= 10) {
         syncText = `正常（落後約 ${lagMin} 分鐘）`;
         compareText = "與官方站接近同步";
         refreshText = "目前資料新鮮，可直接使用";
-      } else if (lagMin <= 60) {
+      } else if (lagMin <= 30) {
         syncText = `稍慢（落後約 ${lagMin} 分鐘）`;
         compareText = "可能比官方站慢一到數期";
         refreshText = "可稍後再重整，或等待 workflow 更新";
@@ -1198,7 +1285,7 @@
         <div class="result-card highlight-card">
           <div class="card-title">資料提示</div>
           <div class="text-block">
-            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=84</b>。
+            目前資料已載入完成。若你剛更新過 GitHub 檔案但畫面沒變，請用網址加參數重整，例如 <b>?v=882</b>。
           </div>
         </div>
       `;
@@ -1294,7 +1381,7 @@
       <div class="v84-kpi-card">
         <div class="v84-kpi-label">最新期數</div>
         <div class="v84-kpi-value">${escapeHtml(latestDraw?.period || "—")}</div>
-        <div class="v84-kpi-note">${escapeHtml(latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未載入")}</div>
+        <div class="v84-kpi-note">${escapeHtml(latestDraw?.drawDate ? formatDateOnly(latestDraw.drawDate) : "尚未載入")}</div>
       </div>
       <div class="v84-kpi-card">
         <div class="v84-kpi-label">已儲存預測</div>
@@ -1610,8 +1697,8 @@
     state.historySourcePath.lotto649 = lotto649History.path || "";
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
 
-    console.log("[V88.1] latest loaded:", latestResult.path);
-    console.log("[V88.1] history counts:", {
+    console.log("[V88.2] latest loaded:", latestResult.path);
+    console.log("[V88.2] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
       lotto649: state.history.lotto649.length,
