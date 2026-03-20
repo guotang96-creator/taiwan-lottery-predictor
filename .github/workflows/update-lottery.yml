@@ -32,8 +32,6 @@ jobs:
           ls -la docs || true
           ls -la docs/raw_data || true
 
-      
-
       - name: Build latest.json
         run: node tools/build_latest_json.js
 
