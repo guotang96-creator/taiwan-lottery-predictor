@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>台灣彩券 AI 預測系統</title>
   <meta name="theme-color" content="#081224" />
-  <meta name="description" content="台灣彩券 AI 預測系統｜Bingo、今彩539、大樂透、威力彩｜V90 自動學習權重版" />
+  <meta name="description" content="台灣彩券 AI 預測系統｜Bingo、今彩539、大樂透、威力彩｜V91 自動學習排程版" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./style.css?v=90" />
+  <link rel="stylesheet" href="./style.css?v=91" />
 </head>
 <body>
   <main class="app-shell">
@@ -16,7 +16,7 @@
         <div class="app-logo">AI</div>
         <div>
           <h1 class="hero-title">台灣彩券 AI 預測系統</h1>
-          <p class="hero-subtitle">V90｜自動學習權重版｜首頁入口＋儀表板總覽＋命中追蹤＋資料狀態</p>
+          <p class="hero-subtitle">V91｜自動學習排程版｜每 5 分鐘自動檢查新資料＋自動學習</p>
         </div>
       </div>
 
@@ -28,14 +28,14 @@
 
     <section class="section-card">
       <div class="chip-row">
-        <span class="chip">自動學習版</span>
+        <span class="chip">自動學習排程版</span>
         <span class="chip" id="v84SiteStateBadge">系統待命中</span>
         <span class="chip" id="v84CurrentGameBadge">尚未選擇彩種</span>
       </div>
 
       <h2 class="section-title">一頁式首頁，直接進入實戰預測</h2>
       <p class="section-desc">
-        整合 Bingo、今彩539、大樂透、威力彩，加入自動學習權重、命中追蹤、資料狀態與回測分析。
+        整合 Bingo、今彩539、大樂透、威力彩，加入自動學習、命中追蹤、資料狀態、回測分析與自動刷新。
       </p>
 
       <div class="action-stack">
@@ -127,7 +127,7 @@
 
     <section class="section-card" id="predictionSection">
       <div class="result-head">
-        <h2 class="result-title" id="resultGameName">V90｜請先選擇彩種並開始預測</h2>
+        <h2 class="result-title" id="resultGameName">V91｜請先選擇彩種並開始預測</h2>
         <div class="badge" id="v84TrackingStateText">待機中</div>
       </div>
 
@@ -144,24 +144,24 @@
   </main>
 
   <nav class="bottom-nav">
-    <a class="nav-pill" href="javascript:void(0)" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <a class="nav-pill active" href="javascript:void(0)">
       <span class="icon">🏠</span>
       <span class="label">首頁</span>
     </a>
-    <a class="nav-pill" href="javascript:void(0)" onclick="document.getElementById('controlSection').scrollIntoView({behavior:'smooth'})">
+    <a class="nav-pill" href="javascript:void(0)">
       <span class="icon">🎯</span>
       <span class="label">預測</span>
     </a>
-    <a class="nav-pill" href="javascript:void(0)" onclick="document.getElementById('predictionSection').scrollIntoView({behavior:'smooth'})">
+    <a class="nav-pill" href="javascript:void(0)">
       <span class="icon">📊</span>
       <span class="label">結果</span>
     </a>
-    <a class="nav-pill active" href="javascript:void(0)" onclick="document.getElementById('anchor-latest')?.scrollIntoView({behavior:'smooth'}) || document.getElementById('predictionSection').scrollIntoView({behavior:'smooth'})">
+    <a class="nav-pill" href="javascript:void(0)">
       <span class="icon">🕘</span>
       <span class="label">最新</span>
     </a>
   </nav>
 
-  <script src="./app.js?v=90"></script>
+  <script src="./app.js?v=91"></script>
 </body>
 </html>
