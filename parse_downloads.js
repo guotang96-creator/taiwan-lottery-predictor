@@ -12,10 +12,7 @@ const GAME_DEFS = {
   bingo: {
     label: "Bingo Bingo",
     outFile: path.join(RAW_DIR, "bingo.csv"),
-    endpointCandidates: [
-      "BingoBingoResult",
-      "BingoResult"
-    ],
+    endpointCandidates: ["BingoBingoResult", "BingoResult"],
     monthSpan: 1,
     maxPages: 50,
     pageSize: 200,
@@ -143,7 +140,7 @@ function findPrimaryArray(content) {
     if (Array.isArray(content[key])) return content[key];
   }
 
-  for (const [, value] of Object.entries(content)) {
+  for (const value of Object.values(content)) {
     if (Array.isArray(value) && value.length && typeof value[0] === "object") {
       return value;
     }
@@ -163,9 +160,7 @@ function uniqSorted(arr) {
 function numericArray(arr, min, max) {
   if (!Array.isArray(arr)) return [];
   return uniqSorted(
-    arr
-      .map(v => Number(v))
-      .filter(v => Number.isFinite(v) && v >= min && v <= max)
+    arr.map(v => Number(v)).filter(v => Number.isFinite(v) && v >= min && v <= max)
   );
 }
 
@@ -400,29 +395,41 @@ async function fetchGameRowsFromApi(gameKey) {
   return finalRows;
 }
 
-function parseBingoFallbackHtml(html) {
-  const raw = String(html || "")
+function stripHtmlTags(html) {
+  return String(html || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;|&#160;/gi, " ")
-    .replace(/\r/g, "");
+    .replace(/&amp;/gi, "&")
+    .replace(/\r/g, "")
+    .replace(/[ \t]+/g, " ");
+}
 
+function parseBingoFallbackHtml(html) {
+  const text = stripHtmlTags(html);
   const rows = [];
   const today = new Date();
   const datePart = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
 
   const blockRegex =
-    /〖期別[:：]\s*(\d{6,})〗[\s\S]*?\n?\s*((?:\d{1,2},\s*){19}\d{1,2})[\s\S]*?超級獎號[:：]\s*(\d{1,2})[\s\S]*?\((\d{2}:\d{2})\)/g;
+    /期別[:：]?\s*(\d{6,})\s*([\d,\s]{40,})\s*超級獎號[:：]?\s*(\d{1,2})[\s\S]*?\((\d{2}:\d{2})\)/g;
 
   let match;
-  while ((match = blockRegex.exec(raw)) !== null) {
+  while ((match = blockRegex.exec(text)) !== null) {
     const period = match[1];
     const numberText = match[2];
     const specialNumber = Number(match[3]);
     const timeText = match[4];
 
-    const orderNumbers = numberText
-      .split(",")
-      .map(v => Number(String(v).trim()))
-      .filter(v => Number.isFinite(v) && v >= 1 && v <= 80)
+    const orderNumbers = (numberText.match(/\d{1,2}/g) || [])
+      .map(n => Number(n))
+      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80)
       .slice(0, 20);
 
     if (orderNumbers.length === 20) {
@@ -445,7 +452,8 @@ async function fetchBingoFallbackRows() {
   const rows = parseBingoFallbackHtml(html);
 
   if (!rows.length) {
-    fs.writeFileSync(path.join(ROOT, "bingo_fallback_debug.html"), html, "utf8");
+    const debugPath = path.join(ROOT, "bingo_fallback_debug.html");
+    fs.writeFileSync(debugPath, html, "utf8");
     throw new Error("bingo 備援頁面解析失敗");
   }
 
