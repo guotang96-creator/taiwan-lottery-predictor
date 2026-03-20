@@ -396,7 +396,6 @@ function parseBingoNumberText(numText) {
   if (period) {
     const periodNum = Number(period);
     let skippedPeriod = false;
-    let skippedSpecial = false;
     const filtered = [];
 
     for (const n of allNums) {
@@ -404,19 +403,15 @@ function parseBingoNumberText(numText) {
         skippedPeriod = true;
         continue;
       }
-
-      if (
-        !skippedSpecial &&
-        specialNumber !== null &&
-        n === specialNumber &&
-        filtered.length >= 20
-      ) {
-        skippedSpecial = true;
-        continue;
-      }
-
       if (n >= 1 && n <= 80) {
         filtered.push(n);
+      }
+    }
+
+    if (specialNumber !== null && filtered.length > 20) {
+      const lastSpecialIndex = filtered.lastIndexOf(specialNumber);
+      if (lastSpecialIndex >= 20) {
+        filtered.splice(lastSpecialIndex, 1);
       }
     }
 
@@ -441,7 +436,33 @@ function parseBingoNumberText(numText) {
 }
 
 async function fetchBingoFallbackRows() {
-  const json = await fetchJson(BINGO_FALLBACK_URL);
+  const res = await fetch(BINGO_FALLBACK_URL, {
+    method: "GET",
+    headers: {
+      Accept: "application/json, text/plain, */*",
+      "User-Agent": "Mozilla/5.0"
+    }
+  });
+
+  const rawText = await res.text();
+
+  fs.writeFileSync(
+    path.join(ROOT, "bingo_fallback_raw.txt"),
+    rawText,
+    "utf8"
+  );
+
+  if (!res.ok) {
+    throw new Error(`bingo 備援 JSON HTTP ${res.status}`);
+  }
+
+  let json;
+  try {
+    json = JSON.parse(rawText);
+  } catch (err) {
+    throw new Error(`bingo 備援不是有效 JSON：${err.message}`);
+  }
+
   const list = Array.isArray(json?.lotto) ? json.lotto : [];
 
   const rows = list
@@ -470,7 +491,12 @@ async function fetchGameRows(gameKey) {
     return await fetchGameRowsFromApi("bingo");
   } catch (err) {
     console.warn(`⚠️ Bingo 官方 API 全部失敗，改用備援來源：${err.message}`);
-    return await fetchBingoFallbackRows();
+    try {
+      return await fetchBingoFallbackRows();
+    } catch (fallbackErr) {
+      console.warn(`⚠️ Bingo 備援來源也失敗：${fallbackErr.message}`);
+      throw fallbackErr;
+    }
   }
 }
 
