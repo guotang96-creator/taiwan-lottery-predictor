@@ -379,67 +379,63 @@ async function fetchGameRowsFromApi(gameKey) {
   return finalRows;
 }
 
-function parseBingoNumberText(numText) {
-  const raw = String(numText || "").trim();
+function stripHtmlTags(html) {
+  return String(html || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/\r/g, "")
+    .replace(/[ \t]+/g, " ");
+}
 
-  const periodMatch = raw.match(/期別[:：]?\s*(\d{6,})/);
-  const specialMatch = raw.match(/超級獎號[:：]?\s*(\d{1,2})/);
-  const timeMatch = raw.match(/\((\d{2}:\d{2})\)/);
-
-  const period = periodMatch ? periodMatch[1] : "";
-  const specialNumber = specialMatch ? Number(specialMatch[1]) : null;
-  const timeText = timeMatch ? timeMatch[1] : "00:00";
-
-  const allNums = (raw.match(/\d{1,2}/g) || []).map(n => Number(n));
-
-  let orderNumbers = [];
-  if (period) {
-    const periodNum = Number(period);
-    let skippedPeriod = false;
-    const filtered = [];
-
-    for (const n of allNums) {
-      if (!skippedPeriod && n === periodNum) {
-        skippedPeriod = true;
-        continue;
-      }
-      if (n >= 1 && n <= 80) {
-        filtered.push(n);
-      }
-    }
-
-    if (specialNumber !== null && filtered.length > 20) {
-      const lastSpecialIndex = filtered.lastIndexOf(specialNumber);
-      if (lastSpecialIndex >= 20) {
-        filtered.splice(lastSpecialIndex, 1);
-      }
-    }
-
-    orderNumbers = filtered.slice(0, 20);
-  } else {
-    orderNumbers = allNums.filter(n => n >= 1 && n <= 80).slice(0, 20);
-  }
-
-  if (orderNumbers.length !== 20) return null;
-
+function parseBingoFallbackHtml(html) {
+  const text = stripHtmlTags(html);
+  const rows = [];
   const today = new Date();
   const datePart = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
 
-  return {
-    period,
-    drawDate: `${datePart} ${timeText}`,
-    redeemableDate: "",
-    numbers: uniqSorted(orderNumbers),
-    orderNumbers,
-    specialNumber: Number.isFinite(specialNumber) ? specialNumber : null
-  };
+  const blockRegex =
+    /期別[:：]?\s*(\d{6,})\s*([\d,\s]{40,}?)\s*超級獎號[:：]?\s*(\d{1,2})[^\(]*\((\d{2}:\d{2})\)/g;
+
+  let match;
+  while ((match = blockRegex.exec(text)) !== null) {
+    const period = match[1];
+    const numberText = match[2];
+    const specialNumber = Number(match[3]);
+    const timeText = match[4];
+
+    const orderNumbers = (numberText.match(/\d{1,2}/g) || [])
+      .map(n => Number(n))
+      .filter(n => Number.isFinite(n) && n >= 1 && n <= 80)
+      .slice(0, 20);
+
+    if (orderNumbers.length === 20) {
+      rows.push({
+        period,
+        drawDate: `${datePart} ${timeText}`,
+        redeemableDate: "",
+        numbers: uniqSorted(orderNumbers),
+        orderNumbers,
+        specialNumber: Number.isFinite(specialNumber) ? specialNumber : null
+      });
+    }
+  }
+
+  return sortRowsDesc(dedupeRows(rows));
 }
 
 async function fetchBingoFallbackRows() {
   const res = await fetch(BINGO_FALLBACK_URL, {
     method: "POST",
     headers: {
-      Accept: "application/json, text/plain, */*",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       "User-Agent": "Mozilla/5.0",
       "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
     },
@@ -455,37 +451,21 @@ async function fetchBingoFallbackRows() {
   );
 
   if (!res.ok) {
-    throw new Error(`bingo 備援 JSON HTTP ${res.status}`);
+    throw new Error(`bingo 備援 HTML HTTP ${res.status}`);
   }
 
   if (!rawText.trim()) {
     throw new Error("bingo 備援回傳空內容");
   }
 
-  let json;
-  try {
-    json = JSON.parse(rawText);
-  } catch (err) {
-    throw new Error(`bingo 備援不是有效 JSON：${err.message}`);
-  }
-
-  const list = Array.isArray(json?.lotto) ? json.lotto : [];
-
-  const rows = list
-    .map(item => parseBingoNumberText(item?.num || ""))
-    .filter(Boolean);
+  const rows = parseBingoFallbackHtml(rawText);
 
   if (!rows.length) {
-    fs.writeFileSync(
-      path.join(ROOT, "bingo_fallback_debug.json"),
-      JSON.stringify(json, null, 2),
-      "utf8"
-    );
-    throw new Error("bingo 備援 JSON 解析失敗");
+    throw new Error("bingo 備援 HTML 解析失敗");
   }
 
-  console.log(`✅ Bingo 備援 JSON 成功，筆數=${rows.length}`);
-  return sortRowsDesc(dedupeRows(rows));
+  console.log(`✅ Bingo 備援 HTML 成功，筆數=${rows.length}`);
+  return rows;
 }
 
 async function fetchGameRows(gameKey) {
