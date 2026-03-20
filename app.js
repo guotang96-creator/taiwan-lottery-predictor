@@ -1576,7 +1576,7 @@
     state.historySourcePath.lotto649 = lotto649History.path || "";
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
 
-    console.log("[V84] latest loaded:", latestResult.path);
+    console.log("[V85.1] latest loaded:", latestResult.path);
     console.log("[V84] history counts:", {
       bingo: state.history.bingo.length,
       daily539: state.history.daily539.length,
