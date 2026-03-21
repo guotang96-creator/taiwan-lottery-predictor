@@ -46,8 +46,8 @@ jobs:
           echo "===== official_latest.json ====="
           test -f official_latest.json && sed -n '1,220p' official_latest.json || echo "official_latest.json not found"
 
-      - name: Run parse downloads
-        run: node parse_downloads.js
+      - name: Run parse bingo fast
+        run: node parse_bingo_fast.js
 
       - name: Debug bingo csv latest
         run: |
@@ -67,7 +67,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add official_latest.json docs/latest.json docs/raw_data/bingo.csv fetch_latest_official.js parse_downloads.js tools/build_latest_json.js .github/workflows/update-bingo-fast.yml
+          git add official_latest.json docs/latest.json docs/raw_data/bingo.csv fetch_latest_official.js parse_bingo_fast.js tools/build_latest_json.js .github/workflows/update-bingo-fast.yml
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
