@@ -1322,7 +1322,7 @@
     <section class="v93-card ${meta.colorClass}">
       <h3 class="v93-section-title">${meta.label}</h3>
       <div class="v93-kv"><div class="k">最新期數</div><div>${formatPeriod(row?.period)}</div></div>
-      <div class="v93-kv"><div class="k">開獎時間</div><div>${formatOnlyDate(row?.drawDate)}</div></div>
+      <div class="v93-kv"><div class="k">開獎時間</div><div>${formatDrawDate(row?.drawDate)}</div></div>
       <div class="v93-kv"><div class="k">最新號碼</div><div>${numbersHtml}</div></div>
       <div class="v93-kv"><div class="k">AI推薦</div><div>${pickPreview}</div></div>
       <div class="v93-kv"><div class="k">熱門尾數</div><div>${stats.hotTails.map((n) => `${n}尾`).join("、") || "-"}</div></div>
