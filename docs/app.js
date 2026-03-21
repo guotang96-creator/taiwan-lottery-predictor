@@ -19,11 +19,11 @@
   const JSON_CANDIDATES = ["./latest.json"];
 
   const CSV_CANDIDATES = {
-    bingo: ["./raw_data/bingo.csv"],
-    daily539: ["./raw_data/539.csv"],
-    lotto649: ["./raw_data/649.csv", "./raw_data/lotto649.csv"],
-    power: ["./raw_data/superlotto638.csv", "./raw_data/638.csv", "./raw_data/power.csv"]
-  };
+  bingo: ["./raw_data/bingo.csv"],
+  daily539: ["./raw_data/539.csv"],
+  lotto649: ["./raw_data/lotto.csv", "./raw_data/649.csv", "./raw_data/lotto649.csv"],
+  power: ["./raw_data/power.csv", "./raw_data/superlotto638.csv", "./raw_data/638.csv"]
+};
 
   const GAME_META = {
     bingo: { label: "BINGO BINGO", max: 80, pick: 10, colorClass: "g-bingo" },
