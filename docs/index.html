@@ -1,252 +1,624 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>台灣彩券 AI 預測系統 V93.1.3</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+  />
+  <title>台灣彩券 AI 預測系統 V93.1.4</title>
 
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#081224" />
   <meta
     name="description"
-    content="台灣彩券 AI 預測系統 V93.1.3｜GitHub Pages 最終版｜手機操作優化版｜BINGO 每日全期數學習｜四种彩票自動學習"
+    content="台灣彩券 AI 預測系統 V93.1.4｜GitHub Pages 強化學習增強修正版｜BINGO 每日全期數學習｜四彩種自動學習"
   />
-  <meta name="format-detection" content="telephone=no" />
-
-  <!-- PWA -->
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="icon" href="./favicon.png" type="image/png" />
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="彩券AI預測" />
+  <meta name="apple-mobile-web-app-title" content="彩券 AI 預測" />
 
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="manifest" href="manifest.json?v=93.1.4" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="stylesheet" href="style.css?v=93.1.4" />
+
+  <style>
+    :root {
+      --bg-1: #07101d;
+      --bg-2: #0b1730;
+      --panel: rgba(16, 28, 52, 0.92);
+      --panel-2: rgba(21, 38, 72, 0.92);
+      --line: rgba(110, 166, 255, 0.18);
+      --text: #f4f8ff;
+      --muted: #a7b8d9;
+      --primary: #25b7ff;
+      --primary-2: #4fd1ff;
+      --ball: linear-gradient(135deg, #1ea7ff 0%, #4fd1ff 100%);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top, rgba(43, 124, 255, 0.16), transparent 30%),
+        linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+      color: var(--text);
+      font-family:
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        "PingFang TC",
+        sans-serif;
+    }
+
+    body {
+      padding: 14px;
+    }
+
+    .app-shell {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .top-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(10, 22, 44, 0.96), rgba(8, 18, 36, 0.96));
+      box-shadow: var(--shadow);
+    }
+
+    .brand-wrap {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #1c90ff, #3ee0ff);
+      color: #fff;
+      box-shadow: 0 14px 30px rgba(37, 183, 255, 0.35);
+      flex: 0 0 auto;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 2rem;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+    }
+
+    .brand-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-end;
+      align-items: flex-start;
+    }
+
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 22px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1aa8ff, #31d5ff);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #2d4268, #50668f);
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.95fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .panel-title {
+      margin: 0 0 6px;
+      font-size: 1.75rem;
+      font-weight: 800;
+    }
+
+    .panel-desc {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      color: #cfe0ff;
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .field select,
+    .field input {
+      width: 100%;
+      border: 1px solid rgba(126, 167, 233, 0.18);
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .field select option {
+      color: #111;
+    }
+
+    .control-actions {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .latest-card-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .latest-card {
+      border: 1px solid rgba(126, 167, 233, 0.14);
+      border-radius: 20px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .latest-title {
+      font-size: 1.18rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .latest-meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      word-break: break-word;
+    }
+
+    .latest-balls,
+    .prediction-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .lottery-ball {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ball);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1rem;
+      box-shadow: 0 8px 18px rgba(36, 174, 255, 0.28);
+    }
+
+    .ball-empty {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .status-card {
+      border: 1px solid rgba(126, 167, 233, 0.14);
+      border-radius: 20px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      min-height: 96px;
+    }
+
+    .status-label {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .status-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .status-note {
+      color: #d9e7ff;
+      font-size: 0.95rem;
+      margin-top: 8px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .update-box {
+      margin-top: 14px;
+      border-top: 1px solid rgba(126, 167, 233, 0.12);
+      padding-top: 14px;
+    }
+
+    .feature-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .feature-chip {
+      border: 1px solid rgba(56, 174, 255, 0.26);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: #8edcff;
+      font-size: 0.92rem;
+      background: rgba(37, 183, 255, 0.06);
+    }
+
+    .prediction-box {
+      margin-top: 16px;
+      border-top: 1px solid rgba(126, 167, 233, 0.12);
+      padding-top: 16px;
+    }
+
+    .prediction-head {
+      font-size: 1.02rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: #dff3ff;
+    }
+
+    .prediction-group {
+      border: 1px solid rgba(126, 167, 233, 0.14);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      margin-bottom: 12px;
+    }
+
+    .prediction-group-title {
+      font-size: 0.98rem;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .prediction-empty {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+      padding: 6px 0;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.7;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(8, 16, 28, 0.92);
+      color: #fff;
+      border: 1px solid rgba(126, 167, 233, 0.18);
+      padding: 12px 18px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.22s ease;
+      z-index: 9999;
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.28);
+      font-size: 0.95rem;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 1080px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 10px;
+      }
+
+      .top-hero {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+      }
+
+      .brand-title {
+        font-size: 1.5rem;
+      }
+
+      .brand-subtitle {
+        font-size: 0.95rem;
+      }
+
+      .top-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .top-actions .btn {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 0;
+      }
+
+      .control-grid,
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      .panel-title {
+        font-size: 1.4rem;
+      }
+
+      .lottery-ball {
+        width: 40px;
+        height: 40px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="app-shell">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo">AI</div>
-        <div>
-          <h1>台灣彩券 AI 預測系統</h1>
-          <p>
-            V93.1.3｜GitHub Pages 強化學習增強版｜極簡首頁｜BINGO 每日全期數學習｜四种彩票自動學習
+    <header class="top-hero">
+      <div class="brand-wrap">
+        <div class="brand-logo">AI</div>
+        <div class="brand-text">
+          <h1 class="brand-title">台灣彩券 AI 預測系統</h1>
+          <p class="brand-subtitle">
+            <span id="appVersion">V93.1.4 | GitHub Pages 強化學習增強修正版</span><br />
+            極簡首頁｜BINGO 每日全期數學習｜四彩種自動學習
           </p>
         </div>
       </div>
 
       <div class="top-actions">
-        <button id="runPredictionBtn" class="btn btn-primary" type="button">立即預測</button>
-        <button id="relearnBtn" class="btn btn-primary" type="button">重新學習</button>
-        <button id="resetAiBtn" class="btn btn-secondary" type="button">重置 AI 權重</button>
+        <button id="topPredictBtn" class="btn btn-primary" type="button">立即預測</button>
+        <button id="topRelearnBtn" class="btn btn-primary" type="button">重新學習</button>
+        <button id="topResetBtn" class="btn btn-secondary" type="button">重置 AI 權重</button>
       </div>
     </header>
 
-    <main class="grid">
-      <section class="panel-stack">
-        <div class="card">
-          <div class="card-title">預測控制台</div>
-          <div class="card-sub">
-            可切換彩種、BINGO 顆數、預測組數。BINGO 已改為「今日全部已開期數 + 近 7 日輔助學習」。
+    <main class="main-grid">
+      <section class="panel">
+        <h2 class="panel-title">預測控制台</h2>
+        <p class="panel-desc">
+          可切換彩種、設定 BINGO 顆數與預測組數，並直接產生推薦號碼。
+        </p>
+
+        <div class="control-grid">
+          <div class="field">
+            <label for="gameSelect">選擇彩種</label>
+            <select id="gameSelect" data-role="game-select"></select>
           </div>
 
-          <div class="controls">
-            <div class="field">
-              <label for="gameSelect">選擇彩種</label>
-              <select id="gameSelect">
-                <option value="bingo">BINGO BINGO</option>
-                <option value="daily539">今彩539</option>
-                <option value="lotto649">大樂透</option>
-                <option value="superlotto638">威力彩</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="bingoPickCount">BINGO 預測顆數</label>
-              <select id="bingoPickCount">
-                <option value="1">1 顆</option>
-                <option value="2">2 顆</option>
-                <option value="3">3 顆</option>
-                <option value="4">4 顆</option>
-                <option value="5">5 顆</option>
-                <option value="6">6 顆</option>
-                <option value="7">7 顆</option>
-                <option value="8">8 顆</option>
-                <option value="9">9 顆</option>
-                <option value="10">10 顆</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="predictionSetCount">預測組數</label>
-              <select id="predictionSetCount">
-                <option value="1">1 組</option>
-                <option value="2">2 組</option>
-                <option value="3">3 組</option>
-                <option value="4">4 組</option>
-                <option value="5">5 組</option>
-                <option value="6">6 組</option>
-                <option value="7">7 組</option>
-                <option value="8">8 組</option>
-                <option value="9">9 組</option>
-                <option value="10">10 組</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="appVersion">系統版本</label>
-              <input id="appVersion" type="text" value="載入中..." readonly />
-            </div>
+          <div class="field">
+            <label for="bingoCountSelect">BINGO 預測顆數</label>
+            <select id="bingoCountSelect" data-role="count-select"></select>
           </div>
 
-          <div class="btn-row">
-            <button
-              id="runPredictionBtn_clone"
-              class="btn btn-primary"
-              type="button"
-              onclick="document.getElementById('runPredictionBtn').click()"
-            >
-              產生推薦號碼
-            </button>
-            <button
-              id="relearnBtn_clone"
-              class="btn btn-secondary"
-              type="button"
-              onclick="document.getElementById('relearnBtn').click()"
-            >
-              強化再學習
-            </button>
+          <div class="field">
+            <label for="groupCountSelect">預測組數</label>
+            <select id="groupCountSelect" data-role="group-select"></select>
+          </div>
+
+          <div class="field">
+            <label for="versionInput">系統版本</label>
+            <input
+              id="versionInput"
+              data-role="version-input"
+              type="text"
+              value="V93.1.4"
+              readonly
+            />
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-title">最新開出獎號</div>
-          <div class="card-sub">
-            顯示目前各彩種最新一期實際開獎號碼。
-          </div>
-          <div id="latestDrawOutput"></div>
+        <div class="control-actions">
+          <button id="generateBtn" class="btn btn-primary" type="button">產生推薦號碼</button>
+          <button id="relearnBtn" class="btn btn-secondary" type="button">強化再學習</button>
+          <button id="resetModelBtn" class="btn btn-secondary" type="button">重置模型</button>
         </div>
 
-        <div class="card">
-          <div class="card-title">AI 預測結果</div>
-          <div class="card-sub">
-            系統會依彩種自動套用對應學習邏輯。BINGO 以日內全部期數為主，其他彩種以近期強化學習模式計算。
-          </div>
+        <div class="prediction-box">
+          <h3 class="panel-title" style="font-size:1.2rem; margin-bottom:10px;">推薦結果</h3>
+          <div id="predictionResults" data-role="prediction-results"></div>
+        </div>
 
-          <div id="predictionOutput"></div>
+        <div class="prediction-box">
+          <h3 class="panel-title" style="font-size:1.2rem; margin-bottom:10px;">最新開出獎號</h3>
+          <p class="panel-desc" style="margin-bottom:12px;">
+            顯示目前四彩種最新一期實際開獎號碼。
+          </p>
+          <div
+            id="latestResults"
+            class="latest-card-list"
+            data-role="latest-results"
+          ></div>
         </div>
       </section>
 
-      <aside class="side-stack">
-        <div class="card">
-          <div class="card-title">資料狀態</div>
-          <div class="card-sub">
-            顯示目前各彩種已載入資料量與最後更新時間。
-          </div>
+      <section style="display:flex; flex-direction:column; gap:18px;">
+        <section class="panel">
+          <h2 class="panel-title">資料狀態</h2>
+          <p class="panel-desc">
+            顯示目前各彩種已載入資料筆數、狀態與最後更新時間。
+          </p>
 
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-label">BINGO 資料筆數</div>
-              <div class="stat-value" id="bingoDataCount">0</div>
+          <div class="status-grid">
+            <div class="status-card">
+              <div class="status-label">BINGO 資料筆數</div>
+              <div id="bingoDataCount" class="status-value" data-role="bingo-count">0</div>
+              <div id="bingoStatusText" class="status-note" data-role="bingo-status">載入中</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-label">今彩539 資料筆數</div>
-              <div class="stat-value" id="daily539DataCount">0</div>
+            <div class="status-card">
+              <div class="status-label">今彩539 資料筆數</div>
+              <div id="daily539DataCount" class="status-value" data-role="539-count">0</div>
+              <div id="daily539StatusText" class="status-note" data-role="daily539-status">載入中</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-label">大樂透 資料筆數</div>
-              <div class="stat-value" id="lotto649DataCount">0</div>
+            <div class="status-card">
+              <div class="status-label">大樂透 資料筆數</div>
+              <div id="biglottoDataCount" class="status-value" data-role="biglotto-count">0</div>
+              <div id="biglottoStatusText" class="status-note" data-role="biglotto-status">載入中</div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-label">威力彩 資料筆數</div>
-              <div class="stat-value" id="superlotto638DataCount">0</div>
-            </div>
-          </div>
-
-          <hr />
-
-          <div class="info-card">
-            <div class="info-label">最後更新時間</div>
-            <div class="info-value" id="latestUpdateTime">-</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">目前功能</div>
-          <div class="badge-row">
-            <span class="badge">極簡首頁</span>
-            <span class="badge">手機操作優化</span>
-            <span class="badge">BINGO 排程更新</span>
-            <span class="badge">每日全期數學習</span>
-            <span class="badge">四种彩票自動學習</span>
-            <span class="badge">冷熱號平衡</span>
-            <span class="badge">尾數分析</span>
-            <span class="badge">拖號分析</span>
-            <span class="badge">連號強化</span>
-            <span class="badge">命中回饋學習</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">使用說明</div>
-          <div class="history-list">
-            <div class="history-item">
-              <div class="history-title">1. 選擇彩種</div>
-              <div class="history-body">可切換 BINGO、今彩539、大樂透、威力彩。</div>
-            </div>
-
-            <div class="history-item">
-              <div class="history-title">2. 設定預測條件</div>
-              <div class="history-body">BINGO 可選 1～10 顆；所有彩種可設定 1～10 組推薦。</div>
-            </div>
-
-            <div class="history-item">
-              <div class="history-title">3. 立即預測</div>
-              <div class="history-body">系統依最新資料與學習權重，即時計算推薦號碼。</div>
-            </div>
-
-            <div class="history-item">
-              <div class="history-title">4. 重新學習</div>
-              <div class="history-body">重新套用近期开奖資料，強化模型權重。</div>
-            </div>
-
-            <div class="history-item">
-              <div class="history-title">5. 重置 AI 權重</div>
-              <div class="history-body">將所有自動學習結果回到預設值，重新開始學習。</div>
+            <div class="status-card">
+              <div class="status-label">威力彩 資料筆數</div>
+              <div id="powerDataCount" class="status-value" data-role="power-count">0</div>
+              <div id="powerStatusText" class="status-note" data-role="power-status">載入中</div>
             </div>
           </div>
-        </div>
-      </aside>
+
+          <div class="status-card update-box">
+            <div class="status-label">最後更新時間</div>
+            <div id="lastUpdatedAt" class="status-value" data-role="last-updated" style="font-size:1.5rem;">
+              -
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="panel-title">目前功能</h2>
+          <div class="feature-wrap">
+            <span class="feature-chip">極簡首頁</span>
+            <span class="feature-chip">手機操作優化</span>
+            <span class="feature-chip">BINGO 排程更新</span>
+            <span class="feature-chip">每日全期數學習</span>
+            <span class="feature-chip">四彩種自動學習</span>
+            <span class="feature-chip">冷熱號平衡</span>
+            <span class="feature-chip">尾數分析</span>
+            <span class="feature-chip">拖號分析</span>
+            <span class="feature-chip">連號強化</span>
+            <span class="feature-chip">命中回饋學習</span>
+          </div>
+        </section>
+      </section>
     </main>
 
-    <footer class="footer">
-      <div data-app-version>V93.1.3 載入中...</div>
-      <div style="margin-top: 8px;">
-        台灣彩券 AI 預測系統｜GitHub Pages 最終版｜手機操作優化版
-      </div>
-    </footer>
+    <div class="footer-note">
+      本系統提供資料整理與號碼分析輔助，請理性參考。
+    </div>
   </div>
 
-  <script>
-    window.__APP_BUILD__ = "93.1.3";
-  </script>
+  <div id="toast" class="toast" data-role="toast"></div>
 
-  <script src="./app.js"></script>
+  <script>
+    window.__APP_BUILD__ = "93.1.4";
+  </script>
+  <script defer src="app.js?v=93.1.4"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("./service-worker.js")
-          .then((reg) => {
-            console.log("Service Worker 註冊成功:", reg.scope);
-          })
-          .catch((err) => {
-            console.warn("Service Worker 註冊失敗:", err);
-          });
+        navigator.serviceWorker.register("./service-worker.js").catch((err) => {
+          console.warn("service worker 註冊失敗", err);
+        });
       });
     }
   </script>
