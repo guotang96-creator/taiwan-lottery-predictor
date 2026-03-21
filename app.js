@@ -1170,9 +1170,14 @@
           </div>
           <div class="v924-top-side">
             <div class="v924-top-period">第 ${escapeHtml(latestDraw.period || "—")} 期</div>
-            <button class="v924-refresh-btn" id="v924TopRefreshBtn" type="button">
-              ${state.manualBingoRefreshing ? "刷新中..." : "立即刷新"}
-            </button>
+            <button
+  class="v924-refresh-btn"
+  id="v924TopRefreshBtn"
+  type="button"
+  onclick="manualRefreshBingoNow()"
+>
+  ${state.manualBingoRefreshing ? "刷新中..." : "立即刷新"}
+</button>
           </div>
         </div>
         <div class="v924-top-balls">
