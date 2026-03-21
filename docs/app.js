@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.1.4";
-  const APP_VERSION = `V93.1.4 | GitHub Pages 強化學習增強修正版`;
+  const BUILD = window.__APP_BUILD__ || "93.1.5";
+  const APP_VERSION = `V93.1.5 | GitHub Pages 最新資料修正版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9314";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9314";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9314";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9314";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9315";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9315";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9315";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9315";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -494,75 +494,94 @@
   }
 
   async function loadLatestBingo() {
-    if (state.latest.bingo) {
-      state.dataStatus.bingo = getDataStatusText("bingo", state.history.bingo, state.latest.bingo);
-      return;
-    }
-
     try {
       const res = await fetch(GAME_CONFIG.bingo.apiUrl, { cache: "no-store" });
       const json = await res.json();
-      const latest = json?.content?.lotteryBingoLatestPost || null;
+
+      console.log("BINGO API 原始資料:", json);
+
+      const latest =
+        json?.content?.lotteryBingoLatestPost ||
+        json?.content?.bingo ||
+        json?.content?.bingoLatestPost ||
+        null;
+
       state.latest.bingo = normalizeLatestBingo(latest);
     } catch (err) {
       console.warn("BINGO 最新資料讀取失敗", err);
+      state.latest.bingo = null;
     }
 
-    state.dataStatus.bingo = getDataStatusText("bingo", state.history.bingo, state.latest.bingo);
+    state.dataStatus.bingo = getDataStatusText(
+      "bingo",
+      state.history.bingo,
+      state.latest.bingo
+    );
   }
 
   async function loadLatestDaily539() {
-    if (state.latest.daily539) {
-      state.dataStatus.daily539 = getDataStatusText("daily539", state.history.daily539, state.latest.daily539);
-      return;
-    }
-
     try {
       const res = await fetch(GAME_CONFIG.daily539.apiUrl, { cache: "no-store" });
       const json = await res.json();
-      const row = json?.content?.daily539Res?.[0] || null;
+      const row =
+        json?.content?.daily539Res?.[0] ||
+        json?.content?.daily539 ||
+        json?.content?.daily539LatestPost ||
+        null;
+
       state.latest.daily539 = normalizeLatest539(row);
     } catch (err) {
       console.warn("今彩539 最新資料讀取失敗", err);
+      state.latest.daily539 = null;
     }
 
     state.dataStatus.daily539 = getDataStatusText("daily539", state.history.daily539, state.latest.daily539);
   }
 
   async function loadLatestBigLotto() {
-    if (state.latest.biglotto) {
-      state.dataStatus.biglotto = getDataStatusText("biglotto", state.history.biglotto, state.latest.biglotto);
-      return;
-    }
-
     try {
       const res = await fetch(GAME_CONFIG.biglotto.apiUrl, { cache: "no-store" });
       const json = await res.json();
-      const row = json?.content?.lotto649Res?.[0] || null;
+      const row =
+        json?.content?.lotto649Res?.[0] ||
+        json?.content?.bigLotto ||
+        json?.content?.lotto649LatestPost ||
+        null;
+
       state.latest.biglotto = normalizeLatestBigLotto(row);
     } catch (err) {
       console.warn("大樂透 最新資料讀取失敗", err);
+      state.latest.biglotto = null;
     }
 
     state.dataStatus.biglotto = getDataStatusText("biglotto", state.history.biglotto, state.latest.biglotto);
   }
 
   async function loadLatestPower() {
-    if (state.latest.power) {
-      state.dataStatus.power = getDataStatusText("power", state.history.power, state.latest.power);
-      return;
-    }
-
     try {
       const res = await fetch(GAME_CONFIG.power.apiUrl, { cache: "no-store" });
       const json = await res.json();
-      const row = json?.content?.powerLotto638Res?.[0] || null;
+
+      console.log("威力彩 API 原始資料:", json);
+
+      const row =
+        json?.content?.powerLotto638Res?.[0] ||
+        json?.content?.powerLottoRes?.[0] ||
+        json?.content?.powerLottoLatestPost ||
+        json?.content?.powerLotto ||
+        null;
+
       state.latest.power = normalizeLatestPower(row);
     } catch (err) {
       console.warn("威力彩 最新資料讀取失敗", err);
+      state.latest.power = null;
     }
 
-    state.dataStatus.power = getDataStatusText("power", state.history.power, state.latest.power);
+    state.dataStatus.power = getDataStatusText(
+      "power",
+      state.history.power,
+      state.latest.power
+    );
   }
 
   function renderStatus() {
@@ -1104,12 +1123,19 @@
 
   function normalizeLatestBingo(row) {
     if (!row) return null;
+
     const numbers = parseNumberList(row.drawNumberAppear || row.drawNumberSize || row.numbers);
-    if (!numbers.length) return null;
+    const finalNumbers = Array.isArray(numbers) ? numbers.filter(Number.isFinite) : [];
+
+    if (!finalNumbers.length) {
+      console.warn("BINGO 最新資料解析失敗:", row);
+      return null;
+    }
+
     return {
-      term: row.drawTerm || row.period || "-",
-      time: formatDateTime(row.dDate || row.drawDate || row.lotteryDate),
-      numbers: numbers.slice(0, 20).sort((a, b) => a - b)
+      term: row.drawTerm || row.period || row.term || "-",
+      time: formatDateTime(row.dDate || row.drawDate || row.lotteryDate || row.date),
+      numbers: finalNumbers.slice(0, 20).sort((a, b) => a - b)
     };
   }
 
@@ -1118,8 +1144,8 @@
     const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear || row.numbers);
     if (!numbers.length) return null;
     return {
-      term: row.period || row.drawTerm || "-",
-      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate),
+      term: row.period || row.drawTerm || row.term || "-",
+      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate || row.date),
       numbers: numbers.slice(0, 5).sort((a, b) => a - b)
     };
   }
@@ -1128,12 +1154,14 @@
     if (!row) return null;
     const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear || row.numbers);
     if (!numbers.length) return null;
+
     const secondArea = parseNumberList(
       row.specialNum || row.bonusNumber || row.secondArea || row.specialNumber
     );
+
     return {
-      term: row.period || row.drawTerm || "-",
-      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate),
+      term: row.period || row.drawTerm || row.term || "-",
+      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate || row.date),
       numbers: numbers.slice(0, 6).sort((a, b) => a - b),
       secondArea: secondArea.slice(0, 1)
     };
@@ -1141,16 +1169,28 @@
 
   function normalizeLatestPower(row) {
     if (!row) return null;
-    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear || row.numbers);
-    if (!numbers.length) return null;
+
+    const numbers = parseNumberList(
+      row.drawNumberSize || row.drawNumberAppear || row.numbers
+    );
+
     const secondArea = parseNumberList(
       row.specialNum || row.secondArea || row.powerball || row.specialNumber
     );
+
+    const finalNumbers = Array.isArray(numbers) ? numbers.filter(Number.isFinite) : [];
+    const finalSecond = Array.isArray(secondArea) ? secondArea.filter(Number.isFinite) : [];
+
+    if (!finalNumbers.length) {
+      console.warn("威力彩最新資料解析失敗:", row);
+      return null;
+    }
+
     return {
-      term: row.period || row.drawTerm || "-",
-      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate),
-      numbers: numbers.slice(0, 6).sort((a, b) => a - b),
-      secondArea: secondArea.slice(0, 1)
+      term: row.period || row.drawTerm || row.term || "-",
+      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate || row.date),
+      numbers: finalNumbers.slice(0, 6).sort((a, b) => a - b),
+      secondArea: finalSecond.slice(0, 1)
     };
   }
 
@@ -1243,14 +1283,18 @@
       return [value];
     }
 
-    if (!value || typeof value !== "string") {
+    if (!value) {
       return [];
     }
 
-    return value
-      .split(/[^0-9]+/g)
-      .map((n) => parseInt(n, 10))
-      .filter((n) => Number.isFinite(n));
+    if (typeof value === "string") {
+      return value
+        .split(/[^0-9]+/g)
+        .map((n) => parseInt(n, 10))
+        .filter((n) => Number.isFinite(n));
+    }
+
+    return [];
   }
 
   function collectSequentialNumbers(row, from, to) {
