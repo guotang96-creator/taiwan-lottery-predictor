@@ -316,10 +316,6 @@ img {
   font-size: 18px;
 }
 
-#v922BingoRefreshBtn {
-  white-space: nowrap;
-}
-
 .v92-top-mini-status {
   display: grid;
   gap: 10px;
@@ -602,6 +598,83 @@ img {
   top: -90px;
 }
 
+/* V92.4 Bingo 置頂列 */
+.v924-sticky-latest {
+  position: sticky;
+  top: 10px;
+  z-index: 1200;
+  margin-bottom: 14px;
+  padding: 14px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(19, 34, 58, 0.97), rgba(13, 25, 45, 0.97));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 14px 32px rgba(0,0,0,.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.v924-sticky-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.v924-sticky-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.v924-sticky-time {
+  font-size: 13px;
+  color: #b9c8e6;
+  line-height: 1.5;
+}
+
+.v924-sticky-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.v924-sticky-period {
+  font-size: 13px;
+  font-weight: 900;
+  color: #d8e5ff;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 999px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.v924-refresh-btn {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #63e6ff 0%, #38ef7d 100%);
+  color: #04111f;
+  font-size: 14px;
+  font-weight: 900;
+  border: 0;
+  box-shadow: 0 10px 22px rgba(56, 239, 125, 0.18);
+}
+
+.v924-refresh-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.v924-sticky-balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .bottom-nav,
 .v92-bottom-nav {
   position: fixed;
@@ -699,6 +772,26 @@ img {
 
   .nav-pill .icon {
     font-size: 28px;
+  }
+
+  .v924-sticky-latest {
+    top: 8px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .v924-sticky-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .v924-sticky-side {
+    align-items: stretch;
+  }
+
+  .v924-refresh-btn {
+    width: 100%;
+    min-height: 46px;
   }
 }
 
