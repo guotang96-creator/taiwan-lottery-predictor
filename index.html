@@ -5,133 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>台灣彩券 AI 預測系統</title>
   <meta name="theme-color" content="#081224" />
-  <meta name="description" content="台灣彩券 AI 預測系統｜Bingo、今彩539、大樂透、威力彩｜V91.2 防快取版" />
+  <meta name="description" content="台灣彩券 AI 預測系統｜V92 手機好操作版" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./style.css?v=91.2" />
+  <link rel="stylesheet" href="./style.css?v=92" />
 </head>
 <body>
-  <main class="app-shell">
-    <section class="hero-card">
+  <main class="app-shell v92-shell">
+    <!-- 首屏 -->
+    <section class="hero-card v92-hero" id="homeSection">
       <div class="hero-top">
         <div class="app-logo">AI</div>
         <div>
           <h1 class="hero-title">台灣彩券 AI 預測系統</h1>
-          <p class="hero-subtitle">V91.2｜防快取版｜每 5 分鐘自動檢查＋降低手機快取不同步</p>
+          <p class="hero-subtitle">V92｜手機好操作版｜先預測、再分析、單手也好點</p>
         </div>
       </div>
 
-      <div class="hero-actions">
-        <button class="primary" type="button" onclick="document.getElementById('controlSection').scrollIntoView({behavior:'smooth'})">快速開始</button>
-        <button class="secondary" type="button" onclick="document.getElementById('predictionSection').scrollIntoView({behavior:'smooth'})">查看結果</button>
-      </div>
-    </section>
-
-    <section class="section-card">
       <div class="chip-row">
-        <span class="chip">V91.2 防快取版</span>
+        <span class="chip">V92 手機版</span>
         <span class="chip" id="v84SiteStateBadge">系統待命中</span>
         <span class="chip" id="v84CurrentGameBadge">尚未選擇彩種</span>
       </div>
 
-      <h2 class="section-title">一頁式首頁，直接進入實戰預測</h2>
-      <p class="section-desc">
-        整合 Bingo、今彩539、大樂透、威力彩，加入自動學習、命中追蹤、資料狀態、回測分析與自動刷新。
-      </p>
+      <div class="v92-quick-panel">
+        <div class="control-grid">
+          <div class="field">
+            <label for="lotterySelect">彩種</label>
+            <select id="lotterySelect">
+              <option value="bingo">Bingo Bingo</option>
+              <option value="539">今彩539</option>
+              <option value="649">大樂透</option>
+              <option value="638">威力彩</option>
+            </select>
+          </div>
 
-      <div class="action-stack">
-        <button class="primary-btn" type="button" onclick="runPrediction(document.getElementById('lotterySelect').value)">立即預測</button>
-        <button class="secondary-btn" type="button" onclick="document.getElementById('lotterySelect').focus()">選擇彩種</button>
-        <button class="secondary-btn" type="button" onclick="document.getElementById('predictionSection').scrollIntoView({behavior:'smooth'})">查看分析</button>
+          <div class="field">
+            <label for="setCount">推薦組數</label>
+            <select id="setCount">
+              <option value="1">1 組</option>
+              <option value="2">2 組</option>
+              <option value="3" selected>3 組</option>
+              <option value="4">4 組</option>
+              <option value="5">5 組</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="historyPeriods">歷史期數</label>
+            <select id="historyPeriods">
+              <option value="30">30 期</option>
+              <option value="50" selected>50 期</option>
+              <option value="100">100 期</option>
+              <option value="120">120 期</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="bingoCount">Bingo 預測顆數</label>
+            <select id="bingoCount">
+              <option value="4">4 顆</option>
+              <option value="5">5 顆</option>
+              <option value="6">6 顆</option>
+              <option value="7">7 顆</option>
+              <option value="8">8 顆</option>
+              <option value="9">9 顆</option>
+              <option value="10" selected>10 顆</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="v92-main-actions">
+          <button class="primary-btn v92-primary-btn" type="button" onclick="runPrediction(document.getElementById('lotterySelect').value)">
+            開始預測
+          </button>
+          <button class="secondary-btn" type="button" onclick="document.getElementById('latestSection').scrollIntoView({behavior:'smooth'})">
+            查看最新一期
+          </button>
+        </div>
+      </div>
+
+      <div class="v92-top-mini-status">
+        <div class="mini-status-card">
+          <div class="mini-status-label">資料狀態</div>
+          <div class="mini-status-value" id="v84DataStateText">待載入</div>
+        </div>
+        <div class="mini-status-card">
+          <div class="mini-status-label">最新時間</div>
+          <div class="mini-status-value" id="v84LastUpdateText">尚未取得</div>
+        </div>
       </div>
     </section>
 
-    <section class="section-card" id="controlSection">
-      <div class="chip-row">
-        <span class="chip">首頁資訊精簡版</span>
-        <span class="chip" id="v84DataStateText">待載入</span>
-        <span class="chip" id="v84LastUpdateText">尚未取得</span>
-      </div>
-
-      <h2 class="section-title" style="font-size:clamp(24px,5.2vw,42px);">直接選彩種，快速進入預測</h2>
-      <p class="section-desc">先設定彩種、組數與歷史期數，再開始執行預測。</p>
-
-      <div class="control-grid">
-        <div class="field">
-          <label for="lotterySelect">彩種</label>
-          <select id="lotterySelect">
-            <option value="bingo">Bingo Bingo</option>
-            <option value="539">今彩539</option>
-            <option value="649">大樂透</option>
-            <option value="638">威力彩</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="setCount">推薦組數</label>
-          <select id="setCount">
-            <option value="1">1 組</option>
-            <option value="2">2 組</option>
-            <option value="3" selected>3 組</option>
-            <option value="4">4 組</option>
-            <option value="5">5 組</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="historyPeriods">歷史期數</label>
-          <select id="historyPeriods">
-            <option value="30">30 期</option>
-            <option value="50" selected>50 期</option>
-            <option value="100">100 期</option>
-            <option value="120">120 期</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="bingoCount">Bingo 預測顆數</label>
-          <select id="bingoCount">
-            <option value="4">4 顆</option>
-            <option value="5">5 顆</option>
-            <option value="6">6 顆</option>
-            <option value="7">7 顆</option>
-            <option value="8">8 顆</option>
-            <option value="9">9 顆</option>
-            <option value="10" selected>10 顆</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="v84-toolbar">
-        <button id="v84SaveBtn" class="toolbar-btn" type="button">儲存本次預測</button>
-        <button id="v84ClearBtn" class="toolbar-btn" type="button">清空命中紀錄</button>
-        <button id="v90ResetWeightsBtn" class="toolbar-btn" type="button">重置學習權重</button>
-        <button id="v84TopBtn" class="toolbar-btn" type="button">回到頂部</button>
-        <button class="primary-btn" type="button" onclick="runPrediction(document.getElementById('lotterySelect').value)">開始預測</button>
-      </div>
-    </section>
-
+    <!-- 儀表板 -->
     <section class="section-card">
       <div class="result-head">
-        <h2 class="result-title">儀表板總覽</h2>
+        <h2 class="result-title">快速總覽</h2>
         <div class="badge" id="resultBadge">待預測</div>
       </div>
 
       <div class="v84-kpi-grid" id="v84HeroKpis"></div>
       <div class="v84-mini-grid" id="v84MiniStats"></div>
-
-      <div class="v84-recent-wrap">
-        <h3 class="v84-recent-title">最近操作</h3>
-        <div class="v84-recent-list" id="v84RecentOps"></div>
-      </div>
     </section>
 
-    <section class="section-card" id="predictionSection">
+    <!-- AI推薦 -->
+    <section class="section-card" id="predictSection">
       <div class="result-head">
-        <h2 class="result-title" id="resultGameName">V91.2｜請先選擇彩種並開始預測</h2>
+        <h2 class="result-title" id="resultGameName">V92｜請先選擇彩種並開始預測</h2>
         <div class="badge" id="v84TrackingStateText">待機中</div>
+      </div>
+
+      <div class="v92-action-toolbar">
+        <button id="v84SaveBtn" class="toolbar-btn" type="button">儲存本次預測</button>
+        <button id="v84ClearBtn" class="toolbar-btn" type="button">清空命中紀錄</button>
+        <button id="v90ResetWeightsBtn" class="toolbar-btn" type="button">重置學習權重</button>
+        <button id="v84TopBtn" class="toolbar-btn" type="button">回到頂部</button>
       </div>
 
       <div id="predictionResult">
@@ -144,29 +134,103 @@
         </div>
       </div>
     </section>
+
+    <!-- 最新 -->
+    <section class="section-card" id="latestSection">
+      <div class="result-head">
+        <h2 class="result-title">最新資料快速看</h2>
+      </div>
+
+      <div class="v92-latest-shortcuts">
+        <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-latest')?.scrollIntoView({behavior:'smooth'})">
+          跳到最新五期
+        </button>
+        <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-status')?.scrollIntoView({behavior:'smooth'})">
+          跳到資料狀態
+        </button>
+      </div>
+    </section>
+
+    <!-- 命中追蹤 -->
+    <section class="section-card" id="trackingSection">
+      <div class="result-head">
+        <h2 class="result-title">命中追蹤</h2>
+      </div>
+      <div class="v84-recent-wrap">
+        <h3 class="v84-recent-title">最近操作</h3>
+        <div class="v84-recent-list" id="v84RecentOps"></div>
+      </div>
+    </section>
+
+    <!-- 進階分析 -->
+    <section class="section-card">
+      <div class="result-head">
+        <h2 class="result-title">進階分析</h2>
+      </div>
+
+      <details class="v92-collapse" open>
+        <summary>號碼分析</summary>
+        <div class="v92-collapse-body">
+          <p class="section-desc">熱號、冷號、拖號、連號、尾數都會顯示在預測結果區內。</p>
+          <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-analysis')?.scrollIntoView({behavior:'smooth'})">
+            前往號碼分析
+          </button>
+        </div>
+      </details>
+
+      <details class="v92-collapse">
+        <summary>回測表現</summary>
+        <div class="v92-collapse-body">
+          <p class="section-desc">近 30 / 50 / 100 期表現。</p>
+          <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-backtest')?.scrollIntoView({behavior:'smooth'})">
+            前往回測表現
+          </button>
+        </div>
+      </details>
+
+      <details class="v92-collapse">
+        <summary>學習權重</summary>
+        <div class="v92-collapse-body">
+          <p class="section-desc">目前模型的熱號、遺漏、尾數、特別號權重。</p>
+          <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-learning')?.scrollIntoView({behavior:'smooth'})">
+            前往學習權重
+          </button>
+        </div>
+      </details>
+
+      <details class="v92-collapse">
+        <summary>資料狀態</summary>
+        <div class="v92-collapse-body">
+          <p class="section-desc">資料來源、自動檢查狀態、Bingo 同步狀態。</p>
+          <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-status')?.scrollIntoView({behavior:'smooth'})">
+            前往資料狀態
+          </button>
+        </div>
+      </details>
+    </section>
   </main>
 
-  <nav class="bottom-nav">
-    <a class="nav-pill active" href="javascript:void(0)">
+  <nav class="bottom-nav v92-bottom-nav">
+    <a class="nav-pill active" href="javascript:void(0)" onclick="document.getElementById('homeSection')?.scrollIntoView({behavior:'smooth'})">
       <span class="icon">🏠</span>
       <span class="label">首頁</span>
     </a>
-    <a class="nav-pill" href="javascript:void(0)">
+    <a class="nav-pill" href="javascript:void(0)" onclick="document.getElementById('predictSection')?.scrollIntoView({behavior:'smooth'})">
       <span class="icon">🎯</span>
       <span class="label">預測</span>
     </a>
-    <a class="nav-pill" href="javascript:void(0)">
-      <span class="icon">📊</span>
-      <span class="label">結果</span>
-    </a>
-    <a class="nav-pill" href="javascript:void(0)">
+    <a class="nav-pill" href="javascript:void(0)" onclick="document.getElementById('latestSection')?.scrollIntoView({behavior:'smooth'})">
       <span class="icon">🕘</span>
       <span class="label">最新</span>
+    </a>
+    <a class="nav-pill" href="javascript:void(0)" onclick="document.getElementById('trackingSection')?.scrollIntoView({behavior:'smooth'})">
+      <span class="icon">📌</span>
+      <span class="label">追蹤</span>
     </a>
   </nav>
 
   <script>
-    window.__APP_BUILD__ = "91.2";
+    window.__APP_BUILD__ = "92.0";
   </script>
   <script src="./app.js?v=91.2"></script>
 </body>
