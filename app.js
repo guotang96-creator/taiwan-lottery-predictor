@@ -1,12 +1,15 @@
 (() => {
-  const BUILD = window.__APP_BUILD__ || "92.0";
-  const APP_VERSION = `V92 手機好操作版（build ${BUILD}）`;
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v920";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v920";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v920";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v920";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v920";
-  const AUTO_REFRESH_MS = 5 * 60 * 1000;
+  const BUILD = window.__APP_BUILD__ || "92.1";
+  const APP_VERSION = `V92.1 Bingo 即時加速版（build ${BUILD}）`;
+
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v921";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v921";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v921";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v921";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v921";
+
+  const GENERAL_REFRESH_MS = 5 * 60 * 1000;
+  const BINGO_FAST_REFRESH_MS = 60 * 1000;
 
   const JSON_CANDIDATES = [
     "./docs/latest.json",
@@ -102,8 +105,11 @@
     currentModes: [],
     currentLatestDraw: null,
     autoTimer: null,
+    bingoFastTimer: null,
     autoRefreshing: false,
+    bingoFastRefreshing: false,
     lastAutoRefreshAt: null,
+    lastBingoFastRefreshAt: null,
     lastCacheBust: "",
     history: {
       bingo: [],
@@ -116,7 +122,8 @@
       daily539: "",
       lotto649: "",
       superLotto638: ""
-    }
+    },
+    bingoLiveDraw: null
   };
 
   function $(id) {
@@ -176,11 +183,11 @@
   }
 
   function showToast(text) {
-    const old = document.getElementById("v920Toast");
+    const old = document.getElementById("v921Toast");
     if (old) old.remove();
 
     const el = document.createElement("div");
-    el.id = "v920Toast";
+    el.id = "v921Toast";
     el.textContent = text;
     el.style.position = "fixed";
     el.style.left = "50%";
@@ -336,6 +343,7 @@
     const out = [];
     let current = "";
     let inQuotes = false;
+
     for (let i = 0; i < line.length; i += 1) {
       const ch = line[i];
       const next = line[i + 1];
@@ -353,6 +361,7 @@
         current += ch;
       }
     }
+
     out.push(current);
     return out.map(v => v.trim());
   }
@@ -449,12 +458,28 @@
       if (gameKey === "bingo") {
         const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 20);
         const specialNumber = inferSpecial(row, ["special", "specialnumber", "supernumber", "超級獎號"], cfg.specialMin, cfg.specialMax);
-        return { period, drawDate, redeemableDate: "", numbers, orderNumbers: numbers.slice(), specialNumber, source: "history-csv" };
+        return {
+          period,
+          drawDate,
+          redeemableDate: "",
+          numbers,
+          orderNumbers: numbers.slice(),
+          specialNumber,
+          source: "history-csv"
+        };
       }
 
       if (gameKey === "daily539") {
         const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 5);
-        return { period, drawDate, redeemableDate: "", numbers, orderNumbers: [], specialNumber: null, source: "history-csv" };
+        return {
+          period,
+          drawDate,
+          redeemableDate: "",
+          numbers,
+          orderNumbers: [],
+          specialNumber: null,
+          source: "history-csv"
+        };
       }
 
       if (gameKey === "lotto649") {
@@ -465,7 +490,15 @@
           if (seqKeys.length >= 7) specialNumber = normalizeSpecialValue(row[seqKeys[6]], cfg.specialMin, cfg.specialMax);
         }
         if (numbers.length > 6) numbers = numbers.slice(0, 6);
-        return { period, drawDate, redeemableDate: "", numbers, orderNumbers: [], specialNumber, source: "history-csv" };
+        return {
+          period,
+          drawDate,
+          redeemableDate: "",
+          numbers,
+          orderNumbers: [],
+          specialNumber,
+          source: "history-csv"
+        };
       }
 
       if (gameKey === "superLotto638") {
@@ -473,7 +506,15 @@
         let specialNumber = inferSpecial(row, ["second", "special", "specialnumber", "specialnum", "secondareanumber", "第二區", "第二區號碼"], cfg.specialMin, cfg.specialMax);
         if (specialNumber == null) specialNumber = normalizeSpecialValue(firstMatchValue(row, ["second"]), cfg.specialMin, cfg.specialMax);
         if (numbers.length > 6) numbers = numbers.slice(0, 6);
-        return { period, drawDate, redeemableDate: "", numbers, orderNumbers: [], specialNumber, source: "history-csv" };
+        return {
+          period,
+          drawDate,
+          redeemableDate: "",
+          numbers,
+          orderNumbers: [],
+          specialNumber,
+          source: "history-csv"
+        };
       }
 
       return null;
@@ -511,6 +552,10 @@
   }
 
   function getLatestDraw(gameKey) {
+    if (gameKey === "bingo" && state.bingoLiveDraw) {
+      return sanitizeDraw("bingo", state.bingoLiveDraw);
+    }
+
     const raw =
       state.latestJson?.[gameKey]?.latestOfficial ||
       state.latestJson?.[gameKey]?.latest ||
@@ -554,6 +599,44 @@
     }
 
     return sortDrawsDesc([...deduped.values()]).slice(0, limit);
+  }
+
+  function getBingoCsvLatestDraw() {
+    const list = sortDrawsDesc(state.history.bingo || []);
+    return list[0] ? sanitizeDraw("bingo", list[0]) : null;
+  }
+
+  function pickNewerBingoSource() {
+    const jsonLatest =
+      sanitizeDraw("bingo", state.latestJson?.bingo?.latestOfficial) ||
+      sanitizeDraw("bingo", state.latestJson?.bingo?.latest) ||
+      sanitizeDraw("bingo", state.latestJson?.officialLatest?.bingo);
+
+    const csvLatest = getBingoCsvLatestDraw();
+
+    if (!jsonLatest && csvLatest) {
+      state.bingoLiveDraw = { ...csvLatest, source: "bingo-csv-live" };
+      return;
+    }
+
+    if (!csvLatest && jsonLatest) {
+      state.bingoLiveDraw = { ...jsonLatest, source: jsonLatest.source || "official-api" };
+      return;
+    }
+
+    if (!jsonLatest && !csvLatest) {
+      state.bingoLiveDraw = null;
+      return;
+    }
+
+    const jsonPeriod = Number(jsonLatest?.period || 0);
+    const csvPeriod = Number(csvLatest?.period || 0);
+
+    if (csvPeriod >= jsonPeriod) {
+      state.bingoLiveDraw = { ...csvLatest, source: "bingo-csv-live" };
+    } else {
+      state.bingoLiveDraw = { ...jsonLatest, source: jsonLatest.source || "official-api" };
+    }
   }
 
   function frequencyAnalysis(draws, min, max) {
@@ -909,11 +992,7 @@
     }
 
     current.special = clampWeight((current.special || 1) + specialBoost, 0.2, 3.5);
-    current.latestPenalty = clampWeight(
-      hitRate < 0.25 ? current.latestPenalty - 0.05 : current.latestPenalty + 0.03,
-      -3.0,
-      0
-    );
+    current.latestPenalty = clampWeight(hitRate < 0.25 ? current.latestPenalty - 0.05 : current.latestPenalty + 0.03, -3.0, 0);
 
     weightsAll[gameCode] = current;
     writeLearningWeights(weightsAll);
@@ -1155,23 +1234,27 @@
 
     let syncText = "—";
     let compareText = "—";
-    let refreshText = state.lastAutoRefreshAt
-      ? `系統最近自動檢查：${toLocaleDateText(state.lastAutoRefreshAt)}`
-      : "等待第一次自動檢查";
+    const refreshLines = [];
+    if (state.lastAutoRefreshAt) refreshLines.push(`一般檢查：${toLocaleDateText(state.lastAutoRefreshAt)}`);
+    if (state.lastBingoFastRefreshAt) refreshLines.push(`Bingo 快刷：${toLocaleDateText(state.lastBingoFastRefreshAt)}`);
+    if (!refreshLines.length) refreshLines.push("等待第一次自動檢查");
 
     if (gameCode === "bingo") {
       if (lagMin === null || Number.isNaN(lagMin)) {
         syncText = "未知";
         compareText = "無法判定";
-      } else if (lagMin <= 15) {
+      } else if (lagMin <= 8) {
+        syncText = `很快（落後約 ${lagMin} 分鐘）`;
+        compareText = "已啟用 Bingo 快刷";
+      } else if (lagMin <= 20) {
         syncText = `正常（落後約 ${lagMin} 分鐘）`;
-        compareText = "與官方站接近同步";
+        compareText = "大多為正常延遲";
       } else if (lagMin <= 60) {
         syncText = `稍慢（落後約 ${lagMin} 分鐘）`;
-        compareText = "可能比官方站慢一到數期";
+        compareText = "可能比官方站慢數期";
       } else {
         syncText = `偏慢（落後約 ${lagMin} 分鐘）`;
-        compareText = "大機率落後官方站最新 Bingo";
+        compareText = "後端資料可能尚未更新";
       }
     }
 
@@ -1183,7 +1266,7 @@
       historyCount: draws.length,
       bingoSyncText: syncText,
       bingoCompareText: compareText,
-      refreshText
+      refreshText: refreshLines.join("｜")
     };
   }
 
@@ -1255,7 +1338,6 @@
   function renderHeroKpis(gameCode) {
     const box = $("v84HeroKpis");
     if (!box) return;
-
     const latestDraw = state.currentLatestDraw;
     const stat = getTrackingRollup();
 
@@ -1298,10 +1380,26 @@
   function updateTopStatus(gameCode) {
     const latestDraw = state.currentLatestDraw;
     if ($("v84CurrentGameBadge")) $("v84CurrentGameBadge").textContent = gameCode ? `目前彩種：${GAME_CONFIG[gameCode].label}` : "尚未選擇彩種";
-    if ($("v84SiteStateBadge")) $("v84SiteStateBadge").textContent = state.autoRefreshing ? "自動更新中" : `系統運作中 ${BUILD}`;
+
+    if ($("v84SiteStateBadge")) {
+      if (state.bingoFastRefreshing) {
+        $("v84SiteStateBadge").textContent = "Bingo 快速檢查中";
+      } else if (state.autoRefreshing) {
+        $("v84SiteStateBadge").textContent = "系統更新中";
+      } else {
+        $("v84SiteStateBadge").textContent = `系統運作中 ${BUILD}`;
+      }
+    }
+
     if ($("v84DataStateText")) $("v84DataStateText").textContent = latestDraw ? "已載入最新資料" : "待載入";
     if ($("v84LastUpdateText")) $("v84LastUpdateText").textContent = latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未取得";
-    if ($("v84TrackingStateText")) $("v84TrackingStateText").textContent = state.autoRefreshing ? "更新中" : "可用";
+    if ($("v84TrackingStateText")) {
+      $("v84TrackingStateText").textContent = state.bingoFastRefreshing
+        ? "Bingo 快刷中"
+        : state.autoRefreshing
+          ? "更新中"
+          : "可用";
+    }
   }
 
   function injectAnchors() {
@@ -1544,6 +1642,15 @@
     state.historySourcePath.daily539 = daily539History.path || "";
     state.historySourcePath.lotto649 = lotto649History.path || "";
     state.historySourcePath.superLotto638 = superLotto638History.path || "";
+
+    pickNewerBingoSource();
+  }
+
+  async function refreshOnlyBingoCsv() {
+    const bingoHistory = await loadHistoryCsv("bingo");
+    state.history.bingo = bingoHistory.data;
+    state.historySourcePath.bingo = bingoHistory.path || state.historySourcePath.bingo;
+    pickNewerBingoSource();
   }
 
   function getPeriodSnapshot() {
@@ -1572,6 +1679,7 @@
       state.lastAutoRefreshAt = new Date().toISOString();
       writeAutoState({
         lastAutoRefreshAt: state.lastAutoRefreshAt,
+        lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
         lastPeriods: after,
         build: BUILD
       });
@@ -1588,7 +1696,6 @@
         showToast(`已自動更新 ${changedGames.length} 個彩種`);
       } else if (trackingResult.learnedCount > 0) {
         pushOp(`系統自動學習：完成 ${trackingResult.learnedCount} 筆`);
-        showToast(`已自動學習 ${trackingResult.learnedCount} 筆`);
       } else {
         pushOp("系統自動檢查：無新一期");
       }
@@ -1601,17 +1708,72 @@
     }
   }
 
+  async function refreshBingoFastSilently(forceRender = true) {
+    if (state.bingoFastRefreshing) return;
+    state.bingoFastRefreshing = true;
+    updateTopStatus(state.currentGameCode);
+
+    try {
+      const beforePeriod = getLatestDraw("bingo")?.period || "";
+      await refreshOnlyBingoCsv();
+      const afterPeriod = getLatestDraw("bingo")?.period || "";
+
+      state.lastBingoFastRefreshAt = new Date().toISOString();
+      writeAutoState({
+        lastAutoRefreshAt: state.lastAutoRefreshAt,
+        lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
+        lastPeriods: getPeriodSnapshot(),
+        build: BUILD
+      });
+
+      const trackingResult = updatePredictionTracking();
+
+      if (forceRender && (state.currentGameCode === "bingo" || state.currentGameCode === null)) {
+        if (state.currentGameCode) renderPrediction(state.currentGameCode);
+        else {
+          renderHeroKpis(null);
+          renderMiniStats();
+          updateTopStatus(null);
+        }
+      }
+
+      if (String(afterPeriod) !== String(beforePeriod) && afterPeriod) {
+        pushOp(`Bingo 快刷更新：第 ${afterPeriod} 期`);
+        showToast(`Bingo 已更新到第 ${afterPeriod} 期`);
+      } else if (trackingResult.learnedCount > 0) {
+        pushOp(`Bingo 快刷後自動學習：${trackingResult.learnedCount} 筆`);
+      }
+    } catch (err) {
+      console.error("bingo fast refresh failed:", err);
+    } finally {
+      state.bingoFastRefreshing = false;
+      updateTopStatus(state.currentGameCode);
+    }
+  }
+
   function startAutoRefresh() {
     if (state.autoTimer) clearInterval(state.autoTimer);
     state.autoTimer = setInterval(() => {
       refreshAllDataSilently();
-    }, AUTO_REFRESH_MS);
+    }, GENERAL_REFRESH_MS);
+  }
+
+  function startBingoFastRefresh() {
+    if (state.bingoFastTimer) clearInterval(state.bingoFastTimer);
+    state.bingoFastTimer = setInterval(() => {
+      refreshBingoFastSilently(state.currentGameCode === "bingo");
+    }, BINGO_FAST_REFRESH_MS);
   }
 
   async function runPrediction(gameCode) {
     try {
       if (!state.latestJson) await initData();
       saveUiSettings();
+
+      if (gameCode === "bingo") {
+        await refreshBingoFastSilently(false);
+      }
+
       const trackingResult = updatePredictionTracking();
       if (trackingResult.learnedCount > 0) pushOp(`自動學習完成 ${trackingResult.learnedCount} 筆`);
       renderPrediction(gameCode);
@@ -1667,17 +1829,32 @@
 
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV920) {
-        el.dataset.boundV920 = "1";
-        el.addEventListener("change", () => {
+      if (el && !el.dataset.boundV921) {
+        el.dataset.boundV921 = "1";
+        el.addEventListener("change", async () => {
           saveUiSettings();
           if (id === "lotterySelect" && el.value) {
-            runPrediction(el.value);
+            await runPrediction(el.value);
           } else if (state.currentGameCode) {
+            if ((id === "bingoCount" || id === "historyPeriods") && $("lotterySelect")?.value === "bingo") {
+              await refreshBingoFastSilently(false);
+            }
             renderPrediction($("lotterySelect")?.value || state.currentGameCode);
           }
         });
       }
+    });
+  }
+
+  function bindVisibilityRefresh() {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        refreshBingoFastSilently(state.currentGameCode === "bingo");
+      }
+    });
+
+    window.addEventListener("focus", () => {
+      refreshBingoFastSilently(state.currentGameCode === "bingo");
     });
   }
 
@@ -1686,15 +1863,18 @@
   window.clearPredictionRecords = clearPredictionRecords;
   window.resetLearningWeights = resetLearningWeights;
   window.refreshAllDataSilently = refreshAllDataSilently;
+  window.refreshBingoFastSilently = refreshBingoFastSilently;
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
       restoreUiSettings();
       const autoState = readAutoState();
       if (autoState?.lastAutoRefreshAt) state.lastAutoRefreshAt = autoState.lastAutoRefreshAt;
+      if (autoState?.lastBingoFastRefreshAt) state.lastBingoFastRefreshAt = autoState.lastBingoFastRefreshAt;
 
       wireToolbar();
       bindBottomNav();
+      bindVisibilityRefresh();
       renderOps();
       renderMiniStats();
       renderHeroKpis(null);
@@ -1712,7 +1892,10 @@
 
       const defaultGame = $("lotterySelect")?.value || "bingo";
       await runPrediction(defaultGame);
+
       startAutoRefresh();
+      startBingoFastRefresh();
+
       showToast(`已載入 ${APP_VERSION}`);
     } catch (err) {
       console.error(err);
