@@ -41,9 +41,7 @@ function getMonthRange(monthCount = 3) {
 
 function toNumberArray(value) {
   if (!Array.isArray(value)) return [];
-  return value
-    .map(v => Number(v))
-    .filter(v => Number.isFinite(v));
+  return value.map(v => Number(v)).filter(v => Number.isFinite(v));
 }
 
 function pickFirstArray(obj, keys) {
@@ -72,11 +70,25 @@ function normalizeDate(value) {
   }
 }
 
+function parseStableTime(value) {
+  if (!value) return 0;
+  const t = new Date(value).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+
+function normalizePeriodValue(item) {
+  return String(pickFirstValue(item, ['period', 'drawTerm', 'term', 'issue']) || '');
+}
+
 function sortByPeriodDesc(list) {
   return [...list].sort((a, b) => {
     const pa = Number(a.period || a.drawTerm || a.term || 0);
     const pb = Number(b.period || b.drawTerm || b.term || 0);
-    return pb - pa;
+    if (pb !== pa) return pb - pa;
+
+    const ta = parseStableTime(a.drawDate || a.lotteryDate || a.date || 0);
+    const tb = parseStableTime(b.drawDate || b.lotteryDate || b.date || 0);
+    return tb - ta;
   });
 }
 
@@ -85,14 +97,56 @@ function extractLatestFromList(list) {
   return sortByPeriodDesc(list)[0];
 }
 
+function extractSequentialNumbers(item, keys, start, end) {
+  const nums = [];
+  for (const key of keys) {
+    for (let i = start; i <= end; i++) {
+      const value = item?.[`${key}${i}`];
+      const num = Number(value);
+      if (Number.isFinite(num)) nums.push(num);
+    }
+  }
+  return nums;
+}
+
+function extractMainNumbers(item, options = {}) {
+  const {
+    directArrayKeys = [],
+    sequentialPrefixes = [],
+    seqStart = 1,
+    seqEnd = 6
+  } = options;
+
+  for (const key of directArrayKeys) {
+    const arr = toNumberArray(item?.[key]);
+    if (arr.length) return arr;
+  }
+
+  const seqNums = extractSequentialNumbers(item, sequentialPrefixes, seqStart, seqEnd);
+  if (seqNums.length) return seqNums;
+
+  return [];
+}
+
+function extractSpecialNumber(item, keys) {
+  const raw = pickFirstValue(item, keys);
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : null;
+}
+
 function normalize539(item) {
   if (!item) return null;
   return {
     game: 'daily539',
-    period: String(pickFirstValue(item, ['period', 'drawTerm', 'term']) || ''),
+    period: normalizePeriodValue(item),
     drawDate: normalizeDate(pickFirstValue(item, ['lotteryDate', 'drawDate', 'date'])),
     redeemableDate: normalizeDate(pickFirstValue(item, ['redeemableDate'])),
-    numbers: toNumberArray(pickFirstValue(item, ['drawNumberSize', 'numbers', 'drawNumbers'])),
+    numbers: extractMainNumbers(item, {
+      directArrayKeys: ['drawNumberSize', 'numbers', 'drawNumbers'],
+      sequentialPrefixes: ['drawNumber', 'num', 'ball'],
+      seqStart: 1,
+      seqEnd: 5
+    }),
     source: 'official-api'
   };
 }
@@ -101,11 +155,22 @@ function normalizeLotto649(item) {
   if (!item) return null;
   return {
     game: 'lotto649',
-    period: String(pickFirstValue(item, ['period', 'drawTerm', 'term']) || ''),
+    period: normalizePeriodValue(item),
     drawDate: normalizeDate(pickFirstValue(item, ['lotteryDate', 'drawDate', 'date'])),
     redeemableDate: normalizeDate(pickFirstValue(item, ['redeemableDate'])),
-    numbers: toNumberArray(pickFirstValue(item, ['drawNumberSize', 'numbers', 'drawNumbers'])),
-    specialNumber: Number(pickFirstValue(item, ['specialNumber', 'specialNum', 'bonusNumber'])) || null,
+    numbers: extractMainNumbers(item, {
+      directArrayKeys: ['drawNumberSize', 'numbers', 'drawNumbers'],
+      sequentialPrefixes: ['drawNumber', 'num', 'ball'],
+      seqStart: 1,
+      seqEnd: 6
+    }),
+    specialNumber: extractSpecialNumber(item, [
+      'specialNumber',
+      'specialNum',
+      'bonusNumber',
+      'bonusNum',
+      'superNumber'
+    ]),
     source: 'official-api'
   };
 }
@@ -114,20 +179,24 @@ function normalizeSuperLotto638(item) {
   if (!item) return null;
   return {
     game: 'superLotto638',
-    period: String(pickFirstValue(item, ['period', 'drawTerm', 'term']) || ''),
+    period: normalizePeriodValue(item),
     drawDate: normalizeDate(pickFirstValue(item, ['lotteryDate', 'drawDate', 'date'])),
     redeemableDate: normalizeDate(pickFirstValue(item, ['redeemableDate'])),
-    numbers: toNumberArray(
-      pickFirstValue(item, [
-        'drawNumberSize',
-        'drawNumber1',
-        'numbers',
-        'drawNumbers'
-      ])
-    ),
-    specialNumber: Number(
-      pickFirstValue(item, ['specialNumber', 'secondAreaNumber', 'specialNum', 'bonusNumber'])
-    ) || null,
+    numbers: extractMainNumbers(item, {
+      directArrayKeys: ['drawNumberSize', 'drawNumber1', 'numbers', 'drawNumbers', 'zone1'],
+      sequentialPrefixes: ['drawNumber', 'num', 'ball'],
+      seqStart: 1,
+      seqEnd: 6
+    }),
+    specialNumber: extractSpecialNumber(item, [
+      'specialNumber',
+      'secondAreaNumber',
+      'secondNumber',
+      'specialNum',
+      'bonusNumber',
+      'superNumber',
+      'zone2'
+    ]),
     source: 'official-api'
   };
 }
@@ -135,32 +204,43 @@ function normalizeSuperLotto638(item) {
 function normalizeBingo(content) {
   if (!content) return null;
 
-  const orderNums = toNumberArray(
-    pickFirstValue(content, [
+  const orderNums = extractMainNumbers(content, {
+    directArrayKeys: [
       'drawOrderNums',
       'drawOrderNumbers',
       'drawNumberAppear',
-      'drawNumbers'
-    ])
-  );
+      'drawNumbers',
+      'orderNumbers'
+    ],
+    sequentialPrefixes: ['drawOrderNum', 'drawNumber'],
+    seqStart: 1,
+    seqEnd: 20
+  });
 
-  const sizeNums = toNumberArray(
-    pickFirstValue(content, [
+  const sizeNums = extractMainNumbers(content, {
+    directArrayKeys: [
       'drawSizeNums',
       'drawNumberSize',
       'numbers'
-    ])
-  );
+    ],
+    sequentialPrefixes: ['drawSizeNum'],
+    seqStart: 1,
+    seqEnd: 20
+  });
 
   const numbers = sizeNums.length ? sizeNums : orderNums;
 
   return {
     game: 'bingo',
-    period: String(pickFirstValue(content, ['drawTerm', 'period', 'term']) || ''),
+    period: normalizePeriodValue(content),
     drawDate: normalizeDate(pickFirstValue(content, ['lotteryDate', 'drawDate', 'date'])),
     numbers,
     orderNumbers: orderNums,
-    specialNumber: Number(pickFirstValue(content, ['superNum', 'specialNumber', 'bonusNumber'])) || null,
+    specialNumber: extractSpecialNumber(content, [
+      'superNum',
+      'specialNumber',
+      'bonusNumber'
+    ]),
     source: 'official-api'
   };
 }
@@ -168,7 +248,7 @@ function normalizeBingo(content) {
 async function fetchJson(url) {
   const res = await fetch(url, {
     headers: {
-      'accept': 'application/json, text/plain, */*',
+      accept: 'application/json, text/plain, */*',
       'user-agent': 'Mozilla/5.0'
     }
   });
@@ -186,6 +266,22 @@ async function fetchJson(url) {
   return json;
 }
 
+async function fetchJsonWithRetry(url, retries = 3, waitMs = 4000) {
+  let lastErr = null;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fetchJson(url);
+    } catch (err) {
+      lastErr = err;
+      console.warn(`⚠️ 抓取失敗 (${i + 1}/${retries}): ${url} - ${err.message}`);
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+      }
+    }
+  }
+  throw lastErr;
+}
+
 async function getLatestOfficialData() {
   const { month, endMonth } = getMonthRange(3);
 
@@ -200,10 +296,10 @@ async function getLatestOfficialData() {
   console.log(urls);
 
   const [bingoRes, daily539Res, lotto649Res, superLotto638Res] = await Promise.all([
-    fetchJson(urls.bingo),
-    fetchJson(urls.daily539),
-    fetchJson(urls.lotto649),
-    fetchJson(urls.superLotto638)
+    fetchJsonWithRetry(urls.bingo, 4, 5000),
+    fetchJsonWithRetry(urls.daily539, 3, 4000),
+    fetchJsonWithRetry(urls.lotto649, 3, 4000),
+    fetchJsonWithRetry(urls.superLotto638, 3, 4000)
   ]);
 
   const latest539 = extractLatestFromList(
@@ -218,15 +314,20 @@ async function getLatestOfficialData() {
     pickFirstArray(superLotto638Res?.content, ['superLotto638Res', 'list', 'results'])
   );
 
+  const officialLatest = {
+    bingo: normalizeBingo(bingoRes?.content),
+    daily539: normalize539(latest539),
+    lotto649: normalizeLotto649(latest649),
+    superLotto638: normalizeSuperLotto638(latest638)
+  };
+
+  console.log('===== normalized official latest =====');
+  console.log(JSON.stringify(officialLatest, null, 2));
+
   return {
     generatedAt: new Date().toISOString(),
     source: 'official-api',
-    officialLatest: {
-      bingo: normalizeBingo(bingoRes?.content),
-      daily539: normalize539(latest539),
-      lotto649: normalizeLotto649(latest649),
-      superLotto638: normalizeSuperLotto638(latest638)
-    }
+    officialLatest
   };
 }
 
@@ -263,16 +364,13 @@ async function main() {
   try {
     const latestOfficial = await getLatestOfficialData();
 
-    // 獨立輸出一份
     safeWriteJson(path.join(ROOT, 'official_latest.json'), latestOfficial);
     safeWriteJson(path.join(ROOT, 'data', 'official_latest.json'), latestOfficial);
 
-    // 若 docs 資料夾存在，也同步一份給 GitHub Pages 讀
     if (fs.existsSync(path.join(ROOT, 'docs'))) {
       safeWriteJson(path.join(ROOT, 'docs', 'official_latest.json'), latestOfficial);
     }
 
-    // 合併進既有 latest.json
     mergeIntoLatestJson(latestOfficial);
 
     console.log('🎉 fetch_latest_official.js 完成');
