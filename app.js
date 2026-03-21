@@ -1,12 +1,12 @@
 (() => {
-  const BUILD = window.__APP_BUILD__ || "92.4.1";
-  const APP_VERSION = `V92.4.1 Bingo 非置頂上方固定區塊版（build ${BUILD}）`;
+  const BUILD = window.__APP_BUILD__ || "92.4.2";
+  const APP_VERSION = `V92.4.2 Bingo 非置頂上方固定區塊版｜刷新按鈕可點擊修正版（build ${BUILD}）`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9241";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v9241";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9241";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9241";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9241";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9242";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v9242";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9242";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9242";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9242";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -184,11 +184,11 @@
   }
 
   function showToast(text) {
-    const old = document.getElementById("v9241Toast");
+    const old = document.getElementById("v9242Toast");
     if (old) old.remove();
 
     const el = document.createElement("div");
-    el.id = "v9241Toast";
+    el.id = "v9242Toast";
     el.textContent = text;
     el.style.position = "fixed";
     el.style.left = "50%";
@@ -1171,13 +1171,13 @@
           <div class="v924-top-side">
             <div class="v924-top-period">第 ${escapeHtml(latestDraw.period || "—")} 期</div>
             <button
-  class="v924-refresh-btn"
-  id="v924TopRefreshBtn"
-  type="button"
-  onclick="manualRefreshBingoNow()"
->
-  ${state.manualBingoRefreshing ? "刷新中..." : "立即刷新"}
-</button>
+              class="v924-refresh-btn"
+              id="v924TopRefreshBtn"
+              type="button"
+              onclick="manualRefreshBingoNow()"
+            >
+              ${state.manualBingoRefreshing ? "刷新中..." : "立即刷新"}
+            </button>
           </div>
         </div>
         <div class="v924-top-balls">
@@ -1484,8 +1484,6 @@
   }
 
   function bindTopBannerButtons() {
-    const btn = $("v924TopRefreshBtn");
-    if (btn) btn.onclick = () => manualRefreshBingoNow();
     updateTopRefreshButton();
   }
 
@@ -1922,8 +1920,8 @@
 
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV9241) {
-        el.dataset.boundV9241 = "1";
+      if (el && !el.dataset.boundV9242) {
+        el.dataset.boundV9242 = "1";
         el.addEventListener("change", async () => {
           saveUiSettings();
 
