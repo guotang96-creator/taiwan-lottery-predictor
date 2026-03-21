@@ -12,40 +12,23 @@
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
 
   const JSON_CANDIDATES = [
-    "./docs/latest.json",
-    "./latest.json",
-    "./data/latest.json",
-    "/taiwan-lottery-predictor/docs/latest.json",
-    "/taiwan-lottery-predictor/latest.json",
-    "/taiwan-lottery-predictor/data/latest.json"
-  ];
+  "./latest.json"
+];
 
-  const CSV_CANDIDATES = {
-    bingo: [
-      "./docs/raw_data/bingo.csv",
-      "./raw_data/bingo.csv",
-      "/taiwan-lottery-predictor/docs/raw_data/bingo.csv",
-      "/taiwan-lottery-predictor/raw_data/bingo.csv"
-    ],
-    daily539: [
-      "./docs/raw_data/539.csv",
-      "./raw_data/539.csv",
-      "/taiwan-lottery-predictor/docs/raw_data/539.csv",
-      "/taiwan-lottery-predictor/raw_data/539.csv"
-    ],
-    lotto649: [
-      "./docs/raw_data/lotto.csv",
-      "./raw_data/lotto.csv",
-      "/taiwan-lottery-predictor/docs/raw_data/lotto.csv",
-      "/taiwan-lottery-predictor/raw_data/lotto.csv"
-    ],
-    superLotto638: [
-      "./docs/raw_data/power.csv",
-      "./raw_data/power.csv",
-      "/taiwan-lottery-predictor/docs/raw_data/power.csv",
-      "/taiwan-lottery-predictor/raw_data/power.csv"
-    ]
-  };
+const CSV_CANDIDATES = {
+  bingo: [
+    "./raw_data/bingo.csv"
+  ],
+  daily539: [
+    "./raw_data/539.csv"
+  ],
+  lotto649: [
+    "./raw_data/lotto.csv"
+  ],
+  superLotto638: [
+    "./raw_data/power.csv"
+  ]
+};
 
   const GAME_CONFIG = {
     bingo: {
