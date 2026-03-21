@@ -2,10 +2,9 @@
   "use strict";
 
   const BUILD = window.__APP_BUILD__ || "93.1.3";
-  const APP_VERSION = `V93.1.3 GitHub Pages 強化學習增強版（build ${BUILD}）`;
+  const APP_VERSION = `V93.1.3 | GitHub Pages 強化學習增強版`;
 
   const STORAGE_KEY = "taiwan_lottery_prediction_history_v9313";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v9313";
   const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9313";
   const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9313";
   const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9313";
@@ -13,75 +12,1540 @@
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
 
-  const JSON_CANDIDATES = ["./latest.json"];
+  const JSON_CANDIDATES = [
+    "./latest.json",
+    "latest.json"
+  ];
+
   const CSV_CANDIDATES = {
-    bingo: ["./raw_data/bingo.csv"],
-    daily539: ["./raw_data/539.csv"],
-    lotto649: ["./raw_data/lotto649.csv", "./raw_data/649.csv"],
-    superlotto638: ["./raw_data/superlotto638.csv", "./raw_data/638.csv", "./raw_data/power.csv"]
+    bingo: [
+      "./raw_data/bingo.csv",
+      "raw_data/bingo.csv"
+    ],
+    daily539: [
+      "./raw_data/539.csv",
+      "./raw_data/daily539.csv",
+      "raw_data/539.csv",
+      "raw_data/daily539.csv"
+    ],
+    biglotto: [
+      "./raw_data/biglotto.csv",
+      "./raw_data/lotto649.csv",
+      "./raw_data/lotto.csv",
+      "raw_data/biglotto.csv",
+      "raw_data/lotto649.csv",
+      "raw_data/lotto.csv"
+    ],
+    power: [
+      "./raw_data/power.csv",
+      "./raw_data/powerlotto.csv",
+      "raw_data/power.csv",
+      "raw_data/powerlotto.csv"
+    ]
   };
 
-  const GAME_META = {
-    bingo: { key: "bingo", title: "BINGO BINGO", max: 80, pick: 10 },
-    daily539: { key: "daily539", title: "今彩539", max: 39, pick: 5 },
-    lotto649: { key: "lotto649", title: "大樂透", max: 49, pick: 6 },
-    superlotto638_area1: { key: "superlotto638_area1", title: "威力彩第一區", max: 38, pick: 6 },
-    superlotto638_area2: { key: "superlotto638_area2", title: "威力彩第二區", max: 8, pick: 1 }
+  const GAME_CONFIG = {
+    bingo: {
+      key: "bingo",
+      label: "BINGO BINGO",
+      range: 80,
+      pick: 5,
+      defaultCount: 5,
+      defaultGroup: 1,
+      latestJsonKey: "lotteryBingoLatestPost",
+      apiUrl: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/BingoResult"
+    },
+    daily539: {
+      key: "daily539",
+      label: "今彩539",
+      range: 39,
+      pick: 5,
+      defaultCount: 5,
+      defaultGroup: 1,
+      latestJsonKey: "daily539",
+      apiUrl:
+        "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1"
+    },
+    biglotto: {
+      key: "biglotto",
+      label: "大樂透",
+      range: 49,
+      pick: 6,
+      defaultCount: 6,
+      defaultGroup: 1,
+      latestJsonKey: "bigLotto",
+      apiUrl:
+        "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1"
+    },
+    power: {
+      key: "power",
+      label: "威力彩",
+      range: 38,
+      pick: 6,
+      hasSecondArea: true,
+      secondAreaRange: 8,
+      secondAreaPick: 1,
+      defaultCount: 6,
+      defaultGroup: 1,
+      latestJsonKey: "powerLotto",
+      apiUrl:
+        "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/PowerLottoResult?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1"
+    }
   };
 
-  const AI_CONFIG = {
-    recentWindow: 120,
-    longWindow: 300,
-    recencyBoost: 1.85,
-    superRecentBoost: 2.35,
-    hotWeight: 1.35,
-    coldWeight: 0.92,
-    tailWeight: 1.10,
-    dragWeight: 1.18,
-    pairWeight: 1.20,
-    streakWeight: 1.12,
-    missPenalty: 0.92,
-    hitReward: 1.16,
-    exploreRate: 0.12,
-    rebalanceFactor: 0.18,
-    bingoRecentDays: 7,
-    bingoTodayBoost: 3.2,
-    bingoRecentDayBoost: 1.45
+  const DEFAULT_WEIGHTS = {
+    hot: 1.2,
+    recent: 1.1,
+    tail: 0.7,
+    pair: 0.8,
+    gapPenalty: 0.35,
+    repeatPenalty: 0.4,
+    bonusLearning: 0.16
   };
 
   const state = {
-    initialized: false,
-    loading: false,
-    latest: null,
-    data: {
+    latest: {
+      bingo: null,
+      daily539: null,
+      biglotto: null,
+      power: null
+    },
+    history: {
       bingo: [],
       daily539: [],
-      lotto649: [],
-      superlotto638: []
+      biglotto: [],
+      power: []
     },
-    weights: loadLearningWeights(),
-    settings: loadSettings(),
-    history: loadJson(STORAGE_KEY, []),
-    ops: loadJson(OPS_KEY, []),
-    autoState: loadJson(AUTO_STATE_KEY, {}),
-    timers: {}
+    dataStatus: {
+      bingo: "載入中",
+      daily539: "載入中",
+      biglotto: "載入中",
+      power: "載入中"
+    },
+    settings: loadJson(SETTINGS_KEY, {
+      game: "bingo",
+      bingoCount: 5,
+      groupCount: 1
+    }),
+    weights: loadJson(WEIGHTS_KEY, { ...DEFAULT_WEIGHTS }),
+    recentOps: loadJson(STORAGE_KEY, []),
+    autoState: loadJson(AUTO_STATE_KEY, {
+      lastUpdateAt: "",
+      lastPredictAt: "",
+      learnCount: 0
+    })
   };
 
-  function $(selector, root = document) {
-    return root.querySelector(selector);
+  let generalTimer = null;
+  let bingoTimer = null;
+
+  document.addEventListener("DOMContentLoaded", init);
+
+  async function init() {
+    bindVersion();
+    bindControls();
+    syncControlsFromState();
+    ensureSelectOptions();
+    showLoadingMessage();
+
+    await refreshAll();
+
+    clearInterval(generalTimer);
+    clearInterval(bingoTimer);
+
+    generalTimer = setInterval(() => {
+      refreshAll({ silent: true }).catch(console.error);
+    }, GENERAL_REFRESH_MS);
+
+    bingoTimer = setInterval(() => {
+      refreshBingoFastOnly({ silent: true }).catch(console.error);
+    }, BINGO_FAST_REFRESH_MS);
   }
 
-  function $all(selector, root = document) {
-    return [...root.querySelectorAll(selector)];
+  function bindVersion() {
+    setTextMulti(
+      [
+        "#systemVersion",
+        "#versionText",
+        "#appVersion",
+        "[data-role='system-version']",
+        "[data-role='version-text']"
+      ],
+      `${APP_VERSION}（build ${BUILD}）`
+    );
+
+    const versionInput = first([
+      "#versionInput",
+      "#systemVersionInput",
+      "[data-role='version-input']"
+    ]);
+    if (versionInput) versionInput.value = `${APP_VERSION}`;
   }
 
-  function safeText(v, fallback = "-") {
-    if (v === null || v === undefined || v === "") return fallback;
-    return String(v);
+  function bindControls() {
+    const gameSelect = first([
+      "#lotterySelect",
+      "#gameSelect",
+      "#lotteryType",
+      "[data-role='game-select']"
+    ]);
+
+    if (gameSelect) {
+      gameSelect.addEventListener("change", (e) => {
+        state.settings.game = normalizeGameKey(e.target.value);
+        saveJson(SETTINGS_KEY, state.settings);
+        syncControlsFromState();
+        renderPredictionResult(null);
+      });
+    }
+
+    const countSelect = first([
+      "#bingoCountSelect",
+      "#numberCountSelect",
+      "#pickCountSelect",
+      "[data-role='count-select']"
+    ]);
+
+    if (countSelect) {
+      countSelect.addEventListener("change", (e) => {
+        state.settings.bingoCount = clamp(
+          parseInt(e.target.value || "5", 10),
+          1,
+          10
+        );
+        saveJson(SETTINGS_KEY, state.settings);
+      });
+    }
+
+    const groupSelect = first([
+      "#groupCountSelect",
+      "#predictionGroupSelect",
+      "[data-role='group-select']"
+    ]);
+
+    if (groupSelect) {
+      groupSelect.addEventListener("change", (e) => {
+        state.settings.groupCount = clamp(
+          parseInt(e.target.value || "1", 10),
+          1,
+          10
+        );
+        saveJson(SETTINGS_KEY, state.settings);
+      });
+    }
+
+    const generateButtons = all([
+      "#generateBtn",
+      "#predictBtn",
+      "#startPredictBtn",
+      "[data-role='generate-btn']"
+    ]);
+
+    generateButtons.forEach((btn) =>
+      btn.addEventListener("click", () => {
+        generatePredictions();
+      })
+    );
+
+    const relearnButtons = all([
+      "#relearnBtn",
+      "#learnBtn",
+      "#enhanceLearnBtn",
+      "[data-role='relearn-btn']"
+    ]);
+
+    relearnButtons.forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        const oldText = btn.textContent;
+        btn.textContent = "學習中...";
+        try {
+          await strengthenLearning();
+        } finally {
+          btn.disabled = false;
+          btn.textContent = oldText || "強化再學習";
+        }
+      })
+    );
+
+    const resetButtons = all([
+      "#resetModelBtn",
+      "#resetWeightsBtn",
+      "[data-role='reset-model-btn']"
+    ]);
+
+    resetButtons.forEach((btn) =>
+      btn.addEventListener("click", () => {
+        state.weights = { ...DEFAULT_WEIGHTS };
+        state.autoState.learnCount = 0;
+        saveJson(WEIGHTS_KEY, state.weights);
+        saveJson(AUTO_STATE_KEY, state.autoState);
+        toast("AI 權重已重置");
+        renderStatus();
+      })
+    );
+
+    const immediateTopButtons = all([
+      "#topPredictBtn",
+      "[data-role='top-predict-btn']"
+    ]);
+    immediateTopButtons.forEach((btn) =>
+      btn.addEventListener("click", () => generatePredictions())
+    );
+
+    const immediateRelearnTopButtons = all([
+      "#topRelearnBtn",
+      "[data-role='top-relearn-btn']"
+    ]);
+    immediateRelearnTopButtons.forEach((btn) =>
+      btn.addEventListener("click", () => strengthenLearning())
+    );
+
+    const topResetButtons = all([
+      "#topResetBtn",
+      "[data-role='top-reset-btn']"
+    ]);
+    topResetButtons.forEach((btn) =>
+      btn.addEventListener("click", () => {
+        state.weights = { ...DEFAULT_WEIGHTS };
+        saveJson(WEIGHTS_KEY, state.weights);
+        toast("權重已重置");
+      })
+    );
   }
 
-  function nowIso() {
-    return new Date().toISOString();
+  function syncControlsFromState() {
+    const game = normalizeGameKey(state.settings.game);
+
+    setValueMulti(
+      [
+        "#lotterySelect",
+        "#gameSelect",
+        "#lotteryType",
+        "[data-role='game-select']"
+      ],
+      game
+    );
+
+    setValueMulti(
+      [
+        "#bingoCountSelect",
+        "#numberCountSelect",
+        "#pickCountSelect",
+        "[data-role='count-select']"
+      ],
+      String(state.settings.bingoCount || 5)
+    );
+
+    setValueMulti(
+      [
+        "#groupCountSelect",
+        "#predictionGroupSelect",
+        "[data-role='group-select']"
+      ],
+      String(state.settings.groupCount || 1)
+    );
+
+    const config = GAME_CONFIG[game];
+    const countSelect = first([
+      "#bingoCountSelect",
+      "#numberCountSelect",
+      "#pickCountSelect",
+      "[data-role='count-select']"
+    ]);
+
+    if (countSelect) {
+      const max = game === "bingo" ? 10 : config.pick;
+      const current = parseInt(countSelect.value || String(config.defaultCount), 10);
+      refillSelect(countSelect, 1, max, current);
+    }
+  }
+
+  function ensureSelectOptions() {
+    const gameSelect = first([
+      "#lotterySelect",
+      "#gameSelect",
+      "#lotteryType",
+      "[data-role='game-select']"
+    ]);
+    if (gameSelect && gameSelect.options.length === 0) {
+      const items = [
+        { value: "bingo", label: "BINGO BINGO" },
+        { value: "daily539", label: "今彩539" },
+        { value: "biglotto", label: "大樂透" },
+        { value: "power", label: "威力彩" }
+      ];
+      items.forEach((item) => {
+        const opt = document.createElement("option");
+        opt.value = item.value;
+        opt.textContent = item.label;
+        gameSelect.appendChild(opt);
+      });
+    }
+
+    const countSelect = first([
+      "#bingoCountSelect",
+      "#numberCountSelect",
+      "#pickCountSelect",
+      "[data-role='count-select']"
+    ]);
+    if (countSelect && countSelect.options.length === 0) {
+      refillSelect(countSelect, 1, 10, state.settings.bingoCount || 5);
+    }
+
+    const groupSelect = first([
+      "#groupCountSelect",
+      "#predictionGroupSelect",
+      "[data-role='group-select']"
+    ]);
+    if (groupSelect && groupSelect.options.length === 0) {
+      refillSelect(groupSelect, 1, 10, state.settings.groupCount || 1, "組");
+    }
+  }
+
+  async function refreshAll(options = {}) {
+    await Promise.all([
+      loadLatestJson(),
+      loadAllHistoryData()
+    ]);
+
+    await Promise.all([
+      loadLatestBingo(),
+      loadLatestDaily539(),
+      loadLatestBigLotto(),
+      loadLatestPower()
+    ]);
+
+    state.autoState.lastUpdateAt = formatDateTime(new Date());
+    saveJson(AUTO_STATE_KEY, state.autoState);
+
+    renderStatus();
+    renderLatestResults();
+
+    if (!options.silent) {
+      toast("資料已更新");
+    }
+  }
+
+  async function refreshBingoFastOnly(options = {}) {
+    await loadLatestBingo();
+    renderStatus();
+    renderLatestResults();
+
+    if (!options.silent) {
+      toast("BINGO 已快速更新");
+    }
+  }
+
+  async function loadLatestJson() {
+    const json = await fetchJsonWithFallback(JSON_CANDIDATES);
+    if (!json || !json.content) return;
+
+    const content = json.content;
+
+    if (content.lotteryBingoLatestPost) {
+      state.latest.bingo = normalizeLatestBingo(content.lotteryBingoLatestPost);
+    }
+
+    if (content.daily539 || content.daily539LatestPost || content.daily539Res?.[0]) {
+      state.latest.daily539 = normalizeLatest539(
+        content.daily539 || content.daily539LatestPost || content.daily539Res?.[0]
+      );
+    }
+
+    if (content.bigLotto || content.lotto649LatestPost || content.lotto649Res?.[0]) {
+      state.latest.biglotto = normalizeLatestBigLotto(
+        content.bigLotto || content.lotto649LatestPost || content.lotto649Res?.[0]
+      );
+    }
+
+    if (content.powerLotto || content.powerLottoLatestPost || content.powerLotto638Res?.[0]) {
+      state.latest.power = normalizeLatestPower(
+        content.powerLotto || content.powerLottoLatestPost || content.powerLotto638Res?.[0]
+      );
+    }
+  }
+
+  async function loadAllHistoryData() {
+    const [bingoText, daily539Text, biglottoText, powerText] = await Promise.all([
+      fetchTextWithFallback(CSV_CANDIDATES.bingo),
+      fetchTextWithFallback(CSV_CANDIDATES.daily539),
+      fetchTextWithFallback(CSV_CANDIDATES.biglotto),
+      fetchTextWithFallback(CSV_CANDIDATES.power)
+    ]);
+
+    state.history.bingo = normalizeHistoryRows("bingo", parseCSV(bingoText));
+    state.history.daily539 = normalizeHistoryRows("daily539", parseCSV(daily539Text));
+    state.history.biglotto = normalizeHistoryRows("biglotto", parseCSV(biglottoText));
+    state.history.power = normalizeHistoryRows("power", parseCSV(powerText));
+
+    state.dataStatus.bingo = getDataStatusText(
+      "bingo",
+      state.history.bingo,
+      state.latest.bingo
+    );
+    state.dataStatus.daily539 = getDataStatusText(
+      "daily539",
+      state.history.daily539,
+      state.latest.daily539
+    );
+    state.dataStatus.biglotto = getDataStatusText(
+      "biglotto",
+      state.history.biglotto,
+      state.latest.biglotto
+    );
+    state.dataStatus.power = getDataStatusText(
+      "power",
+      state.history.power,
+      state.latest.power
+    );
+  }
+
+  async function loadLatestBingo() {
+    if (state.latest.bingo) {
+      state.dataStatus.bingo = getDataStatusText(
+        "bingo",
+        state.history.bingo,
+        state.latest.bingo
+      );
+      return;
+    }
+
+    try {
+      const res = await fetch(GAME_CONFIG.bingo.apiUrl, { cache: "no-store" });
+      const json = await res.json();
+      const latest = json?.content?.lotteryBingoLatestPost || null;
+      state.latest.bingo = normalizeLatestBingo(latest);
+    } catch (err) {
+      console.warn("BINGO 最新資料讀取失敗", err);
+    }
+
+    state.dataStatus.bingo = getDataStatusText(
+      "bingo",
+      state.history.bingo,
+      state.latest.bingo
+    );
+  }
+
+  async function loadLatestDaily539() {
+    if (state.latest.daily539) {
+      state.dataStatus.daily539 = getDataStatusText(
+        "daily539",
+        state.history.daily539,
+        state.latest.daily539
+      );
+      return;
+    }
+
+    try {
+      const res = await fetch(GAME_CONFIG.daily539.apiUrl, { cache: "no-store" });
+      const json = await res.json();
+      const row = json?.content?.daily539Res?.[0] || null;
+      state.latest.daily539 = normalizeLatest539(row);
+    } catch (err) {
+      console.warn("今彩539 最新資料讀取失敗", err);
+    }
+
+    state.dataStatus.daily539 = getDataStatusText(
+      "daily539",
+      state.history.daily539,
+      state.latest.daily539
+    );
+  }
+
+  async function loadLatestBigLotto() {
+    if (state.latest.biglotto) {
+      state.dataStatus.biglotto = getDataStatusText(
+        "biglotto",
+        state.history.biglotto,
+        state.latest.biglotto
+      );
+      return;
+    }
+
+    try {
+      const res = await fetch(GAME_CONFIG.biglotto.apiUrl, { cache: "no-store" });
+      const json = await res.json();
+      const row = json?.content?.lotto649Res?.[0] || null;
+      state.latest.biglotto = normalizeLatestBigLotto(row);
+    } catch (err) {
+      console.warn("大樂透 最新資料讀取失敗", err);
+    }
+
+    state.dataStatus.biglotto = getDataStatusText(
+      "biglotto",
+      state.history.biglotto,
+      state.latest.biglotto
+    );
+  }
+
+  async function loadLatestPower() {
+    if (state.latest.power) {
+      state.dataStatus.power = getDataStatusText(
+        "power",
+        state.history.power,
+        state.latest.power
+      );
+      return;
+    }
+
+    try {
+      const res = await fetch(GAME_CONFIG.power.apiUrl, { cache: "no-store" });
+      const json = await res.json();
+      const row = json?.content?.powerLotto638Res?.[0] || null;
+      state.latest.power = normalizeLatestPower(row);
+    } catch (err) {
+      console.warn("威力彩 最新資料讀取失敗", err);
+    }
+
+    state.dataStatus.power = getDataStatusText(
+      "power",
+      state.history.power,
+      state.latest.power
+    );
+  }
+
+  function renderStatus() {
+    const bingoCount = state.history.bingo.length;
+    const daily539Count = state.history.daily539.length;
+    const biglottoCount = state.history.biglotto.length;
+    const powerCount = state.history.power.length;
+
+    setTextMulti(
+      ["#bingoDataCount", "[data-role='bingo-count']", "[data-key='bingo-count']"],
+      String(bingoCount)
+    );
+    setTextMulti(
+      ["#daily539DataCount", "[data-role='539-count']", "[data-key='daily539-count']"],
+      String(daily539Count)
+    );
+    setTextMulti(
+      ["#biglottoDataCount", "[data-role='biglotto-count']", "[data-key='biglotto-count']"],
+      String(biglottoCount)
+    );
+    setTextMulti(
+      ["#powerDataCount", "[data-role='power-count']", "[data-key='power-count']"],
+      String(powerCount)
+    );
+
+    setTextMulti(
+      ["#lastUpdatedAt", "[data-role='last-updated']", "[data-key='last-updated']"],
+      state.autoState.lastUpdateAt || "-"
+    );
+
+    setTextMulti(
+      ["#bingoStatusText", "[data-role='bingo-status']", "[data-key='bingo-status']"],
+      state.dataStatus.bingo
+    );
+    setTextMulti(
+      ["#daily539StatusText", "[data-role='daily539-status']", "[data-key='daily539-status']"],
+      state.dataStatus.daily539
+    );
+    setTextMulti(
+      ["#biglottoStatusText", "[data-role='biglotto-status']", "[data-key='biglotto-status']"],
+      state.dataStatus.biglotto
+    );
+    setTextMulti(
+      ["#powerStatusText", "[data-role='power-status']", "[data-key='power-status']"],
+      state.dataStatus.power
+    );
+  }
+
+  function renderLatestResults() {
+    const container = first([
+      "#latestResults",
+      "#latestDrawResults",
+      ".latest-results",
+      "[data-role='latest-results']"
+    ]);
+
+    if (!container) {
+      renderIntoExistingCards();
+      return;
+    }
+
+    const html = [
+      renderLatestCard("bingo", state.latest.bingo),
+      renderLatestCard("daily539", state.latest.daily539),
+      renderLatestCard("biglotto", state.latest.biglotto),
+      renderLatestCard("power", state.latest.power)
+    ].join("");
+
+    container.innerHTML = html;
+  }
+
+  function renderIntoExistingCards() {
+    renderSingleExistingCard("bingo", state.latest.bingo);
+    renderSingleExistingCard("daily539", state.latest.daily539);
+    renderSingleExistingCard("biglotto", state.latest.biglotto);
+    renderSingleExistingCard("power", state.latest.power);
+  }
+
+  function renderSingleExistingCard(gameKey, latest) {
+    const root = first([
+      `[data-game='${gameKey}']`,
+      `#${gameKey}LatestCard`,
+      `#latest-${gameKey}`,
+      `.latest-card.${gameKey}`
+    ]);
+
+    if (!root) return;
+
+    const titleEl = root.querySelector(
+      ".latest-title, [data-role='title'], [data-key='title']"
+    );
+    const metaEl = root.querySelector(
+      ".latest-meta, [data-role='meta'], [data-key='meta']"
+    );
+    const ballsEl = root.querySelector(
+      ".latest-balls, [data-role='balls'], [data-key='balls']"
+    );
+
+    if (!latest) {
+      if (titleEl) titleEl.textContent = GAME_CONFIG[gameKey].label;
+      if (metaEl) metaEl.textContent = "資料暫無";
+      if (ballsEl) ballsEl.innerHTML = `<span class="ball-empty">-</span>`;
+      return;
+    }
+
+    if (titleEl) titleEl.textContent = GAME_CONFIG[gameKey].label;
+    if (metaEl) {
+      metaEl.textContent = `期別：${latest.term || "-"}｜時間：${latest.time || "-"}`;
+    }
+    if (ballsEl) {
+      ballsEl.innerHTML = renderBallHtml(latest.numbers || []);
+      if (latest.secondArea?.length) {
+        ballsEl.innerHTML += `<div class="second-area-wrap" style="margin-top:10px;">第二區：${renderBallHtml(latest.secondArea)}</div>`;
+      }
+    }
+  }
+
+  function renderLatestCard(gameKey, latest) {
+    const label = GAME_CONFIG[gameKey].label;
+
+    if (!latest) {
+      return `
+        <section class="latest-card" data-game="${gameKey}">
+          <div class="latest-title">${escapeHtml(label)}</div>
+          <div class="latest-meta">資料暫無</div>
+          <div class="latest-balls"><span class="ball-empty">-</span></div>
+        </section>
+      `;
+    }
+
+    return `
+      <section class="latest-card" data-game="${gameKey}">
+        <div class="latest-title">${escapeHtml(label)}</div>
+        <div class="latest-meta">期別：${escapeHtml(latest.term || "-")}｜時間：${escapeHtml(latest.time || "-")}</div>
+        <div class="latest-balls">
+          ${renderBallHtml(latest.numbers || [])}
+          ${
+            latest.secondArea?.length
+              ? `<div class="second-area-wrap" style="margin-top:10px;">第二區：${renderBallHtml(latest.secondArea)}</div>`
+              : ""
+          }
+        </div>
+      </section>
+    `;
+  }
+
+  function generatePredictions() {
+    const game = normalizeGameKey(state.settings.game);
+    const config = GAME_CONFIG[game];
+    const history = state.history[game] || [];
+
+    if (!history.length) {
+      renderPredictionResult({
+        game,
+        groups: [],
+        message: `${config.label} 歷史資料尚未載入完成`
+      });
+      return;
+    }
+
+    const groupCount = clamp(parseInt(state.settings.groupCount || "1", 10), 1, 10);
+    const pickCount =
+      game === "bingo"
+        ? clamp(parseInt(state.settings.bingoCount || "5", 10), 1, 10)
+        : config.pick;
+
+    const groups = [];
+
+    for (let i = 0; i < groupCount; i++) {
+      if (game === "power") {
+        const area1 = predictNumbers({
+          rows: history,
+          range: config.range,
+          count: config.pick,
+          offsetSeed: i
+        });
+        const area2 = predictSecondArea(history, i);
+        groups.push({
+          area1,
+          area2
+        });
+      } else {
+        const nums = predictNumbers({
+          rows: history,
+          range: config.range,
+          count: pickCount,
+          offsetSeed: i
+        });
+        groups.push({
+          numbers: nums
+        });
+      }
+    }
+
+    state.autoState.lastPredictAt = formatDateTime(new Date());
+    saveJson(AUTO_STATE_KEY, state.autoState);
+
+    state.recentOps.unshift({
+      time: state.autoState.lastPredictAt,
+      game,
+      groupCount,
+      pickCount
+    });
+    state.recentOps = state.recentOps.slice(0, 50);
+    saveJson(STORAGE_KEY, state.recentOps);
+
+    renderPredictionResult({
+      game,
+      groups,
+      message: `${config.label} 已產生 ${groupCount} 組推薦號碼`
+    });
+  }
+
+  async function strengthenLearning() {
+    const keys = ["bingo", "daily539", "biglotto", "power"];
+    let trained = 0;
+
+    keys.forEach((key) => {
+      const rows = state.history[key] || [];
+      if (rows.length > 0) {
+        trained += 1;
+      }
+    });
+
+    state.weights.hot = round4(state.weights.hot + 0.02 * trained);
+    state.weights.recent = round4(state.weights.recent + 0.015 * trained);
+    state.weights.pair = round4(state.weights.pair + 0.012 * trained);
+    state.weights.repeatPenalty = round4(
+      Math.max(0.18, state.weights.repeatPenalty - 0.008 * trained)
+    );
+    state.weights.bonusLearning = round4(state.weights.bonusLearning + 0.01);
+
+    state.autoState.learnCount = (state.autoState.learnCount || 0) + 1;
+
+    saveJson(WEIGHTS_KEY, state.weights);
+    saveJson(AUTO_STATE_KEY, state.autoState);
+
+    toast(`強化學習完成（已學習 ${trained} 種彩種）`);
+    renderStatus();
+  }
+
+  function renderPredictionResult(payload) {
+    const container = first([
+      "#predictionResults",
+      "#recommendationResults",
+      ".prediction-results",
+      "[data-role='prediction-results']"
+    ]);
+
+    if (!container) return;
+
+    if (!payload) {
+      container.innerHTML = "";
+      return;
+    }
+
+    if (!payload.groups?.length) {
+      container.innerHTML = `
+        <div class="prediction-empty">
+          ${escapeHtml(payload.message || "目前無推薦結果")}
+        </div>
+      `;
+      return;
+    }
+
+    if (payload.game === "power") {
+      container.innerHTML = `
+        <div class="prediction-head">${escapeHtml(payload.message)}</div>
+        ${payload.groups
+          .map(
+            (g, idx) => `
+          <div class="prediction-group">
+            <div class="prediction-group-title">第 ${idx + 1} 組</div>
+            <div class="prediction-row">第一區：${renderBallHtml(g.area1)}</div>
+            <div class="prediction-row" style="margin-top:8px;">第二區：${renderBallHtml(g.area2)}</div>
+          </div>
+        `
+          )
+          .join("")}
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="prediction-head">${escapeHtml(payload.message)}</div>
+      ${payload.groups
+        .map(
+          (g, idx) => `
+        <div class="prediction-group">
+          <div class="prediction-group-title">第 ${idx + 1} 組</div>
+          <div class="prediction-row">${renderBallHtml(g.numbers)}</div>
+        </div>
+      `
+        )
+        .join("")}
+    `;
+  }
+
+  function predictNumbers({ rows, range, count, offsetSeed = 0 }) {
+    const freq = Array(range + 1).fill(0);
+    const recent = Array(range + 1).fill(0);
+    const tails = Array(10).fill(0);
+    const pairMap = new Map();
+
+    const recentWindow = rows.slice(0, Math.min(rows.length, 30));
+    const allWindow = rows.slice(0, Math.min(rows.length, 200));
+
+    allWindow.forEach((row) => {
+      row.numbers.forEach((n) => {
+        if (n >= 1 && n <= range) {
+          freq[n] += 1;
+          tails[n % 10] += 1;
+        }
+      });
+
+      for (let i = 0; i < row.numbers.length; i++) {
+        for (let j = i + 1; j < row.numbers.length; j++) {
+          const a = Math.min(row.numbers[i], row.numbers[j]);
+          const b = Math.max(row.numbers[i], row.numbers[j]);
+          const key = `${a}-${b}`;
+          pairMap.set(key, (pairMap.get(key) || 0) + 1);
+        }
+      }
+    });
+
+    recentWindow.forEach((row, idx) => {
+      const score = Math.max(1, recentWindow.length - idx);
+      row.numbers.forEach((n) => {
+        if (n >= 1 && n <= range) {
+          recent[n] += score;
+        }
+      });
+    });
+
+    const scored = [];
+    for (let n = 1; n <= range; n++) {
+      const tailBonus = tails[n % 10];
+      const hot = freq[n] * state.weights.hot;
+      const recentScore = recent[n] * state.weights.recent;
+      const tailScore = tailBonus * state.weights.tail * 0.08;
+
+      const total =
+        hot +
+        recentScore +
+        tailScore +
+        Math.random() * 0.2 +
+        offsetSeed * 0.0001;
+
+      scored.push({ n, score: total });
+    }
+
+    scored.sort((a, b) => b.score - a.score);
+
+    const selected = [];
+    for (const item of scored) {
+      if (selected.length >= count) break;
+
+      let penalty = 0;
+      selected.forEach((picked) => {
+        const a = Math.min(item.n, picked);
+        const b = Math.max(item.n, picked);
+        const key = `${a}-${b}`;
+        penalty += (pairMap.get(key) || 0) * state.weights.pair * 0.08;
+
+        if (Math.abs(item.n - picked) <= 1) {
+          penalty += state.weights.gapPenalty;
+        }
+        if (Math.abs(item.n - picked) === 0) {
+          penalty += state.weights.repeatPenalty;
+        }
+      });
+
+      const adjusted = item.score - penalty;
+      if (adjusted >= 0.1 || selected.length < Math.max(2, count - 2)) {
+        selected.push(item.n);
+      }
+    }
+
+    if (selected.length < count) {
+      for (const item of scored) {
+        if (selected.length >= count) break;
+        if (!selected.includes(item.n)) selected.push(item.n);
+      }
+    }
+
+    return selected.sort((a, b) => a - b).slice(0, count);
+  }
+
+  function predictSecondArea(rows, offsetSeed = 0) {
+    const range = 8;
+    const freq = Array(range + 1).fill(0);
+
+    rows.slice(0, Math.min(rows.length, 200)).forEach((row, idx) => {
+      const sec = Array.isArray(row.secondArea) ? row.secondArea[0] : null;
+      if (sec >= 1 && sec <= range) {
+        freq[sec] += rows.length - idx;
+      }
+    });
+
+    const scored = [];
+    for (let n = 1; n <= range; n++) {
+      scored.push({
+        n,
+        score: freq[n] + Math.random() * 0.1 + offsetSeed * 0.0001
+      });
+    }
+
+    scored.sort((a, b) => b.score - a.score);
+    return [scored[0]?.n || 1];
+  }
+
+  function getDataStatusText(name, rows, latestDraw) {
+    const count = Array.isArray(rows) ? rows.length : 0;
+    const hasLatest = !!latestDraw;
+
+    if (name === "bingo") {
+      if (hasLatest && count > 0) return "正常";
+      if (hasLatest && count === 0) return "最新期正常，歷史資料不足";
+      return "載入異常";
+    }
+
+    if (name === "biglotto") {
+      if (count > 0) return "正常";
+      if (hasLatest) return "最新期正常，歷史資料不足";
+      return "載入異常";
+    }
+
+    if (name === "daily539") {
+      if (count > 0) return "正常";
+      if (hasLatest) return "最新期正常，歷史資料不足";
+      return "載入異常";
+    }
+
+    if (name === "power") {
+      if (count > 0) return "正常";
+      if (hasLatest) return "最新期正常，歷史資料不足";
+      return "載入異常";
+    }
+
+    return count > 0 ? "正常" : "載入異常";
+  }
+
+  function normalizeHistoryRows(game, rows) {
+    return rows
+      .map((row) => {
+        if (game === "bingo") {
+          return normalizeBingoHistoryRow(row);
+        }
+        if (game === "daily539") {
+          return normalize539HistoryRow(row);
+        }
+        if (game === "biglotto") {
+          return normalizeBigLottoHistoryRow(row);
+        }
+        if (game === "power") {
+          return normalizePowerHistoryRow(row);
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }
+
+  function normalizeBingoHistoryRow(row) {
+    const term = pickFirst(row, [
+      "drawTerm",
+      "period",
+      "term",
+      "期別"
+    ]);
+
+    const time = pickFirst(row, [
+      "dDate",
+      "drawDate",
+      "date",
+      "時間"
+    ]);
+
+    let numbers = [];
+
+    if (row.drawNumberAppear) {
+      numbers = parseNumberList(row.drawNumberAppear);
+    } else if (row.drawNumberSize) {
+      numbers = parseNumberList(row.drawNumberSize);
+    } else {
+      numbers = collectSequentialNumbers(row, 1, 20);
+    }
+
+    if (!numbers.length) return null;
+
+    return {
+      term,
+      time: formatDateTime(time),
+      numbers: numbers.slice(0, 20).sort((a, b) => a - b)
+    };
+  }
+
+  function normalize539HistoryRow(row) {
+    const term = pickFirst(row, [
+      "period",
+      "drawTerm",
+      "term",
+      "期別"
+    ]);
+
+    const time = pickFirst(row, [
+      "lotteryDate",
+      "dDate",
+      "date",
+      "時間"
+    ]);
+
+    let numbers = [];
+    if (row.drawNumberSize) {
+      numbers = parseNumberList(row.drawNumberSize);
+    } else {
+      numbers = collectSequentialNumbers(row, 1, 5);
+    }
+
+    if (!numbers.length) return null;
+
+    return {
+      term,
+      time: formatDateTime(time),
+      numbers: numbers.slice(0, 5).sort((a, b) => a - b)
+    };
+  }
+
+  function normalizeBigLottoHistoryRow(row) {
+    const term = pickFirst(row, [
+      "period",
+      "drawTerm",
+      "term",
+      "期別"
+    ]);
+
+    const time = pickFirst(row, [
+      "lotteryDate",
+      "dDate",
+      "date",
+      "時間"
+    ]);
+
+    let numbers = [];
+    if (row.drawNumberSize) {
+      numbers = parseNumberList(row.drawNumberSize);
+    } else if (row.drawNumberAppear) {
+      numbers = parseNumberList(row.drawNumberAppear);
+    } else {
+      numbers = collectSequentialNumbers(row, 1, 6);
+    }
+
+    if (!numbers.length) return null;
+
+    const secondArea = parseNumberList(
+      pickFirst(row, [
+        "specialNum",
+        "bonusNumber",
+        "secondArea",
+        "特別號"
+      ])
+    );
+
+    return {
+      term,
+      time: formatDateTime(time),
+      numbers: numbers.slice(0, 6).sort((a, b) => a - b),
+      secondArea: secondArea.slice(0, 1)
+    };
+  }
+
+  function normalizePowerHistoryRow(row) {
+    const term = pickFirst(row, [
+      "period",
+      "drawTerm",
+      "term",
+      "期別"
+    ]);
+
+    const time = pickFirst(row, [
+      "lotteryDate",
+      "dDate",
+      "date",
+      "時間"
+    ]);
+
+    let numbers = [];
+    if (row.drawNumberSize) {
+      numbers = parseNumberList(row.drawNumberSize);
+    } else {
+      numbers = collectSequentialNumbers(row, 1, 6);
+    }
+
+    if (!numbers.length) return null;
+
+    let secondArea = parseNumberList(
+      pickFirst(row, [
+        "specialNum",
+        "secondArea",
+        "powerball",
+        "特別號",
+        "第二區"
+      ])
+    );
+
+    if (!secondArea.length) {
+      secondArea = collectSequentialNumbersFromNamedKeys(row, [
+        "num7",
+        "number7",
+        "second",
+        "special"
+      ]);
+    }
+
+    return {
+      term,
+      time: formatDateTime(time),
+      numbers: numbers.slice(0, 6).sort((a, b) => a - b),
+      secondArea: secondArea.slice(0, 1)
+    };
+  }
+
+  function normalizeLatestBingo(row) {
+    if (!row) return null;
+    const numbers = parseNumberList(row.drawNumberAppear || row.drawNumberSize);
+    if (!numbers.length) return null;
+    return {
+      term: row.drawTerm || row.period || "-",
+      time: formatDateTime(row.dDate || row.drawDate || row.lotteryDate),
+      numbers: numbers.slice(0, 20).sort((a, b) => a - b)
+    };
+  }
+
+  function normalizeLatest539(row) {
+    if (!row) return null;
+    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear);
+    if (!numbers.length) return null;
+    return {
+      term: row.period || row.drawTerm || "-",
+      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate),
+      numbers: numbers.slice(0, 5).sort((a, b) => a - b)
+    };
+  }
+
+  function normalizeLatestBigLotto(row) {
+    if (!row) return null;
+    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear);
+    if (!numbers.length) return null;
+    const secondArea = parseNumberList(
+      row.specialNum || row.bonusNumber || row.secondArea
+    );
+    return {
+      term: row.period || row.drawTerm || "-",
+      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate),
+      numbers: numbers.slice(0, 6).sort((a, b) => a - b),
+      secondArea: secondArea.slice(0, 1)
+    };
+  }
+
+  function normalizeLatestPower(row) {
+    if (!row) return null;
+    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear);
+    if (!numbers.length) return null;
+    const secondArea = parseNumberList(
+      row.specialNum || row.secondArea || row.powerball
+    );
+    return {
+      term: row.period || row.drawTerm || "-",
+      time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate),
+      numbers: numbers.slice(0, 6).sort((a, b) => a - b),
+      secondArea: secondArea.slice(0, 1)
+    };
+  }
+
+  async function fetchJsonWithFallback(urls) {
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (json) return json;
+      } catch (err) {
+        console.warn("JSON 讀取失敗:", url, err);
+      }
+    }
+    return null;
+  }
+
+  async function fetchTextWithFallback(urls) {
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) continue;
+        const text = await res.text();
+        if (text && text.trim()) return text;
+      } catch (err) {
+        console.warn("文字讀取失敗:", url, err);
+      }
+    }
+    return "";
+  }
+
+  function parseCSV(text) {
+    if (!text || !text.trim()) return [];
+
+    const rows = [];
+    const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter(Boolean);
+    if (lines.length < 2) return [];
+
+    const headers = parseCSVLine(lines[0]);
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCSVLine(lines[i]);
+      if (!cols.length) continue;
+
+      const row = {};
+      headers.forEach((h, idx) => {
+        row[String(h || "").trim()] = (cols[idx] ?? "").trim();
+      });
+      rows.push(row);
+    }
+
+    return rows;
+  }
+
+  function parseCSVLine(line) {
+    const result = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      const next = line[i + 1];
+
+      if (ch === '"') {
+        if (inQuotes && next === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        result.push(current);
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+
+    result.push(current);
+    return result;
+  }
+
+  function parseNumberList(value) {
+    if (Array.isArray(value)) {
+      return value
+        .map((n) => parseInt(n, 10))
+        .filter((n) => Number.isFinite(n));
+    }
+
+    if (typeof value === "number") {
+      return [value];
+    }
+
+    if (!value || typeof value !== "string") {
+      return [];
+    }
+
+    return value
+      .split(/[^0-9]+/g)
+      .map((n) => parseInt(n, 10))
+      .filter((n) => Number.isFinite(n));
+  }
+
+  function collectSequentialNumbers(row, from, to) {
+    const values = [];
+    for (let i = from; i <= to; i++) {
+      const candidates = [
+        `num${i}`,
+        `number${i}`,
+        `n${i}`,
+        `ball${i}`,
+        `${i}`
+      ];
+
+      for (const key of candidates) {
+        if (row[key] !== undefined && row[key] !== "") {
+          const n = parseInt(row[key], 10);
+          if (Number.isFinite(n)) {
+            values.push(n);
+            break;
+          }
+        }
+      }
+    }
+    return values;
+  }
+
+  function collectSequentialNumbersFromNamedKeys(row, keys) {
+    const out = [];
+    keys.forEach((key) => {
+      const n = parseInt(row[key], 10);
+      if (Number.isFinite(n)) out.push(n);
+    });
+    return out;
+  }
+
+  function pickFirst(obj, keys) {
+    for (const key of keys) {
+      if (obj[key] !== undefined && obj[key] !== null && obj[key] !== "") {
+        return obj[key];
+      }
+    }
+    return "";
+  }
+
+  function renderBallHtml(numbers) {
+    if (!numbers?.length) return `<span class="ball-empty">-</span>`;
+    return numbers
+      .map((n) => `<span class="lottery-ball">${pad2(n)}</span>`)
+      .join("");
+  }
+
+  function showLoadingMessage() {
+    const container = first([
+      "#predictionResults",
+      "#recommendationResults",
+      ".prediction-results",
+      "[data-role='prediction-results']"
+    ]);
+
+    if (container) {
+      container.innerHTML = `
+        <div class="prediction-empty">資料載入中...</div>
+      `;
+    }
+  }
+
+  function toast(message) {
+    const el = first(["#toast", ".toast", "[data-role='toast']"]);
+    if (el) {
+      el.textContent = message;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 1800);
+      return;
+    }
+    console.log(message);
+  }
+
+  function normalizeGameKey(value) {
+    const v = String(value || "").toLowerCase();
+    if (v.includes("539")) return "daily539";
+    if (v.includes("big") || v.includes("649") || v.includes("lotto")) return "biglotto";
+    if (v.includes("power")) return "power";
+    return "bingo";
+  }
+
+  function refillSelect(select, min, max, selected, suffix = "顆") {
+    if (!select) return;
+    const prev = String(selected);
+    select.innerHTML = "";
+    for (let i = min; i <= max; i++) {
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = `${i}${suffix}`;
+      if (String(i) === prev) opt.selected = true;
+      select.appendChild(opt);
+    }
+  }
+
+  function setTextMulti(selectors, value) {
+    selectors.forEach((sel) => {
+      document.querySelectorAll(sel).forEach((el) => {
+        el.textContent = value;
+      });
+    });
+  }
+
+  function setValueMulti(selectors, value) {
+    selectors.forEach((sel) => {
+      document.querySelectorAll(sel).forEach((el) => {
+        if ("value" in el) el.value = value;
+      });
+    });
+  }
+
+  function first(selectors) {
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el) return el;
+    }
+    return null;
+  }
+
+  function all(selectors) {
+    const result = [];
+    selectors.forEach((sel) => {
+      document.querySelectorAll(sel).forEach((el) => result.push(el));
+    });
+    return result;
+  }
+
+  function formatDateTime(input) {
+    if (!input) return "-";
+    if (input instanceof Date) {
+      return formatDateObject(input);
+    }
+
+    const dt = new Date(input);
+    if (!Number.isNaN(dt.getTime())) {
+      return formatDateObject(dt);
+    }
+
+    return String(input).replace("T", " ");
+  }
+
+  function formatDateObject(dt) {
+    const y = dt.getFullYear();
+    const m = pad2(dt.getMonth() + 1);
+    const d = pad2(dt.getDate());
+    const hh = pad2(dt.getHours());
+    const mm = pad2(dt.getMinutes());
+    const ss = pad2(dt.getSeconds());
+    return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+  }
+
+  function pad2(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function clamp(n, min, max) {
+    return Math.min(max, Math.max(min, n));
+  }
+
+  function round4(n) {
+    return Math.round(n * 10000) / 10000;
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
   }
 
   function loadJson(key, fallback) {
@@ -90,7 +1554,6 @@
       if (!raw) return fallback;
       return JSON.parse(raw);
     } catch (err) {
-      console.warn("loadJson failed:", key, err);
       return fallback;
     }
   }
@@ -99,1238 +1562,7 @@
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (err) {
-      console.warn("saveJson failed:", key, err);
+      console.warn("localStorage 寫入失敗:", key, err);
     }
-  }
-
-  function loadSettings() {
-    return {
-      selectedGame: "bingo",
-      bingoPickCount: 10,
-      predictionSetCount: 5,
-      ...(loadJson(SETTINGS_KEY, {}) || {})
-    };
-  }
-
-  function saveSettings() {
-    saveJson(SETTINGS_KEY, state.settings);
-  }
-
-  function logOp(type, detail = {}) {
-    const item = {
-      time: nowIso(),
-      type,
-      detail
-    };
-    state.ops.unshift(item);
-    state.ops = state.ops.slice(0, 100);
-    saveJson(OPS_KEY, state.ops);
-  }
-
-  function appendHistory(item) {
-    state.history.unshift(item);
-    state.history = state.history.slice(0, 300);
-    saveJson(STORAGE_KEY, state.history);
-  }
-
-  function getDefaultLearningWeights() {
-    return {
-      bingo: createDefaultGameWeights(80),
-      daily539: createDefaultGameWeights(39),
-      lotto649: createDefaultGameWeights(49),
-      superlotto638: {
-        area1: createDefaultGameWeights(38),
-        area2: createDefaultGameWeights(8)
-      }
-    };
-  }
-
-  function createDefaultGameWeights(maxNumber) {
-    const numberWeights = {};
-    const tailWeights = {};
-    const pairWeights = {};
-    const dragWeights = {};
-
-    for (let i = 1; i <= maxNumber; i++) numberWeights[i] = 1;
-    for (let i = 0; i <= 9; i++) tailWeights[i] = 1;
-
-    return {
-      numberWeights,
-      tailWeights,
-      pairWeights,
-      dragWeights,
-      hitCount: 0,
-      missCount: 0,
-      lastUpdated: null
-    };
-  }
-
-  function deepMergeWeights(base, extra) {
-    if (!extra || typeof extra !== "object") return base;
-    const out = Array.isArray(base) ? [...base] : { ...base };
-    Object.keys(extra).forEach((key) => {
-      if (
-        base[key] &&
-        typeof base[key] === "object" &&
-        !Array.isArray(base[key]) &&
-        extra[key] &&
-        typeof extra[key] === "object" &&
-        !Array.isArray(extra[key])
-      ) {
-        out[key] = deepMergeWeights(base[key], extra[key]);
-      } else {
-        out[key] = extra[key];
-      }
-    });
-    return out;
-  }
-
-  function loadLearningWeights() {
-    try {
-      const raw = localStorage.getItem(WEIGHTS_KEY);
-      if (!raw) return getDefaultLearningWeights();
-      const parsed = JSON.parse(raw);
-      return deepMergeWeights(getDefaultLearningWeights(), parsed);
-    } catch (err) {
-      console.warn("loadLearningWeights failed:", err);
-      return getDefaultLearningWeights();
-    }
-  }
-
-  function saveLearningWeights(weights) {
-    try {
-      localStorage.setItem(WEIGHTS_KEY, JSON.stringify(weights));
-    } catch (err) {
-      console.warn("saveLearningWeights failed:", err);
-    }
-  }
-
-  function toInt(v) {
-    const n = Number(v);
-    return Number.isFinite(n) ? Math.trunc(n) : 0;
-  }
-
-  function clamp(v, min, max) {
-    return Math.max(min, Math.min(max, v));
-  }
-
-  function uniqSorted(nums) {
-    return [...new Set(nums.filter((n) => Number.isFinite(n)).map((n) => toInt(n)))].sort((a, b) => a - b);
-  }
-
-  function pad2(n) {
-    return String(n).padStart(2, "0");
-  }
-
-  function toDateKey(dateLike) {
-    const d = new Date(dateLike);
-    if (Number.isNaN(d.getTime())) return "";
-    const y = d.getFullYear();
-    const m = pad2(d.getMonth() + 1);
-    const day = pad2(d.getDate());
-    return `${y}-${m}-${day}`;
-  }
-
-  function formatLocalTime(dateLike) {
-    const d = new Date(dateLike);
-    if (Number.isNaN(d.getTime())) return "-";
-    const y = d.getFullYear();
-    const m = pad2(d.getMonth() + 1);
-    const day = pad2(d.getDate());
-    const hh = pad2(d.getHours());
-    const mm = pad2(d.getMinutes());
-    const ss = pad2(d.getSeconds());
-    return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
-  }
-
-  function parseCsv(text) {
-    const lines = text.replace(/\r/g, "").split("\n").filter(Boolean);
-    if (!lines.length) return [];
-    const headers = splitCsvLine(lines[0]);
-    const rows = [];
-    for (let i = 1; i < lines.length; i++) {
-      const cols = splitCsvLine(lines[i]);
-      const row = {};
-      headers.forEach((h, idx) => {
-        row[h] = cols[idx] ?? "";
-      });
-      rows.push(row);
-    }
-    return rows;
-  }
-
-  function splitCsvLine(line) {
-    const out = [];
-    let cur = "";
-    let inQuote = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      const next = line[i + 1];
-      if (ch === '"') {
-        if (inQuote && next === '"') {
-          cur += '"';
-          i++;
-        } else {
-          inQuote = !inQuote;
-        }
-      } else if (ch === "," && !inQuote) {
-        out.push(cur);
-        cur = "";
-      } else {
-        cur += ch;
-      }
-    }
-    out.push(cur);
-    return out;
-  }
-
-  async function fetchTextFromCandidates(candidates) {
-    for (const url of candidates) {
-      try {
-        const res = await fetch(url, { cache: "no-store" });
-        if (res.ok) return await res.text();
-      } catch (err) {
-        console.warn("fetch failed:", url, err);
-      }
-    }
-    return "";
-  }
-
-  async function fetchJsonFromCandidates(candidates) {
-    for (const url of candidates) {
-      try {
-        const res = await fetch(url, { cache: "no-store" });
-        if (res.ok) return await res.json();
-      } catch (err) {
-        console.warn("fetch json failed:", url, err);
-      }
-    }
-    return null;
-  }
-
-  function pickField(row, keys, fallback = "") {
-    for (const k of keys) {
-      if (row[k] !== undefined && row[k] !== null && row[k] !== "") return row[k];
-    }
-    return fallback;
-  }
-
-  function extractNumbersFromRow(row, maxNumber = 80) {
-    const nums = [];
-    Object.keys(row).forEach((key) => {
-      const value = row[key];
-      if (value === null || value === undefined || value === "") return;
-      if (/^(period|drawterm|issue|date|lotterydate|ddate|drawdate|redeemabledate|seq|id|special|bonus|zone2|area2|second)$/i.test(key)) return;
-
-      if (typeof value === "string" && value.includes(" ")) {
-        value.split(/\s+/).forEach((part) => {
-          const n = Number(part);
-          if (Number.isInteger(n) && n >= 1 && n <= maxNumber) nums.push(n);
-        });
-        return;
-      }
-
-      if (typeof value === "string" && value.includes("|")) {
-        value.split("|").forEach((part) => {
-          const n = Number(part);
-          if (Number.isInteger(n) && n >= 1 && n <= maxNumber) nums.push(n);
-        });
-        return;
-      }
-
-      if (typeof value === "string" && value.includes(",")) {
-        value.split(",").forEach((part) => {
-          const n = Number(part);
-          if (Number.isInteger(n) && n >= 1 && n <= maxNumber) nums.push(n);
-        });
-        return;
-      }
-
-      const n = Number(value);
-      if (Number.isInteger(n) && n >= 1 && n <= maxNumber) nums.push(n);
-    });
-    return uniqSorted(nums);
-  }
-
-  function normalizeBingoRows(rows) {
-    return rows
-      .map((row) => {
-        const numbers = extractNumbersFromRow(row, 80);
-        const drawTerm = pickField(row, ["drawTerm", "period", "issue", "term"], "");
-        const drawDate = pickField(row, ["dDate", "drawDate", "lotteryDate", "date"], "");
-        return {
-          game: "bingo",
-          drawTerm: safeText(drawTerm, ""),
-          drawDate,
-          numbers: numbers.slice(0, 20)
-        };
-      })
-      .filter((x) => x.numbers.length >= 10);
-  }
-
-  function normalize539Rows(rows) {
-    return rows
-      .map((row) => {
-        const numbers = extractNumbersFromRow(row, 39).slice(0, 5);
-        const drawTerm = pickField(row, ["period", "drawTerm", "issue", "term"], "");
-        const drawDate = pickField(row, ["lotteryDate", "drawDate", "date"], "");
-        return {
-          game: "daily539",
-          drawTerm: safeText(drawTerm, ""),
-          drawDate,
-          numbers
-        };
-      })
-      .filter((x) => x.numbers.length === 5);
-  }
-
-  function normalize649Rows(rows) {
-    return rows
-      .map((row) => {
-        const drawTerm = pickField(row, ["period", "drawTerm", "issue", "term"], "");
-        const drawDate = pickField(row, ["lotteryDate", "drawDate", "date"], "");
-
-        let numbers = [];
-
-        const preferredKeys = [
-          "num1", "num2", "num3", "num4", "num5", "num6",
-          "n1", "n2", "n3", "n4", "n5", "n6",
-          "drawNumber1", "drawNumber2", "drawNumber3", "drawNumber4", "drawNumber5", "drawNumber6",
-          "No1", "No2", "No3", "No4", "No5", "No6",
-          "NO1", "NO2", "NO3", "NO4", "NO5", "NO6"
-        ];
-
-        preferredKeys.forEach((key) => {
-          const n = Number(row[key]);
-          if (Number.isInteger(n) && n >= 1 && n <= 49) {
-            numbers.push(n);
-          }
-        });
-
-        if (numbers.length !== 6) {
-          numbers = extractNumbersFromRow(row, 49).slice(0, 6);
-        }
-
-        return {
-          game: "lotto649",
-          drawTerm: safeText(drawTerm, ""),
-          drawDate,
-          numbers: uniqSorted(numbers)
-        };
-      })
-      .filter((x) => x.numbers.length === 6);
-  }
-
-  function normalize638Rows(rows) {
-    return rows
-      .map((row) => {
-        let area1 = [];
-        let area2 = [];
-
-        Object.keys(row).forEach((key) => {
-          const v = row[key];
-          const n = Number(v);
-          if (!Number.isInteger(n)) return;
-
-          if (/sec|special|zone2|area2|second|bonus/i.test(key)) {
-            if (n >= 1 && n <= 8) area2.push(n);
-          } else if (/^n\d+$/i.test(key) || /^num\d+$/i.test(key) || /^no\d+$/i.test(key) || /^[1-6]$/.test(key) || /drawnumber/i.test(key)) {
-            if (n >= 1 && n <= 38) area1.push(n);
-          }
-        });
-
-        if (!area1.length) {
-          const allNums = [];
-          Object.keys(row).forEach((key) => {
-            if (/sec|special|zone2|area2|second|bonus/i.test(key)) return;
-            const n = Number(row[key]);
-            if (Number.isInteger(n) && n >= 1 && n <= 38) allNums.push(n);
-          });
-          area1 = uniqSorted(allNums).slice(0, 6);
-        }
-
-        if (!area2.length) {
-          const maybe = Object.keys(row)
-            .filter((key) => /sec|special|zone2|area2|second|bonus/i.test(key))
-            .map((key) => Number(row[key]))
-            .filter((n) => Number.isInteger(n) && n >= 1 && n <= 8);
-
-          if (maybe.length) {
-            area2 = [maybe[0]];
-          } else {
-            const allNums = Object.values(row)
-              .map((v) => Number(v))
-              .filter((n) => Number.isInteger(n) && n >= 1 && n <= 8);
-            if (allNums.length) area2 = [allNums[allNums.length - 1]];
-          }
-        }
-
-        const drawTerm = pickField(row, ["period", "drawTerm", "issue", "term"], "");
-        const drawDate = pickField(row, ["lotteryDate", "drawDate", "date"], "");
-
-        return {
-          game: "superlotto638",
-          drawTerm: safeText(drawTerm, ""),
-          drawDate,
-          area1: uniqSorted(area1).slice(0, 6),
-          area2: uniqSorted(area2).slice(0, 1)
-        };
-      })
-      .filter((x) => x.area1.length === 6 && x.area2.length === 1);
-  }
-
-  function sortByDateTermDesc(arr) {
-    return [...arr].sort((a, b) => {
-      const ta = new Date(a.drawDate || 0).getTime();
-      const tb = new Date(b.drawDate || 0).getTime();
-      if (tb !== ta) return tb - ta;
-      return String(b.drawTerm).localeCompare(String(a.drawTerm), "zh-Hant-u-co-pinyin-nu-latn");
-    });
-  }
-
-  function countFrequency(draws, maxNumber) {
-    const freq = Array(maxNumber + 1).fill(0);
-    draws.forEach((draw) => {
-      draw.forEach((n) => {
-        if (n >= 1 && n <= maxNumber) freq[n]++;
-      });
-    });
-    return freq;
-  }
-
-  function getTopHotAndCold(freq) {
-    const pairs = [];
-    for (let i = 1; i < freq.length; i++) {
-      pairs.push([i, freq[i]]);
-    }
-    pairs.sort((a, b) => b[1] - a[1] || a[0] - b[0]);
-    const hotCount = Math.max(3, Math.round((freq.length - 1) * 0.15));
-    const coldCount = Math.max(3, Math.round((freq.length - 1) * 0.15));
-    const hot = new Set(pairs.slice(0, hotCount).map((x) => x[0]));
-    const cold = new Set(pairs.slice(-coldCount).map((x) => x[0]));
-    return { hot, cold };
-  }
-
-  function getWeightsForGame(gameKey) {
-    if (gameKey === "superlotto638_area1") return state.weights.superlotto638.area1;
-    if (gameKey === "superlotto638_area2") return state.weights.superlotto638.area2;
-    return state.weights[gameKey];
-  }
-
-  function getDrawsFromRows(rows, field = "numbers") {
-    return rows.map((x) => x[field]).filter((x) => Array.isArray(x) && x.length);
-  }
-
-  function groupBingoDrawsByDate(rows) {
-    const map = {};
-    rows.forEach((row) => {
-      const dateKey = toDateKey(row.drawDate);
-      if (!dateKey) return;
-      if (!map[dateKey]) map[dateKey] = [];
-      map[dateKey].push(row);
-    });
-
-    Object.keys(map).forEach((k) => {
-      map[k].sort((a, b) => {
-        const ta = new Date(a.drawDate || 0).getTime();
-        const tb = new Date(b.drawDate || 0).getTime();
-        if (ta !== tb) return ta - tb;
-        return String(a.drawTerm).localeCompare(String(b.drawTerm), "zh-Hant-u-co-pinyin-nu-latn");
-      });
-    });
-
-    return map;
-  }
-
-  function getBingoLearningRows(rows) {
-    if (!rows.length) return [];
-    const grouped = groupBingoDrawsByDate(rows);
-    const dateKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
-    if (!dateKeys.length) return [];
-
-    const todayKey = dateKeys[0];
-    const selected = [];
-
-    grouped[todayKey].forEach((row) => {
-      selected.push({ ...row, __bingoWeight: AI_CONFIG.bingoTodayBoost });
-    });
-
-    for (let i = 1; i < Math.min(dateKeys.length, AI_CONFIG.bingoRecentDays + 1); i++) {
-      const dayRows = grouped[dateKeys[i]];
-      const dayWeight = Math.max(1, AI_CONFIG.bingoRecentDayBoost - i * 0.08);
-      dayRows.forEach((row) => {
-        selected.push({ ...row, __bingoWeight: dayWeight });
-      });
-    }
-
-    return selected.sort((a, b) => {
-      const ta = new Date(b.drawDate || 0).getTime();
-      const tb = new Date(a.drawDate || 0).getTime();
-      return ta - tb;
-    });
-  }
-
-  function buildWeightedFrequency(rows, maxNumber, field = "numbers", customWeightFn = null) {
-    const out = Array(maxNumber + 1).fill(0);
-
-    rows.forEach((row, idx) => {
-      const draw = row[field];
-      if (!Array.isArray(draw)) return;
-
-      let weight = 1;
-      if (typeof customWeightFn === "function") {
-        weight = customWeightFn(row, idx);
-      } else {
-        if (idx < 20) weight *= AI_CONFIG.superRecentBoost;
-        else if (idx < AI_CONFIG.recentWindow) weight *= AI_CONFIG.recencyBoost;
-      }
-
-      draw.forEach((n) => {
-        if (n >= 1 && n <= maxNumber) out[n] += weight;
-      });
-    });
-
-    return out;
-  }
-
-  function buildWeightedTailFrequency(rows, field = "numbers", customWeightFn = null) {
-    const out = Array(10).fill(0);
-
-    rows.forEach((row, idx) => {
-      const draw = row[field];
-      if (!Array.isArray(draw)) return;
-
-      let weight = 1;
-      if (typeof customWeightFn === "function") {
-        weight = customWeightFn(row, idx);
-      } else {
-        if (idx < 20) weight *= AI_CONFIG.superRecentBoost;
-        else if (idx < AI_CONFIG.recentWindow) weight *= AI_CONFIG.recencyBoost;
-      }
-
-      draw.forEach((n) => {
-        out[n % 10] += weight;
-      });
-    });
-
-    return out;
-  }
-
-  function buildWeightedPairFrequency(rows, field = "numbers", customWeightFn = null) {
-    const out = {};
-    rows.forEach((row, idx) => {
-      const draw = row[field];
-      if (!Array.isArray(draw)) return;
-      let weight = 1;
-      if (typeof customWeightFn === "function") {
-        weight = customWeightFn(row, idx);
-      } else {
-        if (idx < 20) weight *= AI_CONFIG.superRecentBoost;
-        else if (idx < AI_CONFIG.recentWindow) weight *= AI_CONFIG.recencyBoost;
-      }
-
-      const sorted = [...draw].sort((a, b) => a - b);
-      for (let i = 0; i < sorted.length; i++) {
-        for (let j = i + 1; j < sorted.length; j++) {
-          const key = `${sorted[i]}-${sorted[j]}`;
-          out[key] = (out[key] || 0) + weight;
-        }
-      }
-    });
-    return out;
-  }
-
-  function buildWeightedDragFrequency(rows, field = "numbers", customWeightFn = null) {
-    const out = {};
-    for (let i = 1; i < rows.length; i++) {
-      const prev = rows[i][field];
-      const curr = rows[i - 1][field];
-      if (!Array.isArray(prev) || !Array.isArray(curr)) continue;
-
-      let weight = 1;
-      if (typeof customWeightFn === "function") {
-        weight = customWeightFn(rows[i - 1], i - 1);
-      } else {
-        if (i < 20) weight *= AI_CONFIG.superRecentBoost;
-        else if (i < AI_CONFIG.recentWindow) weight *= AI_CONFIG.recencyBoost;
-      }
-
-      prev.forEach((a) => {
-        curr.forEach((b) => {
-          if (a === b) return;
-          const key = `${a}->${b}`;
-          out[key] = (out[key] || 0) + weight;
-        });
-      });
-    }
-    return out;
-  }
-
-  function buildWeightedStreak(rows, maxNumber, field = "numbers", customWeightFn = null) {
-    const out = Array(maxNumber + 1).fill(0);
-    rows.forEach((row, idx) => {
-      const draw = row[field];
-      if (!Array.isArray(draw)) return;
-
-      let weight = 1;
-      if (typeof customWeightFn === "function") {
-        weight = customWeightFn(row, idx);
-      } else {
-        if (idx < 20) weight *= AI_CONFIG.superRecentBoost;
-        else if (idx < AI_CONFIG.recentWindow) weight *= AI_CONFIG.recencyBoost;
-      }
-
-      const set = new Set(draw);
-      draw.forEach((n) => {
-        if (set.has(n - 1) || set.has(n + 1)) out[n] += weight;
-      });
-    });
-    return out;
-  }
-
-  function computeScoreMap(gameKey, rows, maxNumber, pickCount, field = "numbers") {
-    const weights = getWeightsForGame(gameKey);
-    const recentRows = rows.slice(0, AI_CONFIG.longWindow);
-
-    const customWeightFn =
-      gameKey === "bingo"
-        ? (row, idx) => {
-            let weight = row.__bingoWeight || 1;
-            if (idx < 10) weight *= 1.12;
-            return weight;
-          }
-        : null;
-
-    const weightedFreq = buildWeightedFrequency(recentRows, maxNumber, field, customWeightFn);
-    const rawFreq = countFrequency(getDrawsFromRows(recentRows, field), maxNumber);
-    const weightedTail = buildWeightedTailFrequency(recentRows, field, customWeightFn);
-    const weightedPair = buildWeightedPairFrequency(recentRows, field, customWeightFn);
-    const weightedDrag = buildWeightedDragFrequency(recentRows, field, customWeightFn);
-    const weightedStreak = buildWeightedStreak(recentRows, maxNumber, field, customWeightFn);
-    const { hot, cold } = getTopHotAndCold(rawFreq);
-
-    const scores = [];
-
-    for (let n = 1; n <= maxNumber; n++) {
-      const tail = n % 10;
-      let score = 0;
-
-      score += weightedFreq[n] * 1.8;
-      score += (weightedTail[tail] || 0) * AI_CONFIG.tailWeight * 0.4;
-      score += (weightedStreak[n] || 0) * AI_CONFIG.streakWeight * 0.55;
-
-      if (hot.has(n)) score *= AI_CONFIG.hotWeight;
-      if (cold.has(n)) score *= AI_CONFIG.coldWeight + AI_CONFIG.rebalanceFactor;
-
-      const memWeight = Number(weights.numberWeights[n] || 1);
-      const memTail = Number(weights.tailWeights[tail] || 1);
-
-      score *= memWeight;
-      score *= 1 + (memTail - 1) * 0.35;
-
-      const recentTop = recentRows.slice(0, Math.min(12, recentRows.length)).map((r) => r[field]).filter(Boolean);
-      let pairScore = 0;
-      let dragScore = 0;
-
-      recentTop.forEach((draw) => {
-        draw.forEach((m) => {
-          if (m === n) return;
-          const pairKey = [Math.min(m, n), Math.max(m, n)].join("-");
-          pairScore += weightedPair[pairKey] || 0;
-          const dragKey = `${m}->${n}`;
-          dragScore += weightedDrag[dragKey] || 0;
-        });
-      });
-
-      score += pairScore * 0.025 * AI_CONFIG.pairWeight;
-      score += dragScore * 0.02 * AI_CONFIG.dragWeight;
-
-      if (Math.random() < AI_CONFIG.exploreRate) {
-        score *= 1 + Math.random() * 0.06;
-      }
-
-      scores.push({ number: n, score });
-    }
-
-    scores.sort((a, b) => b.score - a.score || a.number - b.number);
-
-    return {
-      scores,
-      hotNumbers: [...hot].sort((a, b) => a - b),
-      coldNumbers: [...cold].sort((a, b) => a - b),
-      rawFreq,
-      weightedFreq,
-      weightedTail
-    };
-  }
-
-  function rebalancePickList(scoreList, hotNumbers, coldNumbers, pickCount) {
-    const hotSet = new Set(hotNumbers);
-    const coldSet = new Set(coldNumbers);
-
-    const hotTarget = Math.max(1, Math.round(pickCount * 0.45));
-    const coldTarget = Math.max(1, Math.round(pickCount * 0.18));
-
-    const hotPool = [];
-    const coldPool = [];
-    const midPool = [];
-
-    scoreList.forEach((item) => {
-      if (hotSet.has(item.number)) hotPool.push(item.number);
-      else if (coldSet.has(item.number)) coldPool.push(item.number);
-      else midPool.push(item.number);
-    });
-
-    const picked = [];
-    hotPool.slice(0, hotTarget).forEach((n) => picked.push(n));
-    coldPool.slice(0, coldTarget).forEach((n) => {
-      if (!picked.includes(n)) picked.push(n);
-    });
-
-    [...midPool, ...hotPool, ...coldPool].forEach((n) => {
-      if (!picked.includes(n) && picked.length < pickCount) picked.push(n);
-    });
-
-    return picked.slice(0, pickCount).sort((a, b) => a - b);
-  }
-
-  function makePredictionSets(baseList, maxNumber, pickCount, setCount) {
-    const results = [];
-    const pool = [...baseList];
-    for (let i = 0; i < setCount; i++) {
-      const offset = i * Math.max(1, Math.floor(pickCount / 2));
-      const take = [];
-      for (let j = 0; j < pool.length && take.length < pickCount; j++) {
-        const idx = (offset + j) % pool.length;
-        const n = pool[idx];
-        if (!take.includes(n)) take.push(n);
-      }
-      while (take.length < pickCount) {
-        const n = 1 + Math.floor(Math.random() * maxNumber);
-        if (!take.includes(n)) take.push(n);
-      }
-      results.push(take.sort((a, b) => a - b));
-    }
-    return results;
-  }
-
-  function predictBingo(rows) {
-    const learningRows = getBingoLearningRows(rows);
-    const pickCount = clamp(Number(state.settings.bingoPickCount || 10), 1, 10);
-    const setCount = clamp(Number(state.settings.predictionSetCount || 5), 1, 10);
-
-    const analysis = computeScoreMap("bingo", learningRows, 80, pickCount, "numbers");
-    const baseList = rebalancePickList(
-      analysis.scores,
-      analysis.hotNumbers,
-      analysis.coldNumbers,
-      Math.max(pickCount * 3, 20)
-    );
-
-    const sets = makePredictionSets(baseList, 80, pickCount, setCount);
-
-    const grouped = groupBingoDrawsByDate(rows);
-    const dateKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
-    const todayCount = dateKeys.length ? grouped[dateKeys[0]].length : 0;
-
-    return {
-      gameKey: "bingo",
-      title: "BINGO BINGO",
-      mode: "今日全部期數 + 近7日輔助學習",
-      sourceCount: learningRows.length,
-      todayCount,
-      sets,
-      analysis
-    };
-  }
-
-  function predictStandard(gameKey, rows, maxNumber, pickCount, field = "numbers") {
-    const recentRows = rows.slice(0, AI_CONFIG.longWindow);
-    const setCount = clamp(Number(state.settings.predictionSetCount || 5), 1, 10);
-
-    const analysis = computeScoreMap(gameKey, recentRows, maxNumber, pickCount, field);
-    const baseList = rebalancePickList(
-      analysis.scores,
-      analysis.hotNumbers,
-      analysis.coldNumbers,
-      Math.max(pickCount * 3, 18)
-    );
-    const sets = makePredictionSets(baseList, maxNumber, pickCount, setCount);
-
-    return {
-      gameKey,
-      title: GAME_META[gameKey]?.title || gameKey,
-      mode: "近期強化學習",
-      sourceCount: recentRows.length,
-      sets,
-      analysis
-    };
-  }
-
-  function predictSuperLotto(rows) {
-    const area1 = predictStandard("superlotto638_area1", rows, 38, 6, "area1");
-    const area2 = predictStandard("superlotto638_area2", rows, 8, 1, "area2");
-    const setCount = Math.min(area1.sets.length, area2.sets.length);
-    const sets = [];
-    for (let i = 0; i < setCount; i++) {
-      sets.push({
-        area1: area1.sets[i],
-        area2: area2.sets[i][0]
-      });
-    }
-    return {
-      gameKey: "superlotto638",
-      title: "威力彩",
-      mode: "雙區分開強化學習",
-      sourceCount: rows.length,
-      sets,
-      area1,
-      area2
-    };
-  }
-
-  function updateLearningByResult(gameKey, predictedSet, actualSet) {
-    if (!Array.isArray(predictedSet) || !Array.isArray(actualSet)) return;
-    const w = getWeightsForGame(gameKey);
-    const actual = new Set(actualSet);
-    const predicted = [...predictedSet];
-    const hitCount = predicted.filter((n) => actual.has(n)).length;
-    const isHit = hitCount > 0;
-    const multiplier = isHit ? AI_CONFIG.hitReward : AI_CONFIG.missPenalty;
-
-    predicted.forEach((n) => {
-      const curr = Number(w.numberWeights[n] || 1);
-      let next = curr * multiplier;
-      next = clamp(next, 0.7, 2.8);
-      w.numberWeights[n] = Number(next.toFixed(4));
-    });
-
-    predicted.forEach((n) => {
-      const tail = n % 10;
-      const curr = Number(w.tailWeights[tail] || 1);
-      let next = curr * (isHit ? 1.05 : 0.98);
-      next = clamp(next, 0.8, 2.2);
-      w.tailWeights[tail] = Number(next.toFixed(4));
-    });
-
-    const sorted = [...predicted].sort((a, b) => a - b);
-    for (let i = 0; i < sorted.length; i++) {
-      for (let j = i + 1; j < sorted.length; j++) {
-        const key = `${sorted[i]}-${sorted[j]}`;
-        const curr = Number(w.pairWeights[key] || 1);
-        let next = curr * (hitCount >= 2 ? 1.04 : 0.995);
-        next = clamp(next, 0.85, 2.5);
-        w.pairWeights[key] = Number(next.toFixed(4));
-      }
-    }
-
-    w.hitCount += isHit ? 1 : 0;
-    w.missCount += isHit ? 0 : 1;
-    w.lastUpdated = nowIso();
-  }
-
-  function autoLearnAllGames() {
-    try {
-      const bingoRows = state.data.bingo;
-      const d539Rows = state.data.daily539;
-      const l649Rows = state.data.lotto649;
-      const s638Rows = state.data.superlotto638;
-
-      if (bingoRows.length >= 2) {
-        const pred = predictBingo(bingoRows.slice(1));
-        const actual = bingoRows[0].numbers;
-        if (pred.sets[0]) updateLearningByResult("bingo", pred.sets[0], actual);
-      }
-
-      if (d539Rows.length >= 2) {
-        const pred = predictStandard("daily539", d539Rows.slice(1), 39, 5);
-        const actual = d539Rows[0].numbers;
-        if (pred.sets[0]) updateLearningByResult("daily539", pred.sets[0], actual);
-      }
-
-      if (l649Rows.length >= 2) {
-        const pred = predictStandard("lotto649", l649Rows.slice(1), 49, 6);
-        const actual = l649Rows[0].numbers;
-        if (pred.sets[0]) updateLearningByResult("lotto649", pred.sets[0], actual);
-      }
-
-      if (s638Rows.length >= 2) {
-        const pred = predictSuperLotto(s638Rows.slice(1));
-        const actual1 = s638Rows[0].area1;
-        const actual2 = s638Rows[0].area2;
-        if (pred.sets[0]) {
-          updateLearningByResult("superlotto638_area1", pred.sets[0].area1, actual1);
-          updateLearningByResult("superlotto638_area2", [pred.sets[0].area2], actual2);
-        }
-      }
-
-      saveLearningWeights(state.weights);
-      logOp("autoLearnAllGames", { at: nowIso() });
-    } catch (err) {
-      console.warn("autoLearnAllGames failed:", err);
-    }
-  }
-
-  function renderVersion() {
-    $all("[data-app-version]").forEach((el) => {
-      el.textContent = APP_VERSION;
-    });
-
-    const versionEl = $("#appVersion");
-    if (versionEl) {
-      if ("value" in versionEl) versionEl.value = APP_VERSION;
-      else versionEl.textContent = APP_VERSION;
-    }
-  }
-
-  function formatNumberBalls(nums) {
-    return nums.map((n) => `<span class="ball">${pad2(n)}</span>`).join("");
-  }
-
-  function renderLatestDrawCard(title, drawTerm, drawDate, numbers) {
-    return `
-      <div class="set-item">
-        <div class="set-title">${title}</div>
-        <div class="card-sub">期別：${safeText(drawTerm)}｜時間：${formatLocalTime(drawDate)}</div>
-        <div class="set-balls">
-          ${
-            Array.isArray(numbers) && numbers.length
-              ? formatNumberBalls(numbers)
-              : '<span class="empty">尚無資料</span>'
-          }
-        </div>
-      </div>
-    `;
-  }
-
-  function renderLatestSuperLottoCard(title, drawTerm, drawDate, area1, area2) {
-    return `
-      <div class="set-item">
-        <div class="set-title">${title}</div>
-        <div class="card-sub">期別：${safeText(drawTerm)}｜時間：${formatLocalTime(drawDate)}</div>
-        <div class="set-row">
-          <div class="set-area">第一區</div>
-          <div class="set-balls">
-            ${
-              Array.isArray(area1) && area1.length
-                ? formatNumberBalls(area1)
-                : '<span class="empty">尚無資料</span>'
-            }
-          </div>
-        </div>
-        <div class="set-row">
-          <div class="set-area">第二區</div>
-          <div class="set-balls">
-            ${
-              Array.isArray(area2) && area2.length
-                ? formatNumberBalls(area2)
-                : '<span class="empty">尚無資料</span>'
-            }
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderLatestDraws() {
-    const root = $("#latestDrawOutput");
-    if (!root) return;
-
-    const bingo = state.data.bingo?.[0];
-    const d539 = state.data.daily539?.[0];
-    const l649 = state.data.lotto649?.[0];
-    const s638 = state.data.superlotto638?.[0];
-
-    root.innerHTML = `
-      <div class="set-list">
-        ${renderLatestDrawCard("BINGO BINGO", bingo?.drawTerm, bingo?.drawDate, bingo?.numbers)}
-        ${renderLatestDrawCard("今彩539", d539?.drawTerm, d539?.drawDate, d539?.numbers)}
-        ${renderLatestDrawCard("大樂透", l649?.drawTerm, l649?.drawDate, l649?.numbers)}
-        ${renderLatestSuperLottoCard("威力彩", s638?.drawTerm, s638?.drawDate, s638?.area1, s638?.area2)}
-      </div>
-    `;
-  }
-
-  function renderPrediction(result) {
-    const root = $("#predictionOutput");
-    if (!root) return;
-
-    if (!result) {
-      root.innerHTML = `<div class="empty">暫無預測資料</div>`;
-      return;
-    }
-
-    if (result.gameKey === "superlotto638") {
-      root.innerHTML = `
-        <div class="card">
-          <div class="card-title">${result.title}</div>
-          <div class="card-sub">模式：${result.mode}｜學習期數：${result.sourceCount}</div>
-          <div class="set-list">
-            ${result.sets
-              .map(
-                (set, idx) => `
-                  <div class="set-item">
-                    <div class="set-title">第 ${idx + 1} 組</div>
-                    <div class="set-row">
-                      <div class="set-area">第一區</div>
-                      <div class="set-balls">${formatNumberBalls(set.area1)}</div>
-                    </div>
-                    <div class="set-row">
-                      <div class="set-area">第二區</div>
-                      <div class="set-balls">${formatNumberBalls([set.area2])}</div>
-                    </div>
-                  </div>
-                `
-              )
-              .join("")}
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    root.innerHTML = `
-      <div class="card">
-        <div class="card-title">${result.title}</div>
-        <div class="card-sub">
-          模式：${result.mode}
-          ${result.gameKey === "bingo" ? `｜今日已學習期數：${result.todayCount}` : ""}
-          ｜總學習期數：${result.sourceCount}
-        </div>
-        <div class="set-list">
-          ${result.sets
-            .map(
-              (set, idx) => `
-                <div class="set-item">
-                  <div class="set-title">第 ${idx + 1} 組</div>
-                  <div class="set-balls">${formatNumberBalls(set)}</div>
-                </div>
-              `
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
-  }
-
-  function renderStats() {
-    const versionEl = $("#appVersion");
-    if (versionEl) {
-      if ("value" in versionEl) versionEl.value = APP_VERSION;
-      else versionEl.textContent = APP_VERSION;
-    }
-
-    const bingoCountEl = $("#bingoDataCount");
-    if (bingoCountEl) bingoCountEl.textContent = String(state.data.bingo.length);
-
-    const d539CountEl = $("#daily539DataCount");
-    if (d539CountEl) d539CountEl.textContent = String(state.data.daily539.length);
-
-    const l649CountEl = $("#lotto649DataCount");
-    if (l649CountEl) l649CountEl.textContent = String(state.data.lotto649.length);
-
-    const s638CountEl = $("#superlotto638DataCount");
-    if (s638CountEl) s638CountEl.textContent = String(state.data.superlotto638.length);
-
-    const latestEl = $("#latestUpdateTime");
-    if (latestEl) {
-      const rawTime =
-        state.latest?.updatedAt ||
-        state.latest?.updateTime ||
-        state.latest?.generatedAt ||
-        state.latest?.time ||
-        nowIso();
-
-      latestEl.textContent = formatLocalTime(rawTime);
-    }
-
-    $all("[data-app-version]").forEach((el) => {
-      el.textContent = APP_VERSION;
-    });
-  }
-
-  function getCurrentPrediction() {
-    const game = state.settings.selectedGame || "bingo";
-    if (game === "bingo") return predictBingo(state.data.bingo);
-    if (game === "daily539") return predictStandard("daily539", state.data.daily539, 39, 5);
-    if (game === "lotto649") return predictStandard("lotto649", state.data.lotto649, 49, 6);
-    if (game === "superlotto638") return predictSuperLotto(state.data.superlotto638);
-    return null;
-  }
-
-  function refreshPrediction() {
-    try {
-      const result = getCurrentPrediction();
-      renderPrediction(result);
-      renderLatestDraws();
-      appendHistory({
-        time: nowIso(),
-        historyKey: state.settings.selectedGame,
-        game: state.settings.selectedGame,
-        result
-      });
-      renderStats();
-    } catch (err) {
-      console.error("refreshPrediction failed:", err);
-    }
-  }
-
-  function bindUi() {
-    const gameSelect = $("#gameSelect");
-    if (gameSelect) {
-      gameSelect.value = state.settings.selectedGame;
-      gameSelect.addEventListener("change", (e) => {
-        state.settings.selectedGame = e.target.value;
-        saveSettings();
-        refreshPrediction();
-      });
-    }
-
-    const bingoPickCount = $("#bingoPickCount");
-    if (bingoPickCount) {
-      bingoPickCount.value = String(state.settings.bingoPickCount);
-      bingoPickCount.addEventListener("change", (e) => {
-        state.settings.bingoPickCount = clamp(Number(e.target.value || 10), 1, 10);
-        saveSettings();
-        refreshPrediction();
-      });
-    }
-
-    const predictionSetCount = $("#predictionSetCount");
-    if (predictionSetCount) {
-      predictionSetCount.value = String(state.settings.predictionSetCount);
-      predictionSetCount.addEventListener("change", (e) => {
-        state.settings.predictionSetCount = clamp(Number(e.target.value || 5), 1, 10);
-        saveSettings();
-        refreshPrediction();
-      });
-    }
-
-    const runBtn = $("#runPredictionBtn");
-    if (runBtn) {
-      runBtn.addEventListener("click", () => {
-        refreshPrediction();
-      });
-    }
-
-    const relearnBtn = $("#relearnBtn");
-    if (relearnBtn) {
-      relearnBtn.addEventListener("click", () => {
-        autoLearnAllGames();
-        refreshPrediction();
-      });
-    }
-
-    const resetAiBtn = $("#resetAiBtn");
-    if (resetAiBtn) {
-      resetAiBtn.addEventListener("click", () => {
-        state.weights = getDefaultLearningWeights();
-        saveLearningWeights(state.weights);
-        logOp("resetAiWeights", {});
-        refreshPrediction();
-      });
-    }
-  }
-
-  async function loadLatestJson() {
-    const json = await fetchJsonFromCandidates(JSON_CANDIDATES);
-    state.latest = json || { updatedAt: nowIso() };
-  }
-
-  async function loadGameData() {
-    const [bingoText, d539Text, l649Text, s638Text] = await Promise.all([
-      fetchTextFromCandidates(CSV_CANDIDATES.bingo),
-      fetchTextFromCandidates(CSV_CANDIDATES.daily539),
-      fetchTextFromCandidates(CSV_CANDIDATES.lotto649),
-      fetchTextFromCandidates(CSV_CANDIDATES.superlotto638)
-    ]);
-
-    state.data.bingo = sortByDateTermDesc(normalizeBingoRows(parseCsv(bingoText)));
-    state.data.daily539 = sortByDateTermDesc(normalize539Rows(parseCsv(d539Text)));
-    state.data.lotto649 = sortByDateTermDesc(normalize649Rows(parseCsv(l649Text)));
-    state.data.superlotto638 = sortByDateTermDesc(normalize638Rows(parseCsv(s638Text)));
-
-    logOp("loadGameData", {
-      bingo: state.data.bingo.length,
-      daily539: state.data.daily539.length,
-      lotto649: state.data.lotto649.length,
-      superlotto638: state.data.superlotto638.length
-    });
-  }
-
-  async function reloadAll() {
-    if (state.loading) return;
-    state.loading = true;
-    try {
-      await loadLatestJson();
-      await loadGameData();
-      autoLearnAllGames();
-      renderVersion();
-      refreshPrediction();
-      renderStats();
-    } catch (err) {
-      console.error("reloadAll failed:", err);
-    } finally {
-      state.loading = false;
-    }
-  }
-
-  function startSchedulers() {
-    clearSchedulers();
-
-    state.timers.general = setInterval(() => {
-      reloadAll();
-    }, GENERAL_REFRESH_MS);
-
-    state.timers.bingo = setInterval(async () => {
-      try {
-        const bingoText = await fetchTextFromCandidates(CSV_CANDIDATES.bingo);
-        const newRows = sortByDateTermDesc(normalizeBingoRows(parseCsv(bingoText)));
-        if (newRows.length) {
-          state.data.bingo = newRows;
-          autoLearnAllGames();
-          renderLatestDraws();
-          if (state.settings.selectedGame === "bingo") refreshPrediction();
-          renderStats();
-          logOp("bingoFastRefresh", { count: newRows.length });
-        }
-      } catch (err) {
-        console.warn("bingo fast refresh failed:", err);
-      }
-    }, BINGO_FAST_REFRESH_MS);
-  }
-
-  function clearSchedulers() {
-    Object.values(state.timers).forEach((id) => {
-      if (id) clearInterval(id);
-    });
-    state.timers = {};
-  }
-
-  async function init() {
-    if (state.initialized) return;
-    state.initialized = true;
-    renderVersion();
-    bindUi();
-    await reloadAll();
-    startSchedulers();
-
-    window.__LOTTERY_APP__ = {
-      state,
-      reloadAll,
-      refreshPrediction,
-      predictBingo,
-      predictStandard,
-      predictSuperLotto,
-      autoLearnAllGames
-    };
-
-    console.log(APP_VERSION);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
   }
 })();
