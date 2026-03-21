@@ -1,11 +1,11 @@
 (() => {
-  const BUILD = window.__APP_BUILD__ || "91.2";
-  const APP_VERSION = `V91.2 防快取版（build ${BUILD}）`;
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v912";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v912";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v912";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v912";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v912";
+  const BUILD = window.__APP_BUILD__ || "92.0";
+  const APP_VERSION = `V92 手機好操作版（build ${BUILD}）`;
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v920";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v920";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v920";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v920";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v920";
   const AUTO_REFRESH_MS = 5 * 60 * 1000;
 
   const JSON_CANDIDATES = [
@@ -176,11 +176,11 @@
   }
 
   function showToast(text) {
-    const old = document.getElementById("v912Toast");
+    const old = document.getElementById("v920Toast");
     if (old) old.remove();
 
     const el = document.createElement("div");
-    el.id = "v912Toast";
+    el.id = "v920Toast";
     el.textContent = text;
     el.style.position = "fixed";
     el.style.left = "50%";
@@ -208,9 +208,7 @@
     if (!value) return "—";
     const raw = String(value).trim();
     const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
-    if (m) {
-      return `${m[1]}-${m[2]}-${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
-    }
+    if (m) return `${m[1]}-${m[2]}-${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return raw;
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
@@ -220,9 +218,7 @@
     if (!value) return "尚未取得";
     const raw = String(value).trim();
     const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
-    if (m) {
-      return `${m[1]}/${m[2]}/${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
-    }
+    if (m) return `${m[1]}/${m[2]}/${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return raw;
     return d.toLocaleString("zh-TW");
@@ -245,15 +241,10 @@
     if (!draw || typeof draw !== "object") return null;
     const cfg = GAME_CONFIG[gameCode];
     if (!cfg) return draw;
-
     return {
       ...draw,
-      numbers: Array.isArray(draw.numbers)
-        ? draw.numbers.map(v => Number(v)).filter(v => Number.isFinite(v))
-        : [],
-      orderNumbers: Array.isArray(draw.orderNumbers)
-        ? draw.orderNumbers.map(v => Number(v)).filter(v => Number.isFinite(v))
-        : [],
+      numbers: Array.isArray(draw.numbers) ? draw.numbers.map(Number).filter(Number.isFinite) : [],
+      orderNumbers: Array.isArray(draw.orderNumbers) ? draw.orderNumbers.map(Number).filter(Number.isFinite) : [],
       specialNumber: normalizeSpecialValue(draw.specialNumber, cfg.specialMin, cfg.specialMax)
     };
   }
@@ -317,8 +308,7 @@
     const errors = [];
     for (const path of paths) {
       try {
-        const busted = cacheBustUrl(path);
-        const res = await fetch(busted, {
+        const res = await fetch(cacheBustUrl(path), {
           cache: "no-store",
           headers: {
             "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -346,7 +336,6 @@
     const out = [];
     let current = "";
     let inQuotes = false;
-
     for (let i = 0; i < line.length; i += 1) {
       const ch = line[i];
       const next = line[i + 1];
@@ -364,22 +353,15 @@
         current += ch;
       }
     }
-
     out.push(current);
     return out.map(v => v.trim());
   }
 
   function parseCsv(text) {
-    const lines = text
-      .replace(/\r\n/g, "\n")
-      .replace(/\r/g, "\n")
-      .split("\n")
-      .filter(line => line.trim() !== "");
-
+    const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
     if (!lines.length) return [];
     const headers = parseCsvLine(lines[0]).map(h => h.trim());
     const rows = [];
-
     for (let i = 1; i < lines.length; i += 1) {
       const cols = parseCsvLine(lines[i]);
       const row = {};
@@ -394,31 +376,22 @@
 
   function firstMatchValue(obj, aliases) {
     const keys = Object.keys(obj);
-
     for (const alias of aliases) {
-      const aliasLower = alias.toLowerCase();
-      const key = keys.find(k => k.toLowerCase() === aliasLower);
+      const key = keys.find(k => k.toLowerCase() === alias.toLowerCase());
       if (key && obj[key] !== "") return obj[key];
     }
-
     for (const alias of aliases) {
-      const aliasLower = alias.toLowerCase();
-      const key = keys.find(k => k.toLowerCase().includes(aliasLower));
+      const key = keys.find(k => k.toLowerCase().includes(alias.toLowerCase()));
       if (key && obj[key] !== "") return obj[key];
     }
-
     return "";
   }
 
   function findSequentialNumberKeys(row) {
-    const keys = Object.keys(row).filter(k => k !== "__raw");
-    return keys
+    return Object.keys(row)
+      .filter(k => k !== "__raw")
       .filter(k => /(^n\d+$)|(^num\d+$)|(^no\d+$)|(^ball\d+$)|(^m\d+$)/i.test(k))
-      .sort((a, b) => {
-        const na = Number((a.match(/\d+/) || ["0"])[0]);
-        const nb = Number((b.match(/\d+/) || ["0"])[0]);
-        return na - nb;
-      });
+      .sort((a, b) => Number((a.match(/\d+/) || ["0"])[0]) - Number((b.match(/\d+/) || ["0"])[0]));
   }
 
   function extractNumbersFromRow(row, min, max, desiredCount) {
@@ -428,29 +401,26 @@
       if (nums.length) return nums.slice(0, desiredCount);
     }
 
-    const keys = Object.keys(row).filter(k => k !== "__raw");
-    const numberKeys = keys.filter(k => /number|draw|show|open|big|ball|num|special|second/i.test(k));
+    const numberKeys = Object.keys(row)
+      .filter(k => k !== "__raw")
+      .filter(k => /number|draw|show|open|big|ball|num|special|second/i.test(k));
 
     for (const key of numberKeys) {
       const raw = String(row[key] ?? "").trim();
       if (!raw) continue;
-      if (raw.includes(" ") || raw.includes("-") || raw.includes("|") || raw.includes("/")) {
+      if (/[ |\-/|]/.test(raw)) {
         const parts = raw.split(/[\s|/-]+/).filter(Boolean);
         const nums = numericArray(parts, min, max);
         if (nums.length >= Math.min(3, desiredCount)) return nums.slice(0, desiredCount);
       }
     }
 
-    const rawValues = row.__raw || [];
-    const nums = numericArray(rawValues, min, max);
-    if (nums.length >= desiredCount) return nums.slice(0, desiredCount);
-    return nums.slice(0, desiredCount);
+    return numericArray(row.__raw || [], min, max).slice(0, desiredCount);
   }
 
   function inferPeriod(row) {
     const direct = firstMatchValue(row, ["issue", "period", "drawterm", "term", "期別", "期數"]);
     if (direct) return String(direct);
-
     const raw = row.__raw || [];
     const candidate = raw.find(v => /^\d{6,}$/.test(String(v)));
     return candidate ? String(candidate) : "";
@@ -459,15 +429,13 @@
   function inferDate(row) {
     const direct = firstMatchValue(row, ["date", "drawdate", "lotterydate", "ddate", "開獎日期", "日期"]);
     if (direct) return String(direct);
-
     const raw = row.__raw || [];
     const candidate = raw.find(v => /\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(String(v)));
     return candidate ? String(candidate) : "";
   }
 
   function inferSpecial(row, aliases, min, max) {
-    const raw = firstMatchValue(row, aliases);
-    return normalizeSpecialValue(raw, min, max);
+    return normalizeSpecialValue(firstMatchValue(row, aliases), min, max);
   }
 
   function normalizeHistoryRows(gameKey, rows) {
@@ -480,89 +448,32 @@
 
       if (gameKey === "bingo") {
         const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 20);
-        const specialNumber = inferSpecial(
-          row,
-          ["special", "specialnumber", "supernumber", "超級獎號"],
-          cfg.specialMin,
-          cfg.specialMax
-        );
-        return {
-          period,
-          drawDate,
-          redeemableDate: "",
-          numbers,
-          orderNumbers: numbers.slice(),
-          specialNumber,
-          source: "history-csv"
-        };
+        const specialNumber = inferSpecial(row, ["special", "specialnumber", "supernumber", "超級獎號"], cfg.specialMin, cfg.specialMax);
+        return { period, drawDate, redeemableDate: "", numbers, orderNumbers: numbers.slice(), specialNumber, source: "history-csv" };
       }
 
       if (gameKey === "daily539") {
         const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 5);
-        return {
-          period,
-          drawDate,
-          redeemableDate: "",
-          numbers,
-          orderNumbers: [],
-          specialNumber: null,
-          source: "history-csv"
-        };
+        return { period, drawDate, redeemableDate: "", numbers, orderNumbers: [], specialNumber: null, source: "history-csv" };
       }
 
       if (gameKey === "lotto649") {
         let numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 6);
-        let specialNumber = inferSpecial(
-          row,
-          ["special", "specialnumber", "specialnum", "bonusnumber", "特別號"],
-          cfg.specialMin,
-          cfg.specialMax
-        );
-
+        let specialNumber = inferSpecial(row, ["special", "specialnumber", "specialnum", "bonusnumber", "特別號"], cfg.specialMin, cfg.specialMax);
         if (specialNumber == null) {
           const seqKeys = findSequentialNumberKeys(row);
-          if (seqKeys.length >= 7) {
-            specialNumber = normalizeSpecialValue(row[seqKeys[6]], cfg.specialMin, cfg.specialMax);
-          }
+          if (seqKeys.length >= 7) specialNumber = normalizeSpecialValue(row[seqKeys[6]], cfg.specialMin, cfg.specialMax);
         }
-
         if (numbers.length > 6) numbers = numbers.slice(0, 6);
-
-        return {
-          period,
-          drawDate,
-          redeemableDate: "",
-          numbers,
-          orderNumbers: [],
-          specialNumber,
-          source: "history-csv"
-        };
+        return { period, drawDate, redeemableDate: "", numbers, orderNumbers: [], specialNumber, source: "history-csv" };
       }
 
       if (gameKey === "superLotto638") {
         let numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 6);
-        let specialNumber = inferSpecial(
-          row,
-          ["second", "special", "specialnumber", "specialnum", "secondareanumber", "第二區", "第二區號碼"],
-          cfg.specialMin,
-          cfg.specialMax
-        );
-
-        if (specialNumber == null) {
-          specialNumber = normalizeSpecialValue(firstMatchValue(row, ["second"]), cfg.specialMin, cfg.specialMax);
-        }
-
+        let specialNumber = inferSpecial(row, ["second", "special", "specialnumber", "specialnum", "secondareanumber", "第二區", "第二區號碼"], cfg.specialMin, cfg.specialMax);
+        if (specialNumber == null) specialNumber = normalizeSpecialValue(firstMatchValue(row, ["second"]), cfg.specialMin, cfg.specialMax);
         if (numbers.length > 6) numbers = numbers.slice(0, 6);
-
-        return {
-          period,
-          drawDate,
-          redeemableDate: "",
-          numbers,
-          orderNumbers: [],
-          specialNumber,
-          source: "history-csv"
-        };
+        return { period, drawDate, redeemableDate: "", numbers, orderNumbers: [], specialNumber, source: "history-csv" };
       }
 
       return null;
@@ -574,21 +485,20 @@
   }
 
   async function loadHistoryCsv(gameKey) {
-    const paths = CSV_CANDIDATES[gameKey];
-    const result = await fetchFirstText(paths);
-    const rows = parseCsv(result.text);
+    const result = await fetchFirstText(CSV_CANDIDATES[gameKey]);
     return {
       path: result.path,
-      data: normalizeHistoryRows(gameKey, rows)
+      data: normalizeHistoryRows(gameKey, parseCsv(result.text))
     };
   }
 
   function toSortableTime(draw) {
     const raw = String(draw?.drawDate || "").replace(" ", "T");
     const dateValue = raw ? new Date(raw).getTime() : 0;
-    const safeDate = Number.isFinite(dateValue) ? dateValue : 0;
-    const safePeriod = Number(draw?.period || 0);
-    return { safeDate, safePeriod };
+    return {
+      safeDate: Number.isFinite(dateValue) ? dateValue : 0,
+      safePeriod: Number(draw?.period || 0)
+    };
   }
 
   function sortDrawsDesc(draws) {
@@ -607,29 +517,25 @@
       state.latestJson?.officialLatest?.[gameKey] ||
       null;
 
-    const gameCodeMap = {
+    const map = {
       bingo: "bingo",
       daily539: "539",
       lotto649: "649",
       superLotto638: "638"
     };
 
-    return sanitizeDraw(gameCodeMap[gameKey], raw);
+    return sanitizeDraw(map[gameKey], raw);
   }
 
   function getHistory(gameKey, limit) {
-    const gameCodeMap = {
+    const map = {
       bingo: "bingo",
       daily539: "539",
       lotto649: "649",
       superLotto638: "638"
     };
-    const gameCode = gameCodeMap[gameKey];
-
-    const history = (state.history[gameKey] || [])
-      .map(item => sanitizeDraw(gameCode, item))
-      .filter(Boolean);
-
+    const gameCode = map[gameKey];
+    const history = (state.history[gameKey] || []).map(item => sanitizeDraw(gameCode, item)).filter(Boolean);
     const latest = getLatestDraw(gameKey);
     const merged = [...history];
 
@@ -652,12 +558,7 @@
 
   function frequencyAnalysis(draws, min, max) {
     const freq = new Map(range(min, max).map(n => [n, 0]));
-    draws.forEach(draw => {
-      (draw.numbers || []).forEach(n => {
-        freq.set(n, (freq.get(n) || 0) + 1);
-      });
-    });
-
+    draws.forEach(draw => (draw.numbers || []).forEach(n => freq.set(n, (freq.get(n) || 0) + 1)));
     const arr = [...freq.entries()].map(([number, count]) => ({ number, count }));
     return {
       hot: [...arr].sort((a, b) => b.count - a.count || a.number - b.number).slice(0, 10),
@@ -703,13 +604,7 @@
 
   function tailAnalysis(draws) {
     const tails = new Map(Array.from({ length: 10 }, (_, i) => [i, 0]));
-    draws.forEach(draw => {
-      (draw.numbers || []).forEach(n => {
-        const t = n % 10;
-        tails.set(t, (tails.get(t) || 0) + 1);
-      });
-    });
-
+    draws.forEach(draw => (draw.numbers || []).forEach(n => tails.set(n % 10, (tails.get(n % 10) || 0) + 1)));
     return [...tails.entries()]
       .map(([tail, count]) => ({ tail, count }))
       .sort((a, b) => b.count - a.count || a.tail - b.tail)
@@ -727,7 +622,6 @@
         }
       }
     });
-
     return [...pairs.entries()]
       .map(([pair, count]) => ({ pair, count }))
       .sort((a, b) => b.count - a.count || a.pair.localeCompare(b.pair))
@@ -736,11 +630,7 @@
 
   function computeTailHotness(draws) {
     const map = new Map(Array.from({ length: 10 }, (_, i) => [i, 0]));
-    draws.forEach(draw => {
-      (draw.numbers || []).forEach(n => {
-        map.set(n % 10, (map.get(n % 10) || 0) + 1);
-      });
-    });
+    draws.forEach(draw => (draw.numbers || []).forEach(n => map.set(n % 10, (map.get(n % 10) || 0) + 1)));
     return map;
   }
 
@@ -753,17 +643,11 @@
 
     return range(min, max)
       .map(number => {
-        const f = freq.get(number) || 0;
-        const m = miss.get(number) || 0;
-        const t = tailHot.get(number % 10) || 0;
-        const latestPenalty = latestNums.has(number) ? weights.latestPenalty : 0;
-
         const score =
-          f * weights.freq +
-          m * weights.miss +
-          t * weights.tail +
-          latestPenalty;
-
+          (freq.get(number) || 0) * weights.freq +
+          (miss.get(number) || 0) * weights.miss +
+          (tailHot.get(number % 10) || 0) * weights.tail +
+          (latestNums.has(number) ? weights.latestPenalty : 0);
         return { number, score };
       })
       .sort((a, b) => b.score - a.score || a.number - b.number);
@@ -776,9 +660,7 @@
 
     draws.forEach(draw => {
       const s = Number(draw.specialNumber);
-      if (Number.isFinite(s) && s >= min && s <= max) {
-        map.set(s, (map.get(s) || 0) + 1);
-      }
+      if (Number.isFinite(s) && s >= min && s <= max) map.set(s, (map.get(s) || 0) + 1);
     });
 
     range(min, max).forEach(n => {
@@ -795,10 +677,7 @@
     });
 
     return range(min, max)
-      .map(n => ({
-        number: n,
-        score: (map.get(n) || 0) * weights.special + (miss.get(n) || 0) * 1.1
-      }))
+      .map(n => ({ number: n, score: (map.get(n) || 0) * weights.special + (miss.get(n) || 0) * 1.1 }))
       .sort((a, b) => b.score - a.score || a.number - b.number);
   }
 
@@ -809,9 +688,7 @@
 
     draws.forEach(draw => {
       const s = Number(draw.specialNumber);
-      if (Number.isFinite(s) && s >= min && s <= max) {
-        map.set(s, (map.get(s) || 0) + 1);
-      }
+      if (Number.isFinite(s) && s >= min && s <= max) map.set(s, (map.get(s) || 0) + 1);
     });
 
     range(min, max).forEach(n => {
@@ -828,10 +705,7 @@
     });
 
     return range(min, max)
-      .map(n => ({
-        number: n,
-        score: (map.get(n) || 0) * weights.special + (miss.get(n) || 0) * 1.05
-      }))
+      .map(n => ({ number: n, score: (map.get(n) || 0) * weights.special + (miss.get(n) || 0) * 1.05 }))
       .sort((a, b) => b.score - a.score || a.number - b.number);
   }
 
@@ -890,23 +764,12 @@
 
     return baseModes.slice(0, setCount).map((item, idx) => {
       let specialNumber = null;
-
       if (gameCode === "649") {
-        specialNumber =
-          spPool649[idx]?.number ??
-          spPool649[0]?.number ??
-          normalizeSpecialValue(latestDraw?.specialNumber, 1, 49) ??
-          null;
+        specialNumber = spPool649[idx]?.number ?? spPool649[0]?.number ?? normalizeSpecialValue(latestDraw?.specialNumber, 1, 49) ?? null;
       }
-
       if (gameCode === "638") {
-        specialNumber =
-          spPool638[idx]?.number ??
-          spPool638[0]?.number ??
-          normalizeSpecialValue(latestDraw?.specialNumber, 1, 8) ??
-          1;
+        specialNumber = spPool638[idx]?.number ?? spPool638[0]?.number ?? normalizeSpecialValue(latestDraw?.specialNumber, 1, 8) ?? 1;
       }
-
       if (gameCode === "bingo") {
         specialNumber = normalizeSpecialValue(latestDraw?.specialNumber, 1, 80);
       }
@@ -938,10 +801,8 @@
     const target = historyDraws[0];
     const train = historyDraws.slice(1);
     if (!target || train.length < 5) return null;
-
     const modes = buildPredictionModes(gameCode, train, train[0]);
     const bestHit = Math.max(...modes.map(mode => countHits(mode.numbers, target.numbers)));
-
     return {
       period: target.period,
       hit: bestHit,
@@ -952,23 +813,18 @@
 
   function runBacktest(gameCode, historyDraws) {
     const windows = [30, 50, 100];
-
     return windows.map(windowSize => {
       const usable = historyDraws.slice(0, windowSize + 10);
       const results = [];
-
       for (let i = 0; i < Math.min(windowSize, usable.length - 5); i += 1) {
         const segment = usable.slice(i);
         const result = simulatePredictionForIndex(gameCode, segment);
         if (result) results.push(result);
       }
-
       if (!results.length) {
         return { windowSize, samples: 0, avgHit: 0, hit1: 0, hit2: 0, hit3: 0 };
       }
-
       const totalHit = results.reduce((sum, r) => sum + r.hit, 0);
-
       return {
         windowSize,
         samples: results.length,
@@ -1035,12 +891,7 @@
     const weightsAll = readLearningWeights();
     const gameCode = record.gameCode;
     const current = { ...(weightsAll[gameCode] || defaultLearningWeights()[gameCode]) };
-
-    const totalPredicted = Math.max(
-      ...record.modes.map(mode => Array.isArray(mode.numbers) ? mode.numbers.length : 0),
-      1
-    );
-
+    const totalPredicted = Math.max(...record.modes.map(mode => Array.isArray(mode.numbers) ? mode.numbers.length : 0), 1);
     const hitRate = Number(record.bestHit || 0) / totalPredicted;
     const specialBoost = Number(record.specialHit || 0) > 0 ? 0.04 : -0.02;
 
@@ -1058,12 +909,11 @@
     }
 
     current.special = clampWeight((current.special || 1) + specialBoost, 0.2, 3.5);
-
-    if (hitRate < 0.25) {
-      current.latestPenalty = clampWeight(current.latestPenalty - 0.05, -3.0, 0);
-    } else {
-      current.latestPenalty = clampWeight(current.latestPenalty + 0.03, -3.0, 0);
-    }
+    current.latestPenalty = clampWeight(
+      hitRate < 0.25 ? current.latestPenalty - 0.05 : current.latestPenalty + 0.03,
+      -3.0,
+      0
+    );
 
     weightsAll[gameCode] = current;
     writeLearningWeights(weightsAll);
@@ -1084,16 +934,13 @@
       const refPeriodNum = Number(item.referencePeriod || 0);
 
       if (latestPeriodNum > refPeriodNum && !item.checked) {
-        const bestHit = Math.max(...item.modes.map(mode => countHits(mode.numbers || [], latest.numbers || [])));
-        const bestSpecialHit = Math.max(...item.modes.map(mode => countSpecialHit(mode.specialNumber, latest.specialNumber, item.gameCode)));
-
         item.checked = true;
         item.resultPeriod = latest.period || "";
         item.resultDrawDate = latest.drawDate || "";
         item.resultNumbers = latest.numbers || [];
         item.resultSpecialNumber = latest.specialNumber ?? null;
-        item.bestHit = bestHit;
-        item.specialHit = bestSpecialHit;
+        item.bestHit = Math.max(...item.modes.map(mode => countHits(mode.numbers || [], latest.numbers || [])));
+        item.specialHit = Math.max(...item.modes.map(mode => countSpecialHit(mode.specialNumber, latest.specialNumber, item.gameCode)));
         changed = true;
       }
 
@@ -1129,7 +976,7 @@
       hit1: checked.filter(item => Number(item.bestHit || 0) >= 1).length,
       hit2: checked.filter(item => Number(item.bestHit || 0) >= 2).length,
       hit3: checked.filter(item => Number(item.bestHit || 0) >= 3).length,
-      recent: list.slice(0, 5),
+      recent: list.slice(0, 3),
       cfg
     };
   }
@@ -1190,7 +1037,6 @@
       box.innerHTML = `<div class="v84-recent-item">尚未有操作紀錄</div>`;
       return;
     }
-
     box.innerHTML = list.slice(0, 6).map(item => `
       <div class="v84-recent-item">
         <div style="font-weight:800;margin-bottom:6px;">${escapeHtml(item.text)}</div>
@@ -1200,13 +1046,12 @@
   }
 
   function saveUiSettings() {
-    const payload = {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       lotterySelect: $("lotterySelect")?.value || "bingo",
       setCount: $("setCount")?.value || "3",
       historyPeriods: $("historyPeriods")?.value || "50",
       bingoCount: $("bingoCount")?.value || "10"
-    };
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
+    }));
   }
 
   function restoreUiSettings() {
@@ -1222,19 +1067,10 @@
   function renderBalls(numbers, specialNumber = null, specialLabel = "", type = "dark") {
     const ballClass = type === "light" ? "ball main" : "ball";
     const main = (numbers || []).map(n => `<span class="${ballClass}">${pad2(n)}</span>`).join("");
-
-    const safeSpecial =
-      specialNumber === null || specialNumber === undefined || specialNumber === ""
-        ? null
-        : Number(specialNumber);
+    const safeSpecial = specialNumber === null || specialNumber === undefined || specialNumber === "" ? null : Number(specialNumber);
 
     const special = Number.isFinite(safeSpecial)
-      ? `
-        <div class="special-box">
-          ${specialLabel ? `<span>${escapeHtml(specialLabel)}</span>` : ""}
-          <span class="ball special">${pad2(safeSpecial)}</span>
-        </div>
-      `
+      ? `<div class="special-box">${specialLabel ? `<span>${escapeHtml(specialLabel)}</span>` : ""}<span class="ball special">${pad2(safeSpecial)}</span></div>`
       : "";
 
     if (!main && !special) return `<span class="text-muted">無資料</span>`;
@@ -1252,15 +1088,10 @@
   function renderLatestFive(draws, gameCode) {
     const cfg = GAME_CONFIG[gameCode];
     if (!draws.length) return `<div class="text-muted">尚無資料</div>`;
-
     return sortDrawsDesc(draws).slice(0, 5).map(draw => `
       <div class="latest-five-item">
-        <div class="latest-five-issue">
-          第 ${escapeHtml(draw.period || "—")} 期｜${escapeHtml(formatDate(draw.drawDate || ""))}
-        </div>
-        <div class="ball-row">
-          ${renderBalls(draw.numbers || [], draw.specialNumber, cfg.specialLabel, "light")}
-        </div>
+        <div class="latest-five-issue">第 ${escapeHtml(draw.period || "—")} 期｜${escapeHtml(formatDate(draw.drawDate || ""))}</div>
+        <div class="ball-row">${renderBalls(draw.numbers || [], draw.specialNumber, cfg.specialLabel, "light")}</div>
       </div>
     `).join("");
   }
@@ -1292,9 +1123,7 @@
           <div class="result-card highlight-card">
             <div class="card-title">${escapeHtml(mode.mode)}</div>
             <div class="text-block" style="margin-bottom:12px;">${escapeHtml(mode.desc)}</div>
-            <div class="ball-row">
-              ${renderBalls(mode.numbers, mode.specialNumber, cfg.specialLabel, "light")}
-            </div>
+            <div class="ball-row">${renderBalls(mode.numbers, mode.specialNumber, cfg.specialLabel, "light")}</div>
           </div>
         `).join("")}
       </div>
@@ -1364,38 +1193,12 @@
         <div class="result-card"><div class="card-title">版本</div><div class="text-block">${escapeHtml(APP_VERSION)}</div></div>
         <div class="result-card"><div class="card-title">資料最後更新</div><div class="text-block">${escapeHtml(formatDate(status.generatedAt))}</div></div>
         <div class="result-card"><div class="card-title">最新資料來源</div><div class="text-block">${escapeHtml(status.source)}</div></div>
-        <div class="result-card"><div class="card-title">JSON 載入路徑</div><div class="text-block">${escapeHtml(status.latestPath || "—")}</div></div>
-        <div class="result-card"><div class="card-title">歷史 CSV 路徑</div><div class="text-block">${escapeHtml(status.historyPath || "—")}</div></div>
         <div class="result-card"><div class="card-title">歷史學習期數</div><div class="text-block">${escapeHtml(String(status.historyCount))} 期</div></div>
         <div class="result-card full-width"><div class="card-title">自動檢查狀態</div><div class="text-block">${escapeHtml(status.refreshText)}</div></div>
-        ${
-          gameCode === "bingo"
-            ? `<div class="result-card full-width"><div class="card-title">Bingo 即時同步狀態</div><div class="text-block">${escapeHtml(status.bingoSyncText)}｜${escapeHtml(status.bingoCompareText)}</div></div>`
-            : ""
-        }
-      </div>
-    `;
-  }
-
-  function renderHints(status, gameCode) {
-    if (gameCode !== "bingo") {
-      return `
-        <div class="result-card highlight-card">
-          <div class="card-title">資料提示</div>
-          <div class="text-block">
-            系統會每 5 分鐘自動檢查新資料，且所有資料抓取都會強制防快取。只有出現新一期時，才會自動比對與學習。
-          </div>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="result-card highlight-card">
-        <div class="card-title">Bingo 官方比對提示</div>
-        <div class="text-block">
-          官方比對：${escapeHtml(status.bingoCompareText)}<br>
-          自動檢查：${escapeHtml(status.refreshText)}
-        </div>
+        ${gameCode === "bingo"
+          ? `<div class="result-card full-width"><div class="card-title">Bingo 即時同步狀態</div><div class="text-block">${escapeHtml(status.bingoSyncText)}｜${escapeHtml(status.bingoCompareText)}</div></div>`
+          : ""}
+        <div class="result-card full-width"><div class="card-title">技術資訊</div><div class="text-block">JSON：${escapeHtml(status.latestPath || "—")}<br>CSV：${escapeHtml(status.historyPath || "—")}</div></div>
       </div>
     `;
   }
@@ -1410,15 +1213,12 @@
         <div class="result-card"><div class="card-title">已完成比對</div><div class="text-block">${summary.checked} 筆</div></div>
         <div class="result-card"><div class="card-title">等待開獎比對</div><div class="text-block">${summary.waiting} 筆</div></div>
         <div class="result-card"><div class="card-title">平均命中</div><div class="text-block">${summary.avgHit}</div></div>
-        <div class="result-card"><div class="card-title">命中 1 碼以上</div><div class="text-block">${summary.hit1} 筆</div></div>
-        <div class="result-card"><div class="card-title">命中 2 碼以上</div><div class="text-block">${summary.hit2} 筆</div></div>
-        <div class="result-card"><div class="card-title">命中 3 碼以上</div><div class="text-block">${summary.hit3} 筆</div></div>
       </div>
 
       <div class="v84-toolbar">
         <button id="v84InlineSaveBtn" class="toolbar-btn" type="button">儲存本次預測</button>
         <button id="v84InlineClearBtn" class="toolbar-btn" type="button">清空命中紀錄</button>
-        <button id="v91InlineResetWeightsBtn" class="toolbar-btn" type="button">重置學習權重</button>
+        <button id="v92InlineResetWeightsBtn" class="toolbar-btn" type="button">重置學習權重</button>
       </div>
 
       <div class="group-list" style="margin-top:14px;">
@@ -1433,33 +1233,20 @@
                   ${item.checked ? `比對期數：${escapeHtml(item.resultPeriod || "—")}` : "尚未比對"}<br>
                   學習狀態：${item.learned ? "已學習" : (item.checked ? "待學習" : "等待比對")}
                 </div>
-
-                <div class="group-list" style="margin-bottom:12px;">
-                  ${item.modes.map(mode => `
-                    <div class="group-item">
-                      <div class="group-label">${escapeHtml(mode.mode)}</div>
-                      <div class="ball-row">${renderBalls(mode.numbers || [], mode.specialNumber, cfg.specialLabel, "light")}</div>
-                    </div>
-                  `).join("")}
-                </div>
-
+                ${item.modes.slice(0, 2).map(mode => `
+                  <div class="group-item" style="margin-bottom:10px;">
+                    <div class="group-label">${escapeHtml(mode.mode)}</div>
+                    <div class="ball-row">${renderBalls(mode.numbers || [], mode.specialNumber, cfg.specialLabel, "light")}</div>
+                  </div>
+                `).join("")}
                 ${
                   item.checked
-                    ? `
-                      <div class="text-block">
-                        最佳命中：${item.bestHit} 碼
-                        ${item.resultSpecialNumber != null ? `｜特別號/第二區命中：${item.specialHit ? "是" : "否"}` : ""}
-                      </div>
-                      <div class="group-item" style="margin-top:10px;">
-                        <div class="group-label">實際開獎</div>
-                        <div class="ball-row">${renderBalls(item.resultNumbers || [], item.resultSpecialNumber, cfg.specialLabel, "light")}</div>
-                      </div>
-                    `
+                    ? `<div class="text-block">最佳命中：${item.bestHit} 碼${item.resultSpecialNumber != null ? `｜特別號/第二區命中：${item.specialHit ? "是" : "否"}` : ""}</div>`
                     : `<div class="text-block">等待下一期開獎後自動比對</div>`
                 }
               </div>
             `).join("")
-            : `<div class="result-card"><div class="text-block">目前尚無預測紀錄，先按上方按鈕儲存本次預測。</div></div>`
+            : `<div class="result-card"><div class="text-block">目前尚無預測紀錄。</div></div>`
         }
       </div>
     `;
@@ -1500,7 +1287,6 @@
     const box = $("v84MiniStats");
     if (!box) return;
     const s = getTrackingRollup();
-
     box.innerHTML = `
       <div class="v84-mini-stat"><span>已儲存預測</span><strong>${s.total}</strong></div>
       <div class="v84-mini-stat"><span>已完成比對</span><strong>${s.checked}</strong></div>
@@ -1511,40 +1297,39 @@
 
   function updateTopStatus(gameCode) {
     const latestDraw = state.currentLatestDraw;
-    if ($("v84CurrentGameBadge")) {
-      $("v84CurrentGameBadge").textContent = gameCode ? `目前彩種：${GAME_CONFIG[gameCode].label}` : "尚未選擇彩種";
-    }
-    if ($("v84SiteStateBadge")) {
-      $("v84SiteStateBadge").textContent = state.autoRefreshing ? "自動更新中" : `系統運作中 ${BUILD}`;
-    }
-    if ($("v84DataStateText")) {
-      $("v84DataStateText").textContent = latestDraw ? "已載入最新資料" : "待載入";
-    }
-    if ($("v84LastUpdateText")) {
-      $("v84LastUpdateText").textContent = latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未取得";
-    }
-    if ($("v84TrackingStateText")) {
-      $("v84TrackingStateText").textContent = state.autoRefreshing ? "更新中" : "可用";
-    }
+    if ($("v84CurrentGameBadge")) $("v84CurrentGameBadge").textContent = gameCode ? `目前彩種：${GAME_CONFIG[gameCode].label}` : "尚未選擇彩種";
+    if ($("v84SiteStateBadge")) $("v84SiteStateBadge").textContent = state.autoRefreshing ? "自動更新中" : `系統運作中 ${BUILD}`;
+    if ($("v84DataStateText")) $("v84DataStateText").textContent = latestDraw ? "已載入最新資料" : "待載入";
+    if ($("v84LastUpdateText")) $("v84LastUpdateText").textContent = latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未取得";
+    if ($("v84TrackingStateText")) $("v84TrackingStateText").textContent = state.autoRefreshing ? "更新中" : "可用";
   }
 
   function injectAnchors() {
     const el = $("predictionResult");
-    if (!el || !el.innerHTML || el.innerHTML.includes('id="anchor-status"')) return;
-    el.innerHTML = el.innerHTML
-      .replace(/資料狀態/g, '<div id="anchor-status" class="section-anchor"></div>資料狀態')
-      .replace(/命中追蹤/g, '<div id="anchor-tracking" class="section-anchor"></div>命中追蹤')
-      .replace(/自動學習權重/g, '<div id="anchor-learning" class="section-anchor"></div>自動學習權重')
-      .replace(/AI 推薦組合/g, '<div id="anchor-ai" class="section-anchor"></div>AI 推薦組合')
-      .replace(/回測表現/g, '<div id="anchor-backtest" class="section-anchor"></div>回測表現')
-      .replace(/熱號分析/g, '<div id="anchor-analysis" class="section-anchor"></div>熱號分析')
-      .replace(/最新五期/g, '<div id="anchor-latest" class="section-anchor"></div>最新五期');
+    if (!el || !el.innerHTML) return;
+
+    const mapping = [
+      ["AI 推薦組合", "anchor-ai"],
+      ["最新一期", "anchor-current"],
+      ["最新五期", "anchor-latest"],
+      ["命中追蹤", "anchor-tracking"],
+      ["資料狀態", "anchor-status"],
+      ["號碼分析", "anchor-analysis"],
+      ["回測表現", "anchor-backtest"],
+      ["自動學習權重", "anchor-learning"]
+    ];
+
+    for (const [text, id] of mapping) {
+      if (!el.innerHTML.includes(`id="${id}"`)) {
+        el.innerHTML = el.innerHTML.replace(text, `<div id="${id}" class="section-anchor"></div>${text}`);
+      }
+    }
   }
 
   function bindInlineTrackingButtons() {
     const saveBtn = $("v84InlineSaveBtn");
     const clearBtn = $("v84InlineClearBtn");
-    const resetBtn = $("v91InlineResetWeightsBtn");
+    const resetBtn = $("v92InlineResetWeightsBtn");
 
     if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
     if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
@@ -1562,6 +1347,7 @@
     const historyPeriods = Number($("historyPeriods")?.value || 50);
 
     state.currentGameCode = gameCode;
+
     const latestDraw = sanitizeDraw(gameCode, getLatestDraw(cfg.key));
     const draws = getHistory(cfg.key, historyPeriods);
     const fullHistory = getHistory(cfg.key, 120);
@@ -1584,88 +1370,108 @@
 
     container.innerHTML = `
       <div class="v84-main">
-        <div class="v84-panel">
-          <div class="result-header">
+        <div class="v84-section">
+          <div class="v84-section-head">
             <div>
-              <h2 style="margin:0;">${escapeHtml(cfg.label)} 智慧預測結果</h2>
-              <p class="result-subtitle">版本：${escapeHtml(APP_VERSION)}｜推薦組數：${getSetCount()} 組｜cache bust：${escapeHtml(state.lastCacheBust)}</p>
-            </div>
-            <div class="badge">${state.autoRefreshing ? "自動更新中" : "已完成分析"}</div>
-          </div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>資料狀態</h3><p>來源、更新時間、載入路徑與樣本期數</p></div></div>
-          ${renderStatus(status, gameCode)}
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>資料提示</h3><p>目前同步狀態與刷新建議</p></div></div>
-          ${renderHints(status, gameCode)}
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>命中追蹤</h3><p>本地預測紀錄與自動比對結果</p></div></div>
-          ${renderTracking(gameCode)}
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>最新一期</h3><p>官方最新資料摘要</p></div></div>
-          <div class="result-grid">
-            <div class="result-card"><div class="card-title">最新期數</div><div class="text-block">${escapeHtml(latestDraw?.period || "—")}</div></div>
-            <div class="result-card"><div class="card-title">開獎時間</div><div class="text-block">${escapeHtml(formatDate(latestDraw?.drawDate || ""))}</div></div>
-            <div class="result-card full-width">
-              <div class="card-title">最新號碼</div>
-              <div class="ball-row">${renderBalls(latestDraw?.numbers || [], latestDraw?.specialNumber, cfg.specialLabel, "light")}</div>
-              <div class="text-block" style="margin-top:10px;">歷史學習期數：${draws.length} 期</div>
+              <h3>AI 推薦組合</h3>
+              <p>先看推薦，再看分析</p>
             </div>
           </div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>自動學習權重</h3><p>依命中追蹤結果自動調整中的模型權重</p></div></div>
-          ${renderLearningWeights(gameCode)}
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>AI 推薦組合</h3><p>依目前設定自動生成的推薦號碼</p></div></div>
           ${renderModes(modes, gameCode)}
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head"><div><h3>回測表現</h3><p>近 30 / 50 / 100 期模擬命中結果</p></div></div>
-          ${renderBacktest(backtests)}
+          <div class="v84-section-head">
+            <div>
+              <h3>最新一期</h3>
+              <p>官方最新資料摘要</p>
+            </div>
+          </div>
+          <div class="result-grid">
+            <div class="result-card">
+              <div class="card-title">最新期數</div>
+              <div class="text-block">${escapeHtml(latestDraw?.period || "—")}</div>
+            </div>
+            <div class="result-card">
+              <div class="card-title">開獎時間</div>
+              <div class="text-block">${escapeHtml(formatDate(latestDraw?.drawDate || ""))}</div>
+            </div>
+            <div class="result-card full-width">
+              <div class="card-title">最新號碼</div>
+              <div class="ball-row">${renderBalls(latestDraw?.numbers || [], latestDraw?.specialNumber, cfg.specialLabel, "light")}</div>
+            </div>
+          </div>
         </div>
 
         <div class="v84-section">
-          <div class="v84-section-head"><div><h3>熱號分析</h3><p>近期高頻號碼</p></div></div>
-          <div class="ball-row">${renderTagList(frequency.hot, "count")}</div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>冷號分析</h3><p>近期低頻號碼</p></div></div>
-          <div class="ball-row">${renderTagList(frequency.cold, "count")}</div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>拖號 / 遺漏分析</h3><p>近期較久未出的號碼</p></div></div>
-          <div class="ball-row">${renderTagList(miss, "miss")}</div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>連號偵測</h3><p>近期常見連號組合</p></div></div>
-          <div class="ball-row">${consecutive.length ? renderTagList(consecutive, "pair") : `<span class="text-muted">無資料</span>`}</div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>尾數分析</h3><p>近期熱門尾數分布</p></div></div>
-          <div class="ball-row">${renderTagList(tails, "tail")}</div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head"><div><h3>最新五期</h3><p>最近五期實際開獎資料</p></div></div>
+          <div class="v84-section-head">
+            <div>
+              <h3>最新五期</h3>
+              <p>最近五期實際開獎資料</p>
+            </div>
+          </div>
           <div class="latest-five-list">${renderLatestFive(draws, gameCode)}</div>
         </div>
+
+        <div class="v84-section">
+          <div class="v84-section-head">
+            <div>
+              <h3>命中追蹤</h3>
+              <p>本地預測紀錄與自動比對結果</p>
+            </div>
+          </div>
+          ${renderTracking(gameCode)}
+        </div>
+
+        <div class="v84-section">
+          <div class="v84-section-head">
+            <div>
+              <h3>資料狀態</h3>
+              <p>來源、同步狀態與自動檢查</p>
+            </div>
+          </div>
+          ${renderStatus(status, gameCode)}
+        </div>
+
+        <details class="v92-collapse" open>
+          <summary>號碼分析</summary>
+          <div class="v92-collapse-body">
+            <div class="v84-section">
+              <div class="v84-section-head"><div><h3>熱號分析</h3><p>近期高頻號碼</p></div></div>
+              <div class="ball-row">${renderTagList(frequency.hot, "count")}</div>
+            </div>
+            <div class="v84-section">
+              <div class="v84-section-head"><div><h3>冷號分析</h3><p>近期低頻號碼</p></div></div>
+              <div class="ball-row">${renderTagList(frequency.cold, "count")}</div>
+            </div>
+            <div class="v84-section">
+              <div class="v84-section-head"><div><h3>拖號 / 遺漏分析</h3><p>近期較久未出的號碼</p></div></div>
+              <div class="ball-row">${renderTagList(miss, "miss")}</div>
+            </div>
+            <div class="v84-section">
+              <div class="v84-section-head"><div><h3>連號偵測</h3><p>近期常見連號組合</p></div></div>
+              <div class="ball-row">${consecutive.length ? renderTagList(consecutive, "pair") : `<span class="text-muted">無資料</span>`}</div>
+            </div>
+            <div class="v84-section">
+              <div class="v84-section-head"><div><h3>尾數分析</h3><p>近期熱門尾數分布</p></div></div>
+              <div class="ball-row">${renderTagList(tails, "tail")}</div>
+            </div>
+          </div>
+        </details>
+
+        <details class="v92-collapse">
+          <summary>回測表現</summary>
+          <div class="v92-collapse-body">
+            ${renderBacktest(backtests)}
+          </div>
+        </details>
+
+        <details class="v92-collapse">
+          <summary>自動學習權重</summary>
+          <div class="v92-collapse-body">
+            ${renderLearningWeights(gameCode)}
+          </div>
+        </details>
       </div>
     `;
 
@@ -1696,11 +1502,7 @@
       sanitizeDraw(state.currentGameCode, state.currentLatestDraw),
       state.currentModes.map(mode => ({
         ...mode,
-        specialNumber: normalizeSpecialValue(
-          mode.specialNumber,
-          GAME_CONFIG[state.currentGameCode].specialMin,
-          GAME_CONFIG[state.currentGameCode].specialMax
-        )
+        specialNumber: normalizeSpecialValue(mode.specialNumber, GAME_CONFIG[state.currentGameCode].specialMin, GAME_CONFIG[state.currentGameCode].specialMax)
       }))
     );
 
@@ -1811,9 +1613,7 @@
       if (!state.latestJson) await initData();
       saveUiSettings();
       const trackingResult = updatePredictionTracking();
-      if (trackingResult.learnedCount > 0) {
-        pushOp(`自動學習完成 ${trackingResult.learnedCount} 筆`);
-      }
+      if (trackingResult.learnedCount > 0) pushOp(`自動學習完成 ${trackingResult.learnedCount} 筆`);
       renderPrediction(gameCode);
       pushOp(`已執行 ${GAME_CONFIG[gameCode].label} 預測`);
     } catch (err) {
@@ -1839,19 +1639,10 @@
 
   function bindBottomNav() {
     const items = document.querySelectorAll(".bottom-nav .nav-pill");
-    items.forEach((btn, index) => {
+    items.forEach(btn => {
       btn.addEventListener("click", () => {
         items.forEach(x => x.classList.remove("active"));
         btn.classList.add("active");
-
-        if (index === 0) window.scrollTo({ top: 0, behavior: "smooth" });
-        if (index === 1) $("controlSection")?.scrollIntoView({ behavior: "smooth" });
-        if (index === 2) $("predictionSection")?.scrollIntoView({ behavior: "smooth" });
-        if (index === 3) {
-          const latestAnchor = $("anchor-latest");
-          if (latestAnchor) latestAnchor.scrollIntoView({ behavior: "smooth" });
-          else $("predictionSection")?.scrollIntoView({ behavior: "smooth" });
-        }
       });
     });
   }
@@ -1876,8 +1667,8 @@
 
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV912) {
-        el.dataset.boundV912 = "1";
+      if (el && !el.dataset.boundV920) {
+        el.dataset.boundV920 = "1";
         el.addEventListener("change", () => {
           saveUiSettings();
           if (id === "lotterySelect" && el.value) {
@@ -1911,9 +1702,7 @@
 
       await initData();
       const trackingResult = updatePredictionTracking();
-      if (trackingResult.learnedCount > 0) {
-        pushOp(`初始化自動學習 ${trackingResult.learnedCount} 筆`);
-      }
+      if (trackingResult.learnedCount > 0) pushOp(`初始化自動學習 ${trackingResult.learnedCount} 筆`);
 
       setBadge("待預測", true);
 
