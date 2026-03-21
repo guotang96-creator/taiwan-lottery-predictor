@@ -231,12 +231,16 @@
     return `${y}-${m}-${day}`;
   }
 
-  function daysBetween(a, b) {
-    const da = new Date(a);
-    const db = new Date(b);
-    const ta = new Date(da.getFullYear(), da.getMonth(), da.getDate()).getTime();
-    const tb = new Date(db.getFullYear(), db.getMonth(), db.getDate()).getTime();
-    return Math.round((ta - tb) / 86400000);
+  function formatLocalTime(dateLike) {
+    const d = new Date(dateLike);
+    if (Number.isNaN(d.getTime())) return "-";
+    const y = d.getFullYear();
+    const m = pad2(d.getMonth() + 1);
+    const day = pad2(d.getDate());
+    const hh = pad2(d.getHours());
+    const mm = pad2(d.getMinutes());
+    const ss = pad2(d.getSeconds());
+    return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
   }
 
   function parseCsv(text) {
@@ -316,7 +320,7 @@
     Object.keys(row).forEach((key) => {
       const value = row[key];
       if (value === null || value === undefined || value === "") return;
-      if (/^(period|drawterm|issue|date|lotterydate|ddate|drawdate|redeemabledate|seq|id)$/i.test(key)) return;
+      if (/^(period|drawterm|issue|date|lotterydate|ddate|drawdate|redeemabledate|seq|id|special|bonus|zone2|area2|second)$/i.test(key)) return;
 
       if (typeof value === "string" && value.includes(" ")) {
         value.split(/\s+/).forEach((part) => {
@@ -383,14 +387,35 @@
   function normalize649Rows(rows) {
     return rows
       .map((row) => {
-        const numbers = extractNumbersFromRow(row, 49).slice(0, 6);
         const drawTerm = pickField(row, ["period", "drawTerm", "issue", "term"], "");
         const drawDate = pickField(row, ["lotteryDate", "drawDate", "date"], "");
+
+        let numbers = [];
+
+        const preferredKeys = [
+          "num1", "num2", "num3", "num4", "num5", "num6",
+          "n1", "n2", "n3", "n4", "n5", "n6",
+          "drawNumber1", "drawNumber2", "drawNumber3", "drawNumber4", "drawNumber5", "drawNumber6",
+          "No1", "No2", "No3", "No4", "No5", "No6",
+          "NO1", "NO2", "NO3", "NO4", "NO5", "NO6"
+        ];
+
+        preferredKeys.forEach((key) => {
+          const n = Number(row[key]);
+          if (Number.isInteger(n) && n >= 1 && n <= 49) {
+            numbers.push(n);
+          }
+        });
+
+        if (numbers.length !== 6) {
+          numbers = extractNumbersFromRow(row, 49).slice(0, 6);
+        }
+
         return {
           game: "lotto649",
           drawTerm: safeText(drawTerm, ""),
           drawDate,
-          numbers
+          numbers: uniqSorted(numbers)
         };
       })
       .filter((x) => x.numbers.length === 6);
@@ -401,30 +426,48 @@
       .map((row) => {
         let area1 = [];
         let area2 = [];
+
         Object.keys(row).forEach((key) => {
           const v = row[key];
           const n = Number(v);
           if (!Number.isInteger(n)) return;
-          if (/sec|special|zone2|area2|second/i.test(key)) {
+
+          if (/sec|special|zone2|area2|second|bonus/i.test(key)) {
             if (n >= 1 && n <= 8) area2.push(n);
-          } else if (/^n\d+$/i.test(key) || /num|draw/i.test(key) || /^[1-6]$/.test(key)) {
+          } else if (/^n\d+$/i.test(key) || /^num\d+$/i.test(key) || /^no\d+$/i.test(key) || /^[1-6]$/.test(key) || /drawnumber/i.test(key)) {
             if (n >= 1 && n <= 38) area1.push(n);
           }
         });
 
         if (!area1.length) {
-          const nums = extractNumbersFromRow(row, 38);
-          area1 = nums.slice(0, 6);
+          const allNums = [];
+          Object.keys(row).forEach((key) => {
+            if (/sec|special|zone2|area2|second|bonus/i.test(key)) return;
+            const n = Number(row[key]);
+            if (Number.isInteger(n) && n >= 1 && n <= 38) allNums.push(n);
+          });
+          area1 = uniqSorted(allNums).slice(0, 6);
         }
+
         if (!area2.length) {
-          const maybe = Object.values(row)
-            .map((v) => Number(v))
+          const maybe = Object.keys(row)
+            .filter((key) => /sec|special|zone2|area2|second|bonus/i.test(key))
+            .map((key) => Number(row[key]))
             .filter((n) => Number.isInteger(n) && n >= 1 && n <= 8);
-          if (maybe.length) area2 = [maybe[maybe.length - 1]];
+
+          if (maybe.length) {
+            area2 = [maybe[0]];
+          } else {
+            const allNums = Object.values(row)
+              .map((v) => Number(v))
+              .filter((n) => Number.isInteger(n) && n >= 1 && n <= 8);
+            if (allNums.length) area2 = [allNums[allNums.length - 1]];
+          }
         }
 
         const drawTerm = pickField(row, ["period", "drawTerm", "issue", "term"], "");
         const drawDate = pickField(row, ["lotteryDate", "drawDate", "date"], "");
+
         return {
           game: "superlotto638",
           drawTerm: safeText(drawTerm, ""),
@@ -453,59 +496,6 @@
       });
     });
     return freq;
-  }
-
-  function countTailFrequency(draws) {
-    const tails = Array(10).fill(0);
-    draws.forEach((draw) => {
-      draw.forEach((n) => {
-        tails[n % 10]++;
-      });
-    });
-    return tails;
-  }
-
-  function countPairFrequency(draws) {
-    const pairs = {};
-    draws.forEach((draw) => {
-      const sorted = [...draw].sort((a, b) => a - b);
-      for (let i = 0; i < sorted.length; i++) {
-        for (let j = i + 1; j < sorted.length; j++) {
-          const key = `${sorted[i]}-${sorted[j]}`;
-          pairs[key] = (pairs[key] || 0) + 1;
-        }
-      }
-    });
-    return pairs;
-  }
-
-  function countDragFrequency(draws) {
-    const drag = {};
-    for (let i = 1; i < draws.length; i++) {
-      const prev = draws[i];
-      const curr = draws[i - 1];
-      prev.forEach((a) => {
-        curr.forEach((b) => {
-          if (a === b) return;
-          const key = `${a}->${b}`;
-          drag[key] = (drag[key] || 0) + 1;
-        });
-      });
-    }
-    return drag;
-  }
-
-  function countConsecutiveStrength(draws, maxNumber) {
-    const streak = Array(maxNumber + 1).fill(0);
-    draws.forEach((draw) => {
-      const set = new Set(draw);
-      draw.forEach((n) => {
-        if (set.has(n - 1) || set.has(n + 1)) {
-          streak[n] += 1;
-        }
-      });
-    });
-    return streak;
   }
 
   function getTopHotAndCold(freq) {
@@ -698,11 +688,6 @@
     return out;
   }
 
-  function getLastHitSet(historyKey) {
-    const item = state.history.find((x) => x && x.historyKey === historyKey);
-    return item || null;
-  }
-
   function computeScoreMap(gameKey, rows, maxNumber, pickCount, field = "numbers") {
     const weights = getWeightsForGame(gameKey);
     const recentRows = rows.slice(0, AI_CONFIG.longWindow);
@@ -844,12 +829,16 @@
 
     const sets = makePredictionSets(baseList, 80, pickCount, setCount);
 
+    const grouped = groupBingoDrawsByDate(rows);
+    const dateKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+    const todayCount = dateKeys.length ? grouped[dateKeys[0]].length : 0;
+
     return {
       gameKey: "bingo",
       title: "BINGO BINGO",
       mode: "今日全部期數 + 近7日輔助學習",
       sourceCount: learningRows.length,
-      todayCount: groupBingoDrawsByDate(rows)[Object.keys(groupBingoDrawsByDate(rows)).sort((a, b) => b.localeCompare(a))[0] || ""]?.length || 0,
+      todayCount,
       sets,
       analysis
     };
@@ -986,10 +975,80 @@
     $all("[data-app-version]").forEach((el) => {
       el.textContent = APP_VERSION;
     });
+
+    const versionEl = $("#appVersion");
+    if (versionEl) {
+      if ("value" in versionEl) versionEl.value = APP_VERSION;
+      else versionEl.textContent = APP_VERSION;
+    }
   }
 
   function formatNumberBalls(nums) {
     return nums.map((n) => `<span class="ball">${pad2(n)}</span>`).join("");
+  }
+
+  function renderLatestDrawCard(title, drawTerm, drawDate, numbers) {
+    return `
+      <div class="set-item">
+        <div class="set-title">${title}</div>
+        <div class="card-sub">期別：${safeText(drawTerm)}｜時間：${formatLocalTime(drawDate)}</div>
+        <div class="set-balls">
+          ${
+            Array.isArray(numbers) && numbers.length
+              ? formatNumberBalls(numbers)
+              : '<span class="empty">尚無資料</span>'
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  function renderLatestSuperLottoCard(title, drawTerm, drawDate, area1, area2) {
+    return `
+      <div class="set-item">
+        <div class="set-title">${title}</div>
+        <div class="card-sub">期別：${safeText(drawTerm)}｜時間：${formatLocalTime(drawDate)}</div>
+        <div class="set-row">
+          <div class="set-area">第一區</div>
+          <div class="set-balls">
+            ${
+              Array.isArray(area1) && area1.length
+                ? formatNumberBalls(area1)
+                : '<span class="empty">尚無資料</span>'
+            }
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-area">第二區</div>
+          <div class="set-balls">
+            ${
+              Array.isArray(area2) && area2.length
+                ? formatNumberBalls(area2)
+                : '<span class="empty">尚無資料</span>'
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderLatestDraws() {
+    const root = $("#latestDrawOutput");
+    if (!root) return;
+
+    const bingo = state.data.bingo?.[0];
+    const d539 = state.data.daily539?.[0];
+    const l649 = state.data.lotto649?.[0];
+    const s638 = state.data.superlotto638?.[0];
+
+    root.innerHTML = `
+      <div class="set-list">
+        ${renderLatestDrawCard("BINGO BINGO", bingo?.drawTerm, bingo?.drawDate, bingo?.numbers)}
+        ${renderLatestDrawCard("今彩539", d539?.drawTerm, d539?.drawDate, d539?.numbers)}
+        ${renderLatestDrawCard("大樂透", l649?.drawTerm, l649?.drawDate, l649?.numbers)}
+        ${renderLatestSuperLottoCard("威力彩", s638?.drawTerm, s638?.drawDate, s638?.area1, s638?.area2)}
+      </div>
+    `;
   }
 
   function renderPrediction(result) {
@@ -1010,18 +1069,18 @@
             ${result.sets
               .map(
                 (set, idx) => `
-              <div class="set-item">
-                <div class="set-title">第 ${idx + 1} 組</div>
-                <div class="set-row">
-                  <div class="set-area">第一區</div>
-                  <div class="set-balls">${formatNumberBalls(set.area1)}</div>
-                </div>
-                <div class="set-row">
-                  <div class="set-area">第二區</div>
-                  <div class="set-balls">${formatNumberBalls([set.area2])}</div>
-                </div>
-              </div>
-            `
+                  <div class="set-item">
+                    <div class="set-title">第 ${idx + 1} 組</div>
+                    <div class="set-row">
+                      <div class="set-area">第一區</div>
+                      <div class="set-balls">${formatNumberBalls(set.area1)}</div>
+                    </div>
+                    <div class="set-row">
+                      <div class="set-area">第二區</div>
+                      <div class="set-balls">${formatNumberBalls([set.area2])}</div>
+                    </div>
+                  </div>
+                `
               )
               .join("")}
           </div>
@@ -1042,11 +1101,11 @@
           ${result.sets
             .map(
               (set, idx) => `
-            <div class="set-item">
-              <div class="set-title">第 ${idx + 1} 組</div>
-              <div class="set-balls">${formatNumberBalls(set)}</div>
-            </div>
-          `
+                <div class="set-item">
+                  <div class="set-title">第 ${idx + 1} 組</div>
+                  <div class="set-balls">${formatNumberBalls(set)}</div>
+                </div>
+              `
             )
             .join("")}
         </div>
@@ -1056,7 +1115,10 @@
 
   function renderStats() {
     const versionEl = $("#appVersion");
-    if (versionEl) versionEl.textContent = APP_VERSION;
+    if (versionEl) {
+      if ("value" in versionEl) versionEl.value = APP_VERSION;
+      else versionEl.textContent = APP_VERSION;
+    }
 
     const bingoCountEl = $("#bingoDataCount");
     if (bingoCountEl) bingoCountEl.textContent = String(state.data.bingo.length);
@@ -1071,7 +1133,20 @@
     if (s638CountEl) s638CountEl.textContent = String(state.data.superlotto638.length);
 
     const latestEl = $("#latestUpdateTime");
-    if (latestEl) latestEl.textContent = state.latest?.updatedAt || nowIso();
+    if (latestEl) {
+      const rawTime =
+        state.latest?.updatedAt ||
+        state.latest?.updateTime ||
+        state.latest?.generatedAt ||
+        state.latest?.time ||
+        nowIso();
+
+      latestEl.textContent = formatLocalTime(rawTime);
+    }
+
+    $all("[data-app-version]").forEach((el) => {
+      el.textContent = APP_VERSION;
+    });
   }
 
   function getCurrentPrediction() {
@@ -1087,6 +1162,7 @@
     try {
       const result = getCurrentPrediction();
       renderPrediction(result);
+      renderLatestDraws();
       appendHistory({
         time: nowIso(),
         historyKey: state.settings.selectedGame,
@@ -1189,6 +1265,7 @@
       await loadLatestJson();
       await loadGameData();
       autoLearnAllGames();
+      renderVersion();
       refreshPrediction();
       renderStats();
     } catch (err) {
@@ -1212,6 +1289,7 @@
         if (newRows.length) {
           state.data.bingo = newRows;
           autoLearnAllGames();
+          renderLatestDraws();
           if (state.settings.selectedGame === "bingo") refreshPrediction();
           renderStats();
           logOp("bingoFastRefresh", { count: newRows.length });
@@ -1236,6 +1314,7 @@
     bindUi();
     await reloadAll();
     startSchedulers();
+
     window.__LOTTERY_APP__ = {
       state,
       reloadAll,
@@ -1245,6 +1324,7 @@
       predictSuperLotto,
       autoLearnAllGames
     };
+
     console.log(APP_VERSION);
   }
 
