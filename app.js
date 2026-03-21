@@ -1,12 +1,12 @@
 (() => {
-  const BUILD = window.__APP_BUILD__ || "92.4";
-  const APP_VERSION = `V92.4 Bingo 最新一期 + 立即刷新合併置頂版（build ${BUILD}）`;
+  const BUILD = window.__APP_BUILD__ || "92.4.1";
+  const APP_VERSION = `V92.4.1 Bingo 非置頂上方固定區塊版（build ${BUILD}）`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v924";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v924";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v924";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v924";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v924";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9241";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v9241";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9241";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9241";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9241";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -184,11 +184,11 @@
   }
 
   function showToast(text) {
-    const old = document.getElementById("v924Toast");
+    const old = document.getElementById("v9241Toast");
     if (old) old.remove();
 
     const el = document.createElement("div");
-    el.id = "v924Toast";
+    el.id = "v9241Toast";
     el.textContent = text;
     el.style.position = "fixed";
     el.style.left = "50%";
@@ -1157,25 +1157,25 @@
     return `${main}${special}`;
   }
 
-  function renderPinnedLatestBanner(gameCode, latestDraw) {
+  function renderTopLatestBanner(gameCode, latestDraw) {
     if (gameCode !== "bingo" || !latestDraw) return "";
 
     const cfg = GAME_CONFIG[gameCode];
     return `
-      <div class="v924-sticky-latest">
-        <div class="v924-sticky-top">
+      <div class="v924-top-latest">
+        <div class="v924-top-head">
           <div>
-            <div class="v924-sticky-title">Bingo 最新一期</div>
-            <div class="v924-sticky-time">${escapeHtml(formatDate(latestDraw.drawDate || ""))}</div>
+            <div class="v924-top-title">Bingo 最新一期</div>
+            <div class="v924-top-time">${escapeHtml(formatDate(latestDraw.drawDate || ""))}</div>
           </div>
-          <div class="v924-sticky-side">
-            <div class="v924-sticky-period">第 ${escapeHtml(latestDraw.period || "—")} 期</div>
-            <button class="v924-refresh-btn" id="v924StickyRefreshBtn" type="button">
+          <div class="v924-top-side">
+            <div class="v924-top-period">第 ${escapeHtml(latestDraw.period || "—")} 期</div>
+            <button class="v924-refresh-btn" id="v924TopRefreshBtn" type="button">
               ${state.manualBingoRefreshing ? "刷新中..." : "立即刷新"}
             </button>
           </div>
         </div>
-        <div class="v924-sticky-balls">
+        <div class="v924-top-balls">
           ${renderBalls(latestDraw.numbers || [], latestDraw.specialNumber, cfg.specialLabel, "light")}
         </div>
       </div>
@@ -1428,17 +1428,16 @@
         state.autoRefreshing ? "更新中" : "可用";
     }
 
-    updateStickyRefreshButtons();
+    updateTopRefreshButton();
   }
 
-  function updateStickyRefreshButtons() {
-    const stickyBtn = $("v924StickyRefreshBtn");
-    if (stickyBtn) {
-      const busy = state.manualBingoRefreshing || state.bingoFastRefreshing;
-      stickyBtn.disabled = busy;
-      stickyBtn.textContent = state.manualBingoRefreshing ? "刷新中..." : (busy ? "檢查中..." : "立即刷新");
-      stickyBtn.style.opacity = busy ? "0.72" : "1";
-    }
+  function updateTopRefreshButton() {
+    const btn = $("v924TopRefreshBtn");
+    if (!btn) return;
+    const busy = state.manualBingoRefreshing || state.bingoFastRefreshing;
+    btn.disabled = busy;
+    btn.textContent = state.manualBingoRefreshing ? "刷新中..." : (busy ? "檢查中..." : "立即刷新");
+    btn.style.opacity = busy ? "0.72" : "1";
   }
 
   function injectAnchors() {
@@ -1479,12 +1478,10 @@
     }
   }
 
-  function bindStickyButtons() {
-    const stickyBtn = $("v924StickyRefreshBtn");
-    if (stickyBtn) {
-      stickyBtn.onclick = () => manualRefreshBingoNow();
-    }
-    updateStickyRefreshButtons();
+  function bindTopBannerButtons() {
+    const btn = $("v924TopRefreshBtn");
+    if (btn) btn.onclick = () => manualRefreshBingoNow();
+    updateTopRefreshButton();
   }
 
   function renderPrediction(gameCode) {
@@ -1514,7 +1511,7 @@
     setBadge("已完成", true);
 
     container.innerHTML = `
-      ${renderPinnedLatestBanner(gameCode, latestDraw)}
+      ${renderTopLatestBanner(gameCode, latestDraw)}
       <div class="v84-main">
         <div class="v84-section">
           <div class="v84-section-head">
@@ -1529,8 +1526,8 @@
         <div class="v84-section">
           <div class="v84-section-head">
             <div>
-              <h3>${gameCode === "bingo" ? "最新一期（同步置頂顯示）" : "最新一期"}</h3>
-              <p>${gameCode === "bingo" ? "上方固定列會同步顯示 Bingo 最新資料與立即刷新按鈕" : "官方最新資料摘要"}</p>
+              <h3>${gameCode === "bingo" ? "最新一期（上方區塊同步顯示）" : "最新一期"}</h3>
+              <p>${gameCode === "bingo" ? "上方會顯示 Bingo 最新資料與立即刷新按鈕，但不會黏住畫面" : "官方最新資料摘要"}</p>
             </div>
           </div>
           <div class="result-grid">
@@ -1622,7 +1619,7 @@
     `;
 
     bindInlineTrackingButtons();
-    bindStickyButtons();
+    bindTopBannerButtons();
     renderHeroKpis(gameCode);
     renderMiniStats();
     renderOps();
@@ -1920,8 +1917,8 @@
 
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV924) {
-        el.dataset.boundV924 = "1";
+      if (el && !el.dataset.boundV9241) {
+        el.dataset.boundV9241 = "1";
         el.addEventListener("change", async () => {
           saveUiSettings();
 
