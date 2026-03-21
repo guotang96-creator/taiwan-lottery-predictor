@@ -8,21 +8,34 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: update-lottery-data
+  cancel-in-progress: false
+
 jobs:
   update-data:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci || npm install
+
+      - name: Ensure docs folders exist
+        run: |
+          mkdir -p docs/raw_data
+          mkdir -p .github/workflows
 
       - name: Run parse downloads
         run: node parse_downloads.js
@@ -30,12 +43,31 @@ jobs:
       - name: Build latest.json
         run: node tools/build_latest_json.js
 
+      - name: Verify generated files
+        run: |
+          echo "===== docs/latest.json ====="
+          test -f docs/latest.json && sed -n '1,120p' docs/latest.json || (echo "docs/latest.json not found" && exit 1)
+
+          echo "===== docs/raw_data ====="
+          ls -la docs/raw_data || true
+
+          test -f docs/raw_data/bingo.csv || echo "warning: docs/raw_data/bingo.csv missing"
+          test -f docs/raw_data/539.csv || echo "warning: docs/raw_data/539.csv missing"
+          test -f docs/raw_data/lotto.csv || echo "warning: docs/raw_data/lotto.csv missing"
+          test -f docs/raw_data/power.csv || echo "warning: docs/raw_data/power.csv missing"
+
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/latest.json docs/raw_data/*.csv parse_downloads.js tools/build_latest_json.js
-          git diff --cached --quiet || git commit -m "chore: update lottery data"
+
+          git add docs/latest.json docs/raw_data/*.csv parse_downloads.js tools/build_latest_json.js .github/workflows/update-lottery.yml
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update lottery data"
+          fi
 
       - name: Push changes
         run: git push
