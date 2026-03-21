@@ -1,6 +1,6 @@
 (() => {
-  const BUILD = window.__APP_BUILD__ || "92.4.2";
-  const APP_VERSION = `V92.4.2 Bingo 非置頂上方固定區塊版｜刷新按鈕可點擊修正版（build ${BUILD}）`;
+  const BUILD = window.__APP_BUILD__ || "93.0.0";
+const APP_VERSION = `V93.0.0 GitHub Pages 最終版（build ${BUILD}）`;
 
   const STORAGE_KEY = "taiwan_lottery_prediction_history_v9242";
   const OPS_KEY = "taiwan_lottery_recent_ops_v9242";
