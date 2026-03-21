@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-21T09:57:39.890Z",
+  "generatedAt": "2026-03-21T10:04:50.976Z",
   "source": "build_latest_json",
   "officialLatest": {
     "bingo": {
@@ -33,7 +33,6 @@
       "numbers": [
         11,
         15,
-        21,
         33,
         38,
         41,
@@ -48,7 +47,6 @@
       "drawDate": "2026-03-19T00:00:00",
       "redeemableDate": "2026-06-22T00:00:00",
       "numbers": [
-        1,
         9,
         13,
         14,
@@ -72,36 +70,66 @@
       "source": "official-api"
     },
     "latest": {
-      "period": "115016168",
-      "drawDate": "2026-03-21 17:55",
+      "period": "115016169",
+      "drawDate": "2026-03-21 18:00",
       "redeemableDate": "",
       "numbers": [
-        9,
-        11,
-        15,
-        16,
+        2,
+        3,
+        4,
+        6,
+        8,
+        13,
+        14,
         17,
-        18,
         19,
-        28,
-        38,
-        43,
+        31,
+        39,
         44,
-        47,
-        50,
-        53,
-        56,
-        62,
+        51,
+        55,
+        58,
+        66,
         67,
-        73,
-        74,
-        77
+        69,
+        70,
+        76
       ],
       "orderNumbers": [],
-      "specialNumber": 53,
+      "specialNumber": 76,
       "source": "csv"
     },
     "recentOfficial": [
+      {
+        "period": "115016169",
+        "drawDate": "2026-03-21 18:00",
+        "redeemableDate": "",
+        "numbers": [
+          2,
+          3,
+          4,
+          6,
+          8,
+          13,
+          14,
+          17,
+          19,
+          31,
+          39,
+          44,
+          51,
+          55,
+          58,
+          66,
+          67,
+          69,
+          70,
+          76
+        ],
+        "orderNumbers": [],
+        "specialNumber": 76,
+        "source": "csv"
+      },
       {
         "period": "115016168",
         "drawDate": "2026-03-21 17:55",
@@ -220,41 +248,41 @@
         ],
         "orderNumbers": [],
         "specialNumber": 10,
-        "source": "csv"
-      },
-      {
-        "period": "115016164",
-        "drawDate": "2026-03-21 17:35",
-        "redeemableDate": "",
-        "numbers": [
-          10,
-          14,
-          15,
-          16,
-          23,
-          33,
-          37,
-          56,
-          58,
-          59,
-          61,
-          62,
-          65,
-          66,
-          68,
-          69,
-          72,
-          73,
-          74,
-          78
-        ],
-        "orderNumbers": [],
-        "specialNumber": 16,
         "source": "csv"
       }
     ],
     "recent": [
       {
+        "period": "115016169",
+        "drawDate": "2026-03-21 18:00",
+        "redeemableDate": "",
+        "numbers": [
+          2,
+          3,
+          4,
+          6,
+          8,
+          13,
+          14,
+          17,
+          19,
+          31,
+          39,
+          44,
+          51,
+          55,
+          58,
+          66,
+          67,
+          69,
+          70,
+          76
+        ],
+        "orderNumbers": [],
+        "specialNumber": 76,
+        "source": "csv"
+      },
+      {
         "period": "115016168",
         "drawDate": "2026-03-21 17:55",
         "redeemableDate": "",
@@ -373,39 +401,39 @@
         "orderNumbers": [],
         "specialNumber": 10,
         "source": "csv"
-      },
-      {
-        "period": "115016164",
-        "drawDate": "2026-03-21 17:35",
-        "redeemableDate": "",
-        "numbers": [
-          10,
-          14,
-          15,
-          16,
-          23,
-          33,
-          37,
-          56,
-          58,
-          59,
-          61,
-          62,
-          65,
-          66,
-          68,
-          69,
-          72,
-          73,
-          74,
-          78
-        ],
-        "orderNumbers": [],
-        "specialNumber": 16,
-        "source": "csv"
       }
     ],
     "history": [
+      {
+        "period": "115016169",
+        "drawDate": "2026-03-21 18:00",
+        "redeemableDate": "",
+        "numbers": [
+          2,
+          3,
+          4,
+          6,
+          8,
+          13,
+          14,
+          17,
+          19,
+          31,
+          39,
+          44,
+          51,
+          55,
+          58,
+          66,
+          67,
+          69,
+          70,
+          76
+        ],
+        "orderNumbers": [],
+        "specialNumber": 76,
+        "source": "csv"
+      },
       {
         "period": "115016168",
         "drawDate": "2026-03-21 17:55",
@@ -975,36 +1003,6 @@
         "orderNumbers": [],
         "specialNumber": 13,
         "source": "csv"
-      },
-      {
-        "period": "115016149",
-        "drawDate": "2026-03-21 16:20",
-        "redeemableDate": "",
-        "numbers": [
-          2,
-          7,
-          9,
-          13,
-          16,
-          25,
-          28,
-          30,
-          35,
-          41,
-          43,
-          44,
-          54,
-          56,
-          57,
-          61,
-          62,
-          66,
-          69,
-          71
-        ],
-        "orderNumbers": [],
-        "specialNumber": 56,
-        "source": "csv"
       }
     ]
   },
@@ -1504,7 +1502,6 @@
       "numbers": [
         11,
         15,
-        21,
         33,
         38,
         41,
@@ -1521,7 +1518,6 @@
       "numbers": [
         11,
         15,
-        21,
         33,
         38,
         41,
@@ -1539,7 +1535,6 @@
         "numbers": [
           11,
           15,
-          21,
           33,
           38,
           41,
@@ -1622,7 +1617,6 @@
         "numbers": [
           11,
           15,
-          21,
           33,
           38,
           41,
@@ -1705,7 +1699,6 @@
         "numbers": [
           11,
           15,
-          21,
           33,
           38,
           41,
@@ -2027,7 +2020,6 @@
       "drawDate": "2026-03-19T00:00:00",
       "redeemableDate": "2026-06-22T00:00:00",
       "numbers": [
-        1,
         9,
         13,
         14,
@@ -2044,7 +2036,6 @@
       "drawDate": "2026-03-19T00:00:00",
       "redeemableDate": "2026-06-22T00:00:00",
       "numbers": [
-        1,
         9,
         13,
         14,
@@ -2062,7 +2053,6 @@
         "drawDate": "2026-03-19T00:00:00",
         "redeemableDate": "2026-06-22T00:00:00",
         "numbers": [
-          1,
           9,
           13,
           14,
@@ -2145,7 +2135,6 @@
         "drawDate": "2026-03-19T00:00:00",
         "redeemableDate": "2026-06-22T00:00:00",
         "numbers": [
-          1,
           9,
           13,
           14,
@@ -2228,7 +2217,6 @@
         "drawDate": "2026-03-19T00:00:00",
         "redeemableDate": "2026-06-22T00:00:00",
         "numbers": [
-          1,
           9,
           13,
           14,
