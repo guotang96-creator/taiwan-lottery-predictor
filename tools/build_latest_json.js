@@ -44,10 +44,15 @@ function parseStableTime(value) {
 }
 
 function toNum(v) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
+  if (v === null || v === undefined) return null;
+  if (typeof v === "string" && v.trim() === "") return null;
 
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  if (n <= 0) return null;
+
+  return n;
+}
 function uniqSorted(nums) {
   return [...new Set((nums || []).map(Number).filter(Number.isFinite))].sort((a, b) => a - b);
 }
