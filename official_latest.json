@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-21T09:03:14.287Z",
+  "generatedAt": "2026-03-21T09:15:45.847Z",
   "source": "official-api",
   "officialLatest": {
     "bingo": {
@@ -8,7 +8,7 @@
       "drawDate": null,
       "numbers": [],
       "orderNumbers": [],
-      "specialNumber": null,
+      "specialNumber": 0,
       "source": "official-api"
     },
     "daily539": {
@@ -39,7 +39,7 @@
         43,
         21
       ],
-      "specialNumber": null,
+      "specialNumber": 0,
       "source": "official-api"
     },
     "superLotto638": {
@@ -56,7 +56,7 @@
         34,
         1
       ],
-      "specialNumber": null,
+      "specialNumber": 0,
       "source": "official-api"
     }
   }
