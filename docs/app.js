@@ -1,17 +1,17 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.1.0";
-  const APP_VERSION = `V93.1.0 GitHub Pages 精簡自學版（build ${BUILD}）`;
+  const BUILD = window.__APP_BUILD__ || "93.1.1";
+  const APP_VERSION = `V93.1.1｜GitHub Pages 最終版｜手機操作優化版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9310";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v9310";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9310";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9310";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9310";
-  const UI_MODE_KEY = "taiwan_lottery_ui_mode_v9310";
-  const LEARNING_KEY = "taiwan_lottery_learning_v9310";
-  const LAST_FETCH_KEY = "taiwan_lottery_last_fetch_v9310";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9311";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v9311";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9311";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9311";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9311";
+  const UI_MODE_KEY = "taiwan_lottery_ui_mode_v9311";
+  const LEARNING_KEY = "taiwan_lottery_learning_v9311";
+  const LAST_FETCH_KEY = "taiwan_lottery_last_fetch_v9311";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -22,7 +22,7 @@
     bingo: ["./raw_data/bingo.csv"],
     daily539: ["./raw_data/539.csv"],
     lotto649: ["./raw_data/649.csv", "./raw_data/lotto649.csv"],
-    power: ["./raw_data/power.csv", "./raw_data/superlotto638.csv", "./raw_data/638.csv"]
+    power: ["./raw_data/superlotto638.csv", "./raw_data/638.csv", "./raw_data/power.csv"]
   };
 
   const GAME_META = {
@@ -89,7 +89,6 @@
   const state = {
     initialized: false,
     loading: false,
-    mounted: false,
     root: null,
     settings: readJsonStorage(SETTINGS_KEY, DEFAULT_SETTINGS),
     autoState: { ...DEFAULT_AUTO_STATE, ...readJsonStorage(AUTO_STATE_KEY, {}) },
@@ -105,7 +104,12 @@
       lotto649: [],
       power: []
     },
-    latest: {},
+    latest: {
+      bingo: null,
+      daily539: null,
+      lotto649: null,
+      power: null
+    },
     predictions: {
       bingo: [],
       daily539: [],
@@ -157,6 +161,7 @@
 
   function formatOnlyDate(value) {
     if (!value) return "-";
+    if (typeof value === "string" && value.includes(" ")) return value;
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return String(value);
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
@@ -167,7 +172,7 @@
   }
 
   function uniqSorted(nums) {
-    return [...new Set((nums || []).map((n) => Number(n)).filter((n) => Number.isFinite(n)))].sort((a, b) => a - b);
+    return [...new Set((nums || []).map(Number).filter(Number.isFinite))].sort((a, b) => a - b);
   }
 
   function getTail(n) {
@@ -213,36 +218,15 @@
       .map(([n]) => Number(n));
   }
 
-  function sampleRecentNumbers(gameKey, count = 3) {
-    const rows = state.data[gameKey] || [];
-    const recent = rows.slice(0, count);
-    if (gameKey === "power") {
-      const out = [];
-      recent.forEach((row) => {
-        (row.zone1 || []).forEach((n) => out.push(n));
-      });
-      return uniqSorted(out).slice(0, 12);
-    }
-    const out = [];
-    recent.forEach((row) => {
-      (row.numbers || []).forEach((n) => out.push(n));
-    });
-    return uniqSorted(out).slice(0, 12);
-  }
-
   async function fetchJSON(url) {
     const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} ${url}`);
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
     return await res.json();
   }
 
   async function fetchText(url) {
     const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} ${url}`);
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
     return await res.text();
   }
 
@@ -288,6 +272,7 @@
         cell += ch;
       }
     }
+
     row.push(cell);
     if (row.some((c) => String(c).trim() !== "")) rows.push(row);
 
@@ -305,7 +290,7 @@
   function detectNumberArrayFromObject(obj, maxCount) {
     const candidates = [];
 
-    for (const [k, v] of Object.entries(obj)) {
+    for (const [k, v] of Object.entries(obj || {})) {
       if (Array.isArray(v)) {
         const nums = v.map(Number).filter(Number.isFinite);
         if (nums.length) candidates.push(nums);
@@ -320,6 +305,86 @@
     return uniqSorted(maxCount ? best.slice(0, maxCount) : best);
   }
 
+  function normalizeBingoRows(rows) {
+    return (rows || [])
+      .map((row) => ({
+        period: row.period || row.draw || row.issue || null,
+        drawDate: row.drawDate || row.lotteryDate || row.date || null,
+        redeemableDate: row.redeemableDate || "",
+        numbers: uniqSorted(row.numbers || row.drawNumberAppear || row.drawNumberSize || detectNumberArrayFromObject(row, 20)),
+        orderNumbers: uniqSorted(row.orderNumbers || []),
+        specialNumber: row.specialNumber != null ? Number(row.specialNumber) : null,
+        source: row.source || ""
+      }))
+      .filter((row) => row.period && row.numbers.length)
+      .sort((a, b) => Number(b.period) - Number(a.period));
+  }
+
+  function normalize539Rows(rows) {
+    return (rows || [])
+      .map((row) => ({
+        period: row.period || row.draw || row.issue || null,
+        drawDate: row.drawDate || row.lotteryDate || row.date || null,
+        redeemableDate: row.redeemableDate || "",
+        numbers: uniqSorted(row.numbers || row.drawNumberSize || detectNumberArrayFromObject(row, 5)),
+        orderNumbers: uniqSorted(row.orderNumbers || []),
+        specialNumber: row.specialNumber != null ? Number(row.specialNumber) : null,
+        source: row.source || ""
+      }))
+      .filter((row) => row.period && row.numbers.length)
+      .sort((a, b) => Number(b.period) - Number(a.period));
+  }
+
+  function normalize649Rows(rows) {
+    return (rows || [])
+      .map((row) => ({
+        period: row.period || row.draw || row.issue || null,
+        drawDate: row.drawDate || row.lotteryDate || row.date || null,
+        redeemableDate: row.redeemableDate || "",
+        numbers: uniqSorted(row.numbers || row.drawNumberSize || detectNumberArrayFromObject(row, 6)),
+        orderNumbers: uniqSorted(row.orderNumbers || []),
+        specialNumber: row.specialNumber != null ? Number(row.specialNumber) : null,
+        source: row.source || ""
+      }))
+      .filter((row) => row.period && row.numbers.length)
+      .sort((a, b) => Number(b.period) - Number(a.period));
+  }
+
+  function normalizePowerRows(rows) {
+    return (rows || [])
+      .map((row) => {
+        const zone1 = uniqSorted(
+          row.zone1 ||
+          row.numbers ||
+          row.drawNumberSize ||
+          detectNumberArrayFromObject(row, 6)
+        );
+
+        const zone2 =
+          row.specialNumber != null
+            ? Number(row.specialNumber)
+            : row.superNumber != null
+            ? Number(row.superNumber)
+            : row.zone2 != null
+            ? Number(row.zone2)
+            : row.specialNum != null
+            ? Number(row.specialNum)
+            : null;
+
+        return {
+          period: row.period || row.draw || row.issue || null,
+          drawDate: row.drawDate || row.lotteryDate || row.date || null,
+          redeemableDate: row.redeemableDate || "",
+          zone1,
+          zone2: Number.isFinite(zone2) ? zone2 : null,
+          orderNumbers: uniqSorted(row.orderNumbers || []),
+          source: row.source || ""
+        };
+      })
+      .filter((row) => row.period && row.zone1.length)
+      .sort((a, b) => Number(b.period) - Number(a.period));
+  }
+
   function normalizeGameRowsFromLatestJson(json) {
     const out = {
       bingo: [],
@@ -330,112 +395,58 @@
 
     if (!json || typeof json !== "object") return out;
 
-    const possibleBuckets = [
-      json.bingo,
-      json.daily539,
-      json.lotto649,
-      json.power,
-      json.games,
-      json.content,
-      json.data,
-      json
-    ].filter(Boolean);
+    const pickArray = (value) => (Array.isArray(value) ? value : []);
 
-    for (const bucket of possibleBuckets) {
-      if (Array.isArray(bucket?.bingo)) {
-        out.bingo = normalizeBingoRows(bucket.bingo);
-      }
-      if (Array.isArray(bucket?.daily539)) {
-        out.daily539 = normalize539Rows(bucket.daily539);
-      }
-      if (Array.isArray(bucket?.lotto649)) {
-        out.lotto649 = normalize649Rows(bucket.lotto649);
-      }
-      if (Array.isArray(bucket?.power)) {
-        out.power = normalizePowerRows(bucket.power);
+    const normalizeBlock = (block, gameKey) => {
+      if (!block || typeof block !== "object") return [];
+
+      if (Array.isArray(block)) {
+        if (gameKey === "bingo") return normalizeBingoRows(block);
+        if (gameKey === "daily539") return normalize539Rows(block);
+        if (gameKey === "lotto649") return normalize649Rows(block);
+        if (gameKey === "power") return normalizePowerRows(block);
+        return [];
       }
 
-      if (Array.isArray(bucket?.bingoBingoRes)) {
-        out.bingo = normalizeBingoRows(bucket.bingoBingoRes);
+      const arr =
+        pickArray(block.history).length ? pickArray(block.history) :
+        pickArray(block.recentOfficial).length ? pickArray(block.recentOfficial) :
+        pickArray(block.recent).length ? pickArray(block.recent) :
+        pickArray(block.latestOfficial).length ? pickArray(block.latestOfficial) :
+        [];
+
+      const merged = [];
+      if (block.latestOfficial && typeof block.latestOfficial === "object") merged.push(block.latestOfficial);
+      if (block.latest && typeof block.latest === "object") merged.push(block.latest);
+      merged.push(...arr);
+
+      const unique = [];
+      const seen = new Set();
+      for (const item of merged) {
+        const p = item?.period;
+        if (!p) continue;
+        if (seen.has(String(p))) continue;
+        seen.add(String(p));
+        unique.push(item);
       }
-      if (Array.isArray(bucket?.daily539Res)) {
-        out.daily539 = normalize539Rows(bucket.daily539Res);
-      }
-      if (Array.isArray(bucket?.lotto649Res)) {
-        out.lotto649 = normalize649Rows(bucket.lotto649Res);
-      }
-      if (Array.isArray(bucket?.superLotto638Res)) {
-        out.power = normalizePowerRows(bucket.superLotto638Res);
-      }
-    }
+
+      if (gameKey === "bingo") return normalizeBingoRows(unique);
+      if (gameKey === "daily539") return normalize539Rows(unique);
+      if (gameKey === "lotto649") return normalize649Rows(unique);
+      if (gameKey === "power") return normalizePowerRows(unique);
+      return [];
+    };
+
+    out.bingo = normalizeBlock(json.bingo, "bingo");
+    out.daily539 = normalizeBlock(json.daily539, "daily539");
+    out.lotto649 = normalizeBlock(json.lotto649, "lotto649");
+
+    out.power =
+      normalizeBlock(json.superLotto638, "power").length
+        ? normalizeBlock(json.superLotto638, "power")
+        : normalizeBlock(json.power, "power");
 
     return out;
-  }
-
-  function normalizeBingoRows(rows) {
-    return (rows || [])
-      .map((row) => {
-        const numbers = uniqSorted(row.drawNumberAppear || row.drawNumberSize || row.numbers || detectNumberArrayFromObject(row, 20));
-        return {
-          period: row.period || row.draw || row.issue || null,
-          lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
-          numbers
-        };
-      })
-      .filter((row) => row.period && row.numbers.length)
-      .sort((a, b) => Number(b.period) - Number(a.period));
-  }
-
-  function normalize539Rows(rows) {
-    return (rows || [])
-      .map((row) => {
-        const numbers = uniqSorted(row.drawNumberSize || row.numbers || detectNumberArrayFromObject(row, 5));
-        return {
-          period: row.period || row.draw || row.issue || null,
-          lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
-          numbers
-        };
-      })
-      .filter((row) => row.period && row.numbers.length)
-      .sort((a, b) => Number(b.period) - Number(a.period));
-  }
-
-  function normalize649Rows(rows) {
-    return (rows || [])
-      .map((row) => {
-        const numbers = uniqSorted(row.drawNumberSize || row.numbers || detectNumberArrayFromObject(row, 6));
-        return {
-          period: row.period || row.draw || row.issue || null,
-          lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
-          numbers,
-          special: row.specialNum != null ? Number(row.specialNum) : row.bonus != null ? Number(row.bonus) : null
-        };
-      })
-      .filter((row) => row.period && row.numbers.length)
-      .sort((a, b) => Number(b.period) - Number(a.period));
-  }
-
-  function normalizePowerRows(rows) {
-    return (rows || [])
-      .map((row) => {
-        const zone1 = uniqSorted(row.drawNumberSize || row.zone1 || row.numbers || detectNumberArrayFromObject(row, 6));
-        const zone2 =
-          row.superNumber != null
-            ? Number(row.superNumber)
-            : row.specialNum != null
-            ? Number(row.specialNum)
-            : row.zone2 != null
-            ? Number(row.zone2)
-            : null;
-        return {
-          period: row.period || row.draw || row.issue || null,
-          lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
-          zone1,
-          zone2
-        };
-      })
-      .filter((row) => row.period && row.zone1.length)
-      .sort((a, b) => Number(b.period) - Number(a.period));
   }
 
   function normalizeGameRowsFromCsv(gameKey, rows) {
@@ -447,13 +458,15 @@
             const v = row[`n${i}`] || row[`num${i}`] || row[`ball${i}`];
             if (v !== undefined && v !== "") nums.push(Number(v));
           }
-          if (!nums.length && row.numbers) {
-            row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
-          }
+          if (!nums.length && row.numbers) row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
           return {
-            period: row.period || row.issue || row.draw,
-            lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
-            numbers: uniqSorted(nums)
+            period: row.period || row.issue || row.draw || null,
+            drawDate: row.drawDate || row.date || row.lotteryDate || null,
+            redeemableDate: row.redeemableDate || "",
+            numbers: uniqSorted(nums),
+            orderNumbers: [],
+            specialNumber: row.specialNumber != null && row.specialNumber !== "" ? Number(row.specialNumber) : null,
+            source: "csv"
           };
         })
         .filter((row) => row.period && row.numbers.length)
@@ -468,13 +481,15 @@
             const v = row[`n${i}`] || row[`num${i}`] || row[`ball${i}`];
             if (v !== undefined && v !== "") nums.push(Number(v));
           }
-          if (!nums.length && row.numbers) {
-            row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
-          }
+          if (!nums.length && row.numbers) row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
           return {
-            period: row.period || row.issue || row.draw,
-            lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
-            numbers: uniqSorted(nums)
+            period: row.period || row.issue || row.draw || null,
+            drawDate: row.drawDate || row.date || row.lotteryDate || null,
+            redeemableDate: row.redeemableDate || "",
+            numbers: uniqSorted(nums),
+            orderNumbers: [],
+            specialNumber: row.specialNumber != null && row.specialNumber !== "" ? Number(row.specialNumber) : null,
+            source: "csv"
           };
         })
         .filter((row) => row.period && row.numbers.length)
@@ -489,14 +504,15 @@
             const v = row[`n${i}`] || row[`num${i}`] || row[`ball${i}`];
             if (v !== undefined && v !== "") nums.push(Number(v));
           }
-          if (!nums.length && row.numbers) {
-            row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
-          }
+          if (!nums.length && row.numbers) row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
           return {
-            period: row.period || row.issue || row.draw,
-            lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+            period: row.period || row.issue || row.draw || null,
+            drawDate: row.drawDate || row.date || row.lotteryDate || null,
+            redeemableDate: row.redeemableDate || "",
             numbers: uniqSorted(nums),
-            special: row.specialNum != null ? Number(row.specialNum) : row.bonus != null ? Number(row.bonus) : null
+            orderNumbers: [],
+            specialNumber: row.specialNumber != null && row.specialNumber !== "" ? Number(row.specialNumber) : null,
+            source: "csv"
           };
         })
         .filter((row) => row.period && row.numbers.length)
@@ -511,14 +527,26 @@
             const v = row[`n${i}`] || row[`num${i}`] || row[`ball${i}`];
             if (v !== undefined && v !== "") zone1.push(Number(v));
           }
-          if (!zone1.length && row.zone1) {
-            row.zone1.split(/[,、\s]+/).forEach((v) => zone1.push(Number(v)));
-          }
+          if (!zone1.length && row.zone1) row.zone1.split(/[,、\s]+/).forEach((v) => zone1.push(Number(v)));
+          if (!zone1.length && row.numbers) row.numbers.split(/[,、\s]+/).forEach((v) => zone1.push(Number(v)));
+
+          const zone2 =
+            row.specialNumber != null && row.specialNumber !== ""
+              ? Number(row.specialNumber)
+              : row.superNumber != null && row.superNumber !== ""
+              ? Number(row.superNumber)
+              : row.zone2 != null && row.zone2 !== ""
+              ? Number(row.zone2)
+              : null;
+
           return {
-            period: row.period || row.issue || row.draw,
-            lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+            period: row.period || row.issue || row.draw || null,
+            drawDate: row.drawDate || row.date || row.lotteryDate || null,
+            redeemableDate: row.redeemableDate || "",
             zone1: uniqSorted(zone1),
-            zone2: row.zone2 != null ? Number(row.zone2) : row.specialNum != null ? Number(row.specialNum) : row.superNumber != null ? Number(row.superNumber) : null
+            zone2: Number.isFinite(zone2) ? zone2 : null,
+            orderNumbers: [],
+            source: "csv"
           };
         })
         .filter((row) => row.period && row.zone1.length)
@@ -544,9 +572,9 @@
     };
   }
 
-  function saveLearningState(learning) {
-    writeJsonStorage(LEARNING_KEY, learning);
-    writeJsonStorage(WEIGHTS_KEY, learning);
+  function saveLearningState(stateObj) {
+    writeJsonStorage(LEARNING_KEY, stateObj);
+    writeJsonStorage(WEIGHTS_KEY, stateObj);
   }
 
   function learnNumberSet(baseObj, numbers, options = {}) {
@@ -572,6 +600,7 @@
     decayWeights(baseObj[missKey], decay);
 
     const nums = uniqSorted(numbers);
+
     nums.forEach((n) => {
       safeInc(baseObj[numberKey], String(n), reward);
       safeInc(baseObj[tailKey], String(getTail(n)), tailReward);
@@ -602,9 +631,9 @@
     const rows = state.data[gameKey] || [];
     if (!gameState || !rows.length) return;
 
-    const recentRows = rows.slice().reverse();
+    const ascendingRows = rows.slice().reverse();
 
-    for (const row of recentRows) {
+    for (const row of ascendingRows) {
       if (gameState.lastPeriod && String(row.period) <= String(gameState.lastPeriod)) continue;
 
       if (gameKey === "power") {
@@ -619,6 +648,7 @@
           tailReward: 0.15
         });
         learnMissPattern(gameState, 38, row.zone1, 0.025);
+
         gameState.zone2Weights ||= {};
         decayWeights(gameState.zone2Weights, 0.992);
         if (row.zone2 != null) safeInc(gameState.zone2Weights, String(row.zone2), 1.2);
@@ -633,10 +663,11 @@
           pairReward: gameKey === "bingo" ? 0.18 : 0.35,
           tailReward: 0.12
         });
+
         learnMissPattern(gameState, GAME_META[gameKey].max, row.numbers, gameKey === "bingo" ? 0.01 : 0.03);
       }
 
-      gameState.drawsLearned += 1;
+      gameState.drawsLearned = (gameState.drawsLearned || 0) + 1;
       gameState.lastPeriod = row.period;
       gameState.updatedAt = nowTs();
     }
@@ -663,8 +694,10 @@
       for (const r of recentNumbers) {
         score += (pairWeights[pairKey(n, r)] || 0) * 0.45;
       }
+
       scoreMap[n] = score;
     }
+
     return normalizeScores(scoreMap);
   }
 
@@ -682,8 +715,9 @@
     for (let n = 1; n <= 38; n++) {
       let score = 0;
       score += (zone1Weights[String(n)] || 0) * 1.35;
-      score += (tailWeights[String(getTail(n))] || 0) * 0.50;
-      score += (missWeights[String(n)] || 0) * 0.80;
+      score += (tailWeights[String(getTail(n))] || 0) * 0.5;
+      score += (missWeights[String(n)] || 0) * 0.8;
+
       for (const r of recentZone1) {
         score += (pairWeights[pairKey(n, r)] || 0) * 0.45;
       }
@@ -699,6 +733,21 @@
       zone1: normalizeScores(zone1),
       zone2: normalizeScores(zone2)
     };
+  }
+
+  function sampleRecentNumbers(gameKey, count = 3) {
+    const rows = state.data[gameKey] || [];
+    const recent = rows.slice(0, count);
+
+    if (gameKey === "power") {
+      const out = [];
+      recent.forEach((row) => (row.zone1 || []).forEach((n) => out.push(n)));
+      return uniqSorted(out).slice(0, 12);
+    }
+
+    const out = [];
+    recent.forEach((row) => (row.numbers || []).forEach((n) => out.push(n)));
+    return uniqSorted(out).slice(0, 12);
   }
 
   function predictByLearning() {
@@ -734,6 +783,7 @@
     const meta = GAME_META[gameKey];
     const counts = {};
     const tailCounts = {};
+
     for (let i = 1; i <= meta.max; i++) counts[i] = 0;
     for (let i = 0; i <= 9; i++) tailCounts[i] = 0;
 
@@ -755,10 +805,7 @@
       .slice(0, 3)
       .map(([n]) => Number(n));
 
-    return {
-      hotNumbers,
-      hotTails
-    };
+    return { hotNumbers, hotTails };
   }
 
   async function loadAllData() {
@@ -807,8 +854,8 @@
         };
       }
     }
-    writeJsonStorage(LAST_FETCH_KEY, state.lastFetchState);
 
+    writeJsonStorage(LAST_FETCH_KEY, state.lastFetchState);
     predictByLearning();
     state.loading = false;
     state.statusText = "資料已更新";
@@ -820,6 +867,7 @@
     const y = now.getFullYear();
     const m = now.getMonth();
     const d = now.getDate();
+
     const start = new Date(y, m, d, 7, 3, 0, 0);
     const end = new Date(y, m, d, 23, 57, 0, 0);
 
@@ -850,10 +898,12 @@
       try {
         const json = await fetchFirstSuccess(JSON_CANDIDATES, fetchJSON);
         const normalized = normalizeGameRowsFromLatestJson(json);
+
         if (normalized.bingo.length) {
           state.data.bingo = normalized.bingo;
           state.latest.bingo = normalized.bingo[0] || null;
           latestPeriod = state.latest.bingo?.period || prevPeriod;
+
           if (String(latestPeriod) !== String(prevPeriod)) {
             success = true;
             break;
@@ -875,6 +925,7 @@
       } catch (err) {
         console.warn("runBingoAutoUpdateCycle retry failed:", err.message);
       }
+
       await new Promise((resolve) => setTimeout(resolve, 15000));
     }
 
@@ -883,8 +934,12 @@
     state.autoState.bingo.nextAt = getNextBingoScheduleTime().toISOString();
 
     if (success) {
-      state.lastFetchState.bingo = { lastPeriod: latestPeriod, updatedAt: nowTs() };
+      state.lastFetchState.bingo = {
+        lastPeriod: latestPeriod,
+        updatedAt: nowTs()
+      };
       writeJsonStorage(LAST_FETCH_KEY, state.lastFetchState);
+
       await learnFromCurrentData("bingo");
       predictByLearning();
       state.statusText = "BINGO 已抓到新期數並完成自動學習";
@@ -904,6 +959,7 @@
     writeJsonStorage(AUTO_STATE_KEY, state.autoState);
 
     const delay = Math.max(1000, nextTime.getTime() - Date.now());
+
     state.timers.bingoSchedule = setTimeout(async () => {
       try {
         await runBingoAutoUpdateCycle();
@@ -928,6 +984,7 @@
 
     state.timers.bingoFastRefresh = setInterval(async () => {
       if (!state.settings.autoRefresh) return;
+
       const now = new Date();
       const h = now.getHours();
       const m = now.getMinutes();
@@ -936,14 +993,17 @@
       try {
         const json = await fetchFirstSuccess(JSON_CANDIDATES, fetchJSON);
         const normalized = normalizeGameRowsFromLatestJson(json);
+
         if (normalized.bingo.length) {
           const newest = normalized.bingo[0];
           const prev = state.latest.bingo?.period || null;
+
           if (String(newest.period) !== String(prev)) {
             state.data.bingo = normalized.bingo;
             state.latest.bingo = newest;
             state.lastFetchState.bingo = { lastPeriod: newest.period, updatedAt: nowTs() };
             writeJsonStorage(LAST_FETCH_KEY, state.lastFetchState);
+
             await learnFromCurrentData("bingo");
             predictByLearning();
             state.statusText = "BINGO 快速輪詢偵測到新資料";
@@ -957,9 +1017,10 @@
   }
 
   function createBaseStyle() {
-    if (document.getElementById("v9310-style")) return;
+    if (document.getElementById("v9311-style")) return;
+
     const style = document.createElement("style");
-    style.id = "v9310-style";
+    style.id = "v9311-style";
     style.textContent = `
       :root{
         --bg:#0b1220;
@@ -969,13 +1030,12 @@
         --text:#f8fafc;
         --muted:#94a3b8;
         --accent:#38bdf8;
-        --good:#22c55e;
-        --warn:#f59e0b;
-        --bad:#ef4444;
       }
       body.simple-ui{
         background:linear-gradient(180deg,#071019 0%, #0b1220 100%);
         color:var(--text);
+        margin:0;
+        font-family:Arial,"Microsoft JhengHei",sans-serif;
       }
       body.simple-ui .guide-section,
       body.simple-ui .onboarding-section,
@@ -989,7 +1049,7 @@
       body.simple-ui .welcome-guide{
         display:none !important;
       }
-      #lottery-ai-root-v9310{
+      #lottery-ai-root-v9311{
         width:min(100%,960px);
         margin:0 auto;
         padding:12px;
@@ -1163,14 +1223,15 @@
 
   function ensureRoot() {
     let root =
-      document.getElementById("lottery-ai-root-v9310") ||
+      document.getElementById("lottery-ai-root-v9311") ||
       document.getElementById("app") ||
       document.getElementById("root") ||
       document.querySelector("[data-lottery-root]");
 
-    if (!root || root.id !== "lottery-ai-root-v9310") {
+    if (!root || root.id !== "lottery-ai-root-v9311") {
       const shell = document.createElement("div");
-      shell.id = "lottery-ai-root-v9310";
+      shell.id = "lottery-ai-root-v9311";
+
       if (root) {
         root.innerHTML = "";
         root.appendChild(shell);
@@ -1188,9 +1249,7 @@
   }
 
   function renderBalls(nums, extraClass = "") {
-    return (nums || [])
-      .map((n) => `<span class="num ${extraClass}">${pad2(n)}</span>`)
-      .join("");
+    return (nums || []).map((n) => `<span class="num ${extraClass}">${pad2(n)}</span>`).join("");
   }
 
   function renderLatestCard(gameKey) {
@@ -1204,7 +1263,7 @@
       numbersHtml = `
         <div class="v93-row">${renderBalls(row.zone1)}</div>
         <div class="v93-row" style="margin-top:8px;">
-          <span class="num zone2">${pad2(row.zone2 || 0)}</span>
+          ${row.zone2 != null ? `<span class="num zone2">${pad2(row.zone2)}</span>` : `<span style="color:#94a3b8;">第二區暫無資料</span>`}
         </div>
       `;
     } else if (row) {
@@ -1216,7 +1275,7 @@
         ? `
           <div class="v93-row">${renderBalls(state.predictions.power.zone1 || [], "small")}</div>
           <div class="v93-row" style="margin-top:8px;">
-            <span class="num zone2 small">${pad2(state.predictions.power.zone2 || 0)}</span>
+            ${state.predictions.power.zone2 != null ? `<span class="num zone2 small">${pad2(state.predictions.power.zone2)}</span>` : `<span style="color:#94a3b8;">第二區暫無建議</span>`}
           </div>
         `
         : `<div class="v93-row">${renderBalls(state.predictions[gameKey] || [], "small")}</div>`;
@@ -1225,7 +1284,7 @@
       <section class="v93-card ${meta.colorClass}">
         <h3 class="v93-section-title">${meta.label}</h3>
         <div class="v93-kv"><div class="k">最新期數</div><div>${formatPeriod(row?.period)}</div></div>
-        <div class="v93-kv"><div class="k">開獎日期</div><div>${formatOnlyDate(row?.lotteryDate)}</div></div>
+        <div class="v93-kv"><div class="k">開獎時間</div><div>${formatOnlyDate(row?.drawDate)}</div></div>
         <div class="v93-kv"><div class="k">最新號碼</div><div>${numbersHtml}</div></div>
         <div class="v93-kv"><div class="k">AI推薦</div><div>${pickPreview}</div></div>
         <div class="v93-kv"><div class="k">熱門尾數</div><div>${stats.hotTails.map((n) => `${n}尾`).join("、") || "-"}</div></div>
@@ -1239,12 +1298,10 @@
     if (!ops.length) {
       return `<div class="v93-list-item"><span>尚無操作記錄</span><span>-</span></div>`;
     }
-    return ops
-      .slice(0, 8)
-      .map((item) => {
-        return `<div class="v93-list-item"><span>${item.action || "操作"}</span><span>${formatDateTime(item.at)}</span></div>`;
-      })
-      .join("");
+
+    return ops.slice(0, 8).map((item) => {
+      return `<div class="v93-list-item"><span>${item.action || "操作"}</span><span>${formatDateTime(item.at)}</span></div>`;
+    }).join("");
   }
 
   function logOp(action) {
@@ -1279,6 +1336,7 @@
       (learning.power.drawsLearned || 0);
 
     state.lastRenderAt = nowTs();
+
     state.root.innerHTML = `
       <div class="v93-shell">
         <section class="v93-card">
@@ -1286,7 +1344,7 @@
             <div>
               <h1 class="v93-title">台灣彩券 AI 預測系統</h1>
               <div class="v93-sub">${APP_VERSION}</div>
-              <div class="v93-sub" style="margin-top:4px;">極簡首頁｜BINGO 排程更新｜四种彩票自動學習</div>
+              <div class="v93-sub" style="margin-top:4px;">極簡首頁｜導引已關閉｜BINGO 排程更新｜四种彩票自動學習</div>
             </div>
             <div class="v93-actions">
               <select class="v93-select" id="gameSelect">
@@ -1296,7 +1354,7 @@
                 <option value="power" ${state.settings.selectedGame === "power" ? "selected" : ""}>威力彩</option>
               </select>
               <select class="v93-select" id="bingoPickCount">
-                ${[4,5,6,7,8,9,10].map((n) => `<option value="${n}" ${Number(state.settings.bingoPickCount) === n ? "selected" : ""}>BINGO選${n}顆</option>`).join("")}
+                ${[4, 5, 6, 7, 8, 9, 10].map((n) => `<option value="${n}" ${Number(state.settings.bingoPickCount) === n ? "selected" : ""}>BINGO選${n}顆</option>`).join("")}
               </select>
               <button class="v93-btn primary" id="refreshBtn">立即更新</button>
               <button class="v93-btn" id="predictBtn">重新預測</button>
@@ -1307,7 +1365,7 @@
         <section class="v93-card">
           <div class="v93-metrics">
             <div class="v93-metric">
-              <div class="v93-metric-label">狀態</div>
+              <div class="v93-metric-label">系統狀態</div>
               <div class="v93-metric-value">${state.loading ? "更新中" : "已就緒"}</div>
             </div>
             <div class="v93-metric">
@@ -1353,7 +1411,7 @@
           </section>
         </div>
 
-        <div class="v93-footer">手機操作優化版｜導引已關閉｜本機學習已啟用</div>
+        <div class="v93-footer">手機操作優化版｜本機學習已啟用｜若要跨裝置同步，需再接 GitHub Actions</div>
       </div>
     `;
 
