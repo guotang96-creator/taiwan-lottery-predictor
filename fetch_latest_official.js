@@ -167,12 +167,28 @@ function normalize539(item) {
 function normalizeLotto649(item) {
   if (!item) return null;
 
-  const numbers = extractMainNumbers(item, {
-    directArrayKeys: ["drawNumberSize", "numbers", "drawNumbers"],
-    sequentialPrefixes: ["drawNumber", "num", "ball"],
-    seqStart: 1,
-    seqEnd: 6
-  });
+  const rawNumbers = Array.isArray(item?.drawNumberSize)
+    ? item.drawNumberSize.map(Number).filter(Number.isFinite)
+    : extractMainNumbers(item, {
+        directArrayKeys: ["numbers", "drawNumbers"],
+        sequentialPrefixes: ["drawNumber", "num", "ball"],
+        seqStart: 1,
+        seqEnd: 7
+      });
+
+  const numbers = rawNumbers.slice(0, 6);
+  const specialNumber =
+    rawNumbers.length >= 7
+      ? rawNumbers[6]
+      : extractSpecialNumber(item, [
+          "specialNumber",
+          "specialNum",
+          "bonusNumber",
+          "bonusNum",
+          "superNumber",
+          "special",
+          "bonus"
+        ]);
 
   return {
     game: "lotto649",
@@ -180,15 +196,7 @@ function normalizeLotto649(item) {
     drawDate: normalizeDate(pickFirstValue(item, ["lotteryDate", "drawDate", "date"])),
     redeemableDate: normalizeDate(pickFirstValue(item, ["redeemableDate"])),
     numbers,
-    specialNumber: extractSpecialNumber(item, [
-      "specialNumber",
-      "specialNum",
-      "bonusNumber",
-      "bonusNum",
-      "superNumber",
-      "special",
-      "bonus"
-    ]),
+    specialNumber,
     source: "official-api"
   };
 }
@@ -196,12 +204,30 @@ function normalizeLotto649(item) {
 function normalizeSuperLotto638(item) {
   if (!item) return null;
 
-  const numbers = extractMainNumbers(item, {
-    directArrayKeys: ["drawNumberSize", "numbers", "drawNumbers", "zone1"],
-    sequentialPrefixes: ["drawNumber", "num", "ball"],
-    seqStart: 1,
-    seqEnd: 6
-  });
+  const rawNumbers = Array.isArray(item?.drawNumberSize)
+    ? item.drawNumberSize.map(Number).filter(Number.isFinite)
+    : extractMainNumbers(item, {
+        directArrayKeys: ["numbers", "drawNumbers", "zone1"],
+        sequentialPrefixes: ["drawNumber", "num", "ball"],
+        seqStart: 1,
+        seqEnd: 7
+      });
+
+  const numbers = rawNumbers.slice(0, 6);
+  const specialNumber =
+    rawNumbers.length >= 7
+      ? rawNumbers[6]
+      : extractSpecialNumber(item, [
+          "specialNumber",
+          "secondAreaNumber",
+          "secondNumber",
+          "specialNum",
+          "bonusNumber",
+          "superNumber",
+          "zone2",
+          "second",
+          "special"
+        ]);
 
   return {
     game: "superLotto638",
@@ -209,83 +235,44 @@ function normalizeSuperLotto638(item) {
     drawDate: normalizeDate(pickFirstValue(item, ["lotteryDate", "drawDate", "date"])),
     redeemableDate: normalizeDate(pickFirstValue(item, ["redeemableDate"])),
     numbers,
-    specialNumber: extractSpecialNumber(item, [
-      "specialNumber",
-      "secondAreaNumber",
-      "secondNumber",
-      "specialNum",
-      "bonusNumber",
-      "superNumber",
-      "zone2",
-      "second",
-      "special"
-    ]),
+    specialNumber,
     source: "official-api"
   };
 }
-
 function normalizeBingo(input) {
   if (!input) return null;
 
-  const candidates = [
-    input,
-    input.content,
-    input.result,
-    input.data,
-    input.bingo,
-    input.bingoRes,
-    input.latest
-  ].filter((v) => v && typeof v === "object");
+  const post =
+    input?.content?.lotteryBingoLatestPost ||
+    input?.lotteryBingoLatestPost ||
+    input?.content ||
+    input;
 
-  let root = candidates[0] || input;
+  const numbers = Array.isArray(post?.bigShowOrder)
+    ? post.bigShowOrder.map(Number).filter(Number.isFinite)
+    : [];
 
-  for (const c of candidates) {
-    const p = normalizePeriodValue(c);
-    const arr1 = Array.isArray(c.drawNumberAppear) ? c.drawNumberAppear : [];
-    const arr2 = Array.isArray(c.drawNumberSize) ? c.drawNumberSize : [];
-    const arr3 = Array.isArray(c.orderNumbers) ? c.orderNumbers : [];
-    if (p || arr1.length || arr2.length || arr3.length) {
-      root = c;
-      break;
-    }
-  }
+  const orderNumbers = Array.isArray(post?.openShowOrder)
+    ? post.openShowOrder.map(Number).filter(Number.isFinite)
+    : [];
 
-  const orderNumbers = extractMainNumbers(root, {
-    directArrayKeys: [
-      "drawOrderNums",
-      "drawOrderNumbers",
-      "drawNumberAppear",
-      "drawNumbers",
-      "orderNumbers"
-    ],
-    sequentialPrefixes: ["drawOrderNum", "drawNumber"],
-    seqStart: 1,
-    seqEnd: 20
-  });
-
-  const numbers = extractMainNumbers(root, {
-    directArrayKeys: ["drawSizeNums", "drawNumberSize", "numbers"],
-    sequentialPrefixes: ["drawSizeNum"],
-    seqStart: 1,
-    seqEnd: 20
-  });
+  const bullEyeRaw = post?.prizeNum?.bullEye;
+  const bullEye =
+    bullEyeRaw !== undefined && bullEyeRaw !== null && String(bullEyeRaw).trim() !== ""
+      ? Number(bullEyeRaw)
+      : null;
 
   return {
     game: "bingo",
-    period: normalizePeriodValue(root),
-    drawDate: normalizeDate(pickFirstValue(root, ["lotteryDate", "drawDate", "date"])),
-    numbers: numbers.length ? numbers : orderNumbers,
+    period: String(post?.drawTerm || ""),
+    drawDate: normalizeDate(post?.dDate || null),
+    redeemableDate: normalizeDate(post?.eDate || null),
+    numbers,
     orderNumbers,
-    specialNumber: extractSpecialNumber(root, [
-      "superNum",
-      "specialNumber",
-      "bonusNumber",
-      "specialNum"
-    ]),
+    specialNumber: Number.isFinite(bullEye) ? bullEye : null,
     source: "official-api"
   };
 }
-
 async function fetchJson(url) {
   const res = await fetch(url, {
     headers: {
