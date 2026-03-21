@@ -310,6 +310,42 @@
     localStorage.setItem(AUTO_STATE_KEY, JSON.stringify(data || {}));
   }
 
+  function migrateOldTimeRecords() {
+    try {
+      const opsRaw = JSON.parse(localStorage.getItem(OPS_KEY) || "[]");
+      if (Array.isArray(opsRaw)) {
+        const fixedOps = opsRaw.map(item => {
+          const rawTime = String(item?.time || "").trim();
+          if (/T.*Z$/.test(rawTime)) {
+            return {
+              ...item,
+              time: formatTaiwanTime(rawTime)
+            };
+          }
+          return item;
+        });
+        localStorage.setItem(OPS_KEY, JSON.stringify(fixedOps));
+      }
+    } catch {}
+
+    try {
+      const historyRaw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      if (Array.isArray(historyRaw)) {
+        const fixedHistory = historyRaw.map(item => {
+          const rawCreatedAt = String(item?.createdAt || "").trim();
+          if (/T.*Z$/.test(rawCreatedAt)) {
+            return {
+              ...item,
+              createdAt: formatTaiwanTime(rawCreatedAt)
+            };
+          }
+          return item;
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(fixedHistory));
+      }
+    } catch {}
+  }
+
   async function fetchFirstText(paths) {
     const errors = [];
     for (const path of paths) {
@@ -1958,6 +1994,8 @@
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
+      migrateOldTimeRecords();
+
       restoreUiSettings();
       const autoState = readAutoState();
       if (autoState?.lastAutoRefreshAt) state.lastAutoRefreshAt = autoState.lastAutoRefreshAt;
