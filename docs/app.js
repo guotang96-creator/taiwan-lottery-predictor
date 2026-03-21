@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.1.5";
-  const APP_VERSION = `V93.1.5 | GitHub Pages 最新資料修正版`;
+  const BUILD = window.__APP_BUILD__ || "93.1.6";
+  const APP_VERSION = `V93.1.6 | GitHub Pages 最新資料強化修正版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9315";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9315";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9315";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9315";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9316";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9316";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9316";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9316";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -504,6 +504,7 @@
         json?.content?.lotteryBingoLatestPost ||
         json?.content?.bingo ||
         json?.content?.bingoLatestPost ||
+        json?.content?.result ||
         null;
 
       state.latest.bingo = normalizeLatestBingo(latest);
@@ -569,6 +570,7 @@
         json?.content?.powerLottoRes?.[0] ||
         json?.content?.powerLottoLatestPost ||
         json?.content?.powerLotto ||
+        json?.content?.result ||
         null;
 
       state.latest.power = normalizeLatestPower(row);
@@ -1124,10 +1126,23 @@
   function normalizeLatestBingo(row) {
     if (!row) return null;
 
-    const numbers = parseNumberList(row.drawNumberAppear || row.drawNumberSize || row.numbers);
-    const finalNumbers = Array.isArray(numbers) ? numbers.filter(Number.isFinite) : [];
+    let numbers = parseNumberList(
+      row.drawNumberAppear || row.drawNumberSize || row.numbers
+    );
 
-    if (!finalNumbers.length) {
+    if (!numbers.length && Array.isArray(row.drawNumberAppear)) {
+      numbers = row.drawNumberAppear
+        .map((n) => parseInt(n, 10))
+        .filter((n) => Number.isFinite(n));
+    }
+
+    if (!numbers.length && Array.isArray(row.drawNumberSize)) {
+      numbers = row.drawNumberSize
+        .map((n) => parseInt(n, 10))
+        .filter((n) => Number.isFinite(n));
+    }
+
+    if (!numbers.length) {
       console.warn("BINGO 最新資料解析失敗:", row);
       return null;
     }
@@ -1135,7 +1150,7 @@
     return {
       term: row.drawTerm || row.period || row.term || "-",
       time: formatDateTime(row.dDate || row.drawDate || row.lotteryDate || row.date),
-      numbers: finalNumbers.slice(0, 20).sort((a, b) => a - b)
+      numbers: numbers.slice(0, 20).sort((a, b) => a - b)
     };
   }
 
@@ -1170,18 +1185,28 @@
   function normalizeLatestPower(row) {
     if (!row) return null;
 
-    const numbers = parseNumberList(
+    let numbers = parseNumberList(
       row.drawNumberSize || row.drawNumberAppear || row.numbers
     );
 
-    const secondArea = parseNumberList(
+    if (!numbers.length) {
+      numbers = collectSequentialNumbers(row, 1, 6);
+    }
+
+    let secondArea = parseNumberList(
       row.specialNum || row.secondArea || row.powerball || row.specialNumber
     );
 
-    const finalNumbers = Array.isArray(numbers) ? numbers.filter(Number.isFinite) : [];
-    const finalSecond = Array.isArray(secondArea) ? secondArea.filter(Number.isFinite) : [];
+    if (!secondArea.length) {
+      secondArea = collectSequentialNumbersFromNamedKeys(row, [
+        "num7",
+        "number7",
+        "second",
+        "special"
+      ]);
+    }
 
-    if (!finalNumbers.length) {
+    if (!numbers.length) {
       console.warn("威力彩最新資料解析失敗:", row);
       return null;
     }
@@ -1189,8 +1214,8 @@
     return {
       term: row.period || row.drawTerm || row.term || "-",
       time: formatDateTime(row.lotteryDate || row.dDate || row.drawDate || row.date),
-      numbers: finalNumbers.slice(0, 6).sort((a, b) => a - b),
-      secondArea: finalSecond.slice(0, 1)
+      numbers: numbers.slice(0, 6).sort((a, b) => a - b),
+      secondArea: secondArea.slice(0, 1)
     };
   }
 
@@ -1283,9 +1308,7 @@
       return [value];
     }
 
-    if (!value) {
-      return [];
-    }
+    if (!value) return [];
 
     if (typeof value === "string") {
       return value
