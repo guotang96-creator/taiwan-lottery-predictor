@@ -1253,51 +1253,83 @@
   }
 
   function renderLatestCard(gameKey) {
-    const row = state.latest[gameKey];
-    const meta = GAME_META[gameKey];
-    const stats = computeStats(gameKey);
-    const learning = getLearningState()[gameKey];
+  const row = state.latest[gameKey];
+  const meta = GAME_META[gameKey];
+  const stats = computeStats(gameKey);
+  const learning = getLearningState()[gameKey];
 
-    let numbersHtml = "-";
-    if (gameKey === "power" && row) {
-  const zone1 = Array.isArray(row.zone1) ? row.zone1.slice(0, 6) : [];
-  const zone2 =
-    row.zone2 != null && Number.isFinite(Number(row.zone2))
-      ? Number(row.zone2)
-      : row.specialNumber != null && Number.isFinite(Number(row.specialNumber))
-      ? Number(row.specialNumber)
-      : null;
+  let numbersHtml = "-";
 
-  numbersHtml = `
-    <div class="v93-row">${renderBalls(zone1)}</div>
-    <div class="v93-row" style="margin-top:8px;">
-      ${zone2 != null ? `<span class="num zone2">${pad2(zone2)}</span>` : `<span style="color:#94a3b8;">第二區暫無資料</span>`}
-    </div>
+  if (gameKey === "power" && row) {
+    const zone1 = Array.isArray(row.zone1) ? row.zone1.slice(0, 6) : [];
+    const zone2 =
+      row.zone2 != null && Number.isFinite(Number(row.zone2))
+        ? Number(row.zone2)
+        : row.specialNumber != null && Number.isFinite(Number(row.specialNumber))
+        ? Number(row.specialNumber)
+        : null;
+
+    numbersHtml = `
+      <div class="v93-row">${renderBalls(zone1)}</div>
+      <div class="v93-row" style="margin-top:8px;">
+        ${
+          zone2 != null
+            ? `<span class="num zone2">${pad2(zone2)}</span>`
+            : `<span style="color:#94a3b8;">第二區暫無資料</span>`
+        }
+      </div>
+    `;
+  } else if (gameKey === "lotto649" && row) {
+    const mainNumbers = Array.isArray(row.numbers) ? row.numbers.slice(0, 6) : [];
+    const special =
+      row.specialNumber != null && Number.isFinite(Number(row.specialNumber))
+        ? Number(row.specialNumber)
+        : null;
+
+    numbersHtml = `
+      <div class="v93-row">${renderBalls(mainNumbers)}</div>
+      <div class="v93-row" style="margin-top:8px;">
+        ${
+          special != null
+            ? `<span class="num zone2">${pad2(special)}</span>`
+            : `<span style="color:#94a3b8;">特別號暫無資料</span>`
+        }
+      </div>
+    `;
+  } else if (row) {
+    numbersHtml = `<div class="v93-row">${renderBalls(row.numbers || [])}</div>`;
+  }
+
+  const pickPreview =
+    gameKey === "power"
+      ? `
+        <div class="v93-row">${renderBalls(state.predictions.power.zone1 || [], "small")}</div>
+        <div class="v93-row" style="margin-top:8px;">
+          ${
+            state.predictions.power.zone2 != null
+              ? `<span class="num zone2 small">${pad2(state.predictions.power.zone2)}</span>`
+              : `<span style="color:#94a3b8;">第二區暫無建議</span>`
+          }
+        </div>
+      `
+      : gameKey === "lotto649"
+      ? `
+        <div class="v93-row">${renderBalls((state.predictions.lotto649 || []).slice(0, 6), "small")}</div>
+      `
+      : `<div class="v93-row">${renderBalls(state.predictions[gameKey] || [], "small")}</div>`;
+
+  return `
+    <section class="v93-card ${meta.colorClass}">
+      <h3 class="v93-section-title">${meta.label}</h3>
+      <div class="v93-kv"><div class="k">最新期數</div><div>${formatPeriod(row?.period)}</div></div>
+      <div class="v93-kv"><div class="k">開獎時間</div><div>${formatOnlyDate(row?.drawDate)}</div></div>
+      <div class="v93-kv"><div class="k">最新號碼</div><div>${numbersHtml}</div></div>
+      <div class="v93-kv"><div class="k">AI推薦</div><div>${pickPreview}</div></div>
+      <div class="v93-kv"><div class="k">熱門尾數</div><div>${stats.hotTails.map((n) => `${n}尾`).join("、") || "-"}</div></div>
+      <div class="v93-kv"><div class="k">學習期數</div><div>${learning?.drawsLearned || 0}</div></div>
+    </section>
   `;
 }
-
-    const pickPreview =
-      gameKey === "power"
-        ? `
-          <div class="v93-row">${renderBalls(state.predictions.power.zone1 || [], "small")}</div>
-          <div class="v93-row" style="margin-top:8px;">
-            ${state.predictions.power.zone2 != null ? `<span class="num zone2 small">${pad2(state.predictions.power.zone2)}</span>` : `<span style="color:#94a3b8;">第二區暫無建議</span>`}
-          </div>
-        `
-        : `<div class="v93-row">${renderBalls(state.predictions[gameKey] || [], "small")}</div>`;
-
-    return `
-      <section class="v93-card ${meta.colorClass}">
-        <h3 class="v93-section-title">${meta.label}</h3>
-        <div class="v93-kv"><div class="k">最新期數</div><div>${formatPeriod(row?.period)}</div></div>
-        <div class="v93-kv"><div class="k">開獎時間</div><div>${formatOnlyDate(row?.drawDate)}</div></div>
-        <div class="v93-kv"><div class="k">最新號碼</div><div>${numbersHtml}</div></div>
-        <div class="v93-kv"><div class="k">AI推薦</div><div>${pickPreview}</div></div>
-        <div class="v93-kv"><div class="k">熱門尾數</div><div>${stats.hotTails.map((n) => `${n}尾`).join("、") || "-"}</div></div>
-        <div class="v93-kv"><div class="k">學習期數</div><div>${learning?.drawsLearned || 0}</div></div>
-      </section>
-    `;
-  }
 
   function renderOpsList() {
     const ops = readJsonStorage(OPS_KEY, []);
