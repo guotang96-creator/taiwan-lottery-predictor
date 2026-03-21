@@ -1,34 +1,35 @@
 (() => {
   const BUILD = window.__APP_BUILD__ || "93.0.0";
-const APP_VERSION = `V93.0.0 GitHub Pages 最終版（build ${BUILD}）`;
+  const APP_VERSION = `V93.0.0 GitHub Pages 最終版（build ${BUILD}）`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9242";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v9242";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9242";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9242";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9242";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9300";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v9300";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9300";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9300";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9300";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
 
+  // GitHub Pages 路徑版：網站與資料都在 docs/ 內
   const JSON_CANDIDATES = [
-  "./latest.json"
-];
+    "./latest.json"
+  ];
 
-const CSV_CANDIDATES = {
-  bingo: [
-    "./raw_data/bingo.csv"
-  ],
-  daily539: [
-    "./raw_data/539.csv"
-  ],
-  lotto649: [
-    "./raw_data/lotto.csv"
-  ],
-  superLotto638: [
-    "./raw_data/power.csv"
-  ]
-};
+  const CSV_CANDIDATES = {
+    bingo: [
+      "./raw_data/bingo.csv"
+    ],
+    daily539: [
+      "./raw_data/539.csv"
+    ],
+    lotto649: [
+      "./raw_data/lotto.csv"
+    ],
+    superLotto638: [
+      "./raw_data/power.csv"
+    ]
+  };
 
   const GAME_CONFIG = {
     bingo: {
@@ -167,11 +168,11 @@ const CSV_CANDIDATES = {
   }
 
   function showToast(text) {
-    const old = document.getElementById("v9242Toast");
+    const old = document.getElementById("v9300Toast");
     if (old) old.remove();
 
     const el = document.createElement("div");
-    el.id = "v9242Toast";
+    el.id = "v9300Toast";
     el.textContent = text;
     el.style.position = "fixed";
     el.style.left = "50%";
@@ -1903,8 +1904,8 @@ const CSV_CANDIDATES = {
 
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV9242) {
-        el.dataset.boundV9242 = "1";
+      if (el && !el.dataset.boundV9300) {
+        el.dataset.boundV9300 = "1";
         el.addEventListener("change", async () => {
           saveUiSettings();
 
