@@ -43,8 +43,8 @@ jobs:
 
       - name: Debug official_latest.json
         run: |
-          echo "===== official_latest.json ====="
-          test -f official_latest.json && sed -n '1,220p' official_latest.json || echo "official_latest.json not found"
+           echo "===== official_latest.json ====="
+           test -f official_latest.json && sed -n '1,320p' official_latest.json || echo "official_latest.json not found"
 
       - name: Run parse downloads
         run: node parse_downloads.js
