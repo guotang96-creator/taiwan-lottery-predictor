@@ -1,12 +1,12 @@
 (() => {
-  const BUILD = window.__APP_BUILD__ || "92.1";
-  const APP_VERSION = `V92.1 Bingo 即時加速版（build ${BUILD}）`;
+  const BUILD = window.__APP_BUILD__ || "92.2";
+  const APP_VERSION = `V92.2 Bingo 快速刷新按鈕版（build ${BUILD}）`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v921";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v921";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v921";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v921";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v921";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v922";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v922";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v922";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v922";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v922";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -108,6 +108,7 @@
     bingoFastTimer: null,
     autoRefreshing: false,
     bingoFastRefreshing: false,
+    manualBingoRefreshing: false,
     lastAutoRefreshAt: null,
     lastBingoFastRefreshAt: null,
     lastCacheBust: "",
@@ -183,11 +184,11 @@
   }
 
   function showToast(text) {
-    const old = document.getElementById("v921Toast");
+    const old = document.getElementById("v922Toast");
     if (old) old.remove();
 
     const el = document.createElement("div");
-    el.id = "v921Toast";
+    el.id = "v922Toast";
     el.textContent = text;
     el.style.position = "fixed";
     el.style.left = "50%";
@@ -1382,7 +1383,9 @@
     if ($("v84CurrentGameBadge")) $("v84CurrentGameBadge").textContent = gameCode ? `目前彩種：${GAME_CONFIG[gameCode].label}` : "尚未選擇彩種";
 
     if ($("v84SiteStateBadge")) {
-      if (state.bingoFastRefreshing) {
+      if (state.manualBingoRefreshing) {
+        $("v84SiteStateBadge").textContent = "Bingo 手動刷新中";
+      } else if (state.bingoFastRefreshing) {
         $("v84SiteStateBadge").textContent = "Bingo 快速檢查中";
       } else if (state.autoRefreshing) {
         $("v84SiteStateBadge").textContent = "系統更新中";
@@ -1394,11 +1397,33 @@
     if ($("v84DataStateText")) $("v84DataStateText").textContent = latestDraw ? "已載入最新資料" : "待載入";
     if ($("v84LastUpdateText")) $("v84LastUpdateText").textContent = latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未取得";
     if ($("v84TrackingStateText")) {
-      $("v84TrackingStateText").textContent = state.bingoFastRefreshing
-        ? "Bingo 快刷中"
-        : state.autoRefreshing
-          ? "更新中"
-          : "可用";
+      $("v84TrackingStateText").textContent =
+        state.manualBingoRefreshing ? "手動刷新中" :
+        state.bingoFastRefreshing ? "Bingo 快刷中" :
+        state.autoRefreshing ? "更新中" : "可用";
+    }
+
+    updateBingoRefreshButton();
+  }
+
+  function updateBingoRefreshButton() {
+    const btn = $("v922BingoRefreshBtn");
+    if (!btn) return;
+
+    const isBingo = ($("lotterySelect")?.value || "") === "bingo";
+    const busy = state.manualBingoRefreshing || state.bingoFastRefreshing;
+
+    btn.disabled = busy;
+    btn.style.opacity = busy ? "0.7" : "1";
+
+    if (!isBingo) {
+      btn.textContent = "切到 Bingo 才可刷新";
+    } else if (state.manualBingoRefreshing) {
+      btn.textContent = "Bingo 刷新中...";
+    } else if (state.bingoFastRefreshing) {
+      btn.textContent = "Bingo 檢查中...";
+    } else {
+      btn.textContent = "Bingo 立即刷新";
     }
   }
 
@@ -1709,7 +1734,7 @@
   }
 
   async function refreshBingoFastSilently(forceRender = true) {
-    if (state.bingoFastRefreshing) return;
+    if (state.bingoFastRefreshing || state.manualBingoRefreshing) return;
     state.bingoFastRefreshing = true;
     updateTopStatus(state.currentGameCode);
 
@@ -1728,13 +1753,8 @@
 
       const trackingResult = updatePredictionTracking();
 
-      if (forceRender && (state.currentGameCode === "bingo" || state.currentGameCode === null)) {
-        if (state.currentGameCode) renderPrediction(state.currentGameCode);
-        else {
-          renderHeroKpis(null);
-          renderMiniStats();
-          updateTopStatus(null);
-        }
+      if (forceRender && state.currentGameCode === "bingo") {
+        renderPrediction(state.currentGameCode);
       }
 
       if (String(afterPeriod) !== String(beforePeriod) && afterPeriod) {
@@ -1747,6 +1767,53 @@
       console.error("bingo fast refresh failed:", err);
     } finally {
       state.bingoFastRefreshing = false;
+      updateTopStatus(state.currentGameCode);
+    }
+  }
+
+  async function manualRefreshBingoNow() {
+    if (($("lotterySelect")?.value || "") !== "bingo") {
+      showToast("請先切換到 Bingo");
+      return;
+    }
+
+    if (state.manualBingoRefreshing || state.bingoFastRefreshing) return;
+
+    state.manualBingoRefreshing = true;
+    updateTopStatus(state.currentGameCode);
+
+    try {
+      const before = getLatestDraw("bingo")?.period || "";
+      await refreshOnlyBingoCsv();
+      const after = getLatestDraw("bingo")?.period || "";
+
+      state.lastBingoFastRefreshAt = new Date().toISOString();
+      writeAutoState({
+        lastAutoRefreshAt: state.lastAutoRefreshAt,
+        lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
+        lastPeriods: getPeriodSnapshot(),
+        build: BUILD
+      });
+
+      updatePredictionTracking();
+
+      if (state.currentGameCode === "bingo") {
+        renderPrediction("bingo");
+      }
+
+      if (String(after) !== String(before) && after) {
+        pushOp(`手動刷新 Bingo 成功：第 ${after} 期`);
+        showToast(`Bingo 已刷新到第 ${after} 期`);
+      } else {
+        pushOp("手動刷新 Bingo：目前無更近資料");
+        showToast("目前沒有更近的 Bingo 資料");
+      }
+    } catch (err) {
+      console.error(err);
+      pushOp(`手動刷新 Bingo 失敗：${err.message || "未知錯誤"}`);
+      showToast("Bingo 刷新失敗");
+    } finally {
+      state.manualBingoRefreshing = false;
       updateTopStatus(state.currentGameCode);
     }
   }
@@ -1814,6 +1881,7 @@
     const clearBtn = $("v84ClearBtn");
     const topBtn = $("v84TopBtn");
     const resetWeightsBtn = $("v90ResetWeightsBtn");
+    const bingoRefreshBtn = $("v922BingoRefreshBtn");
 
     if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
     if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
@@ -1827,12 +1895,18 @@
       };
     }
 
+    if (bingoRefreshBtn) {
+      bingoRefreshBtn.onclick = () => manualRefreshBingoNow();
+    }
+
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV921) {
-        el.dataset.boundV921 = "1";
+      if (el && !el.dataset.boundV922) {
+        el.dataset.boundV922 = "1";
         el.addEventListener("change", async () => {
           saveUiSettings();
+          updateBingoRefreshButton();
+
           if (id === "lotterySelect" && el.value) {
             await runPrediction(el.value);
           } else if (state.currentGameCode) {
@@ -1864,6 +1938,7 @@
   window.resetLearningWeights = resetLearningWeights;
   window.refreshAllDataSilently = refreshAllDataSilently;
   window.refreshBingoFastSilently = refreshBingoFastSilently;
+  window.manualRefreshBingoNow = manualRefreshBingoNow;
 
   document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -1879,6 +1954,7 @@
       renderMiniStats();
       renderHeroKpis(null);
       updateTopStatus(null);
+      updateBingoRefreshButton();
 
       await initData();
       const trackingResult = updatePredictionTracking();
