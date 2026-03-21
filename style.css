@@ -599,16 +599,19 @@ img {
 }
 
 /* V92.4.1 非置頂上方區塊 */
-.v924-top-latest {
+.v924-refresh-btn {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #63e6ff 0%, #38ef7d 100%);
+  color: #04111f;
+  font-size: 14px;
+  font-weight: 900;
+  border: 0;
+  box-shadow: 0 10px 22px rgba(56, 239, 125, 0.18);
   position: relative;
-  margin-bottom: 14px;
-  padding: 14px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(19, 34, 58, 0.97), rgba(13, 25, 45, 0.97));
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 14px 32px rgba(0,0,0,.28);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  z-index: 6;
+  pointer-events: auto;
 }
 
 .v924-top-head {
