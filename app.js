@@ -1,12 +1,12 @@
 (() => {
-  const BUILD = window.__APP_BUILD__ || "92.2";
-  const APP_VERSION = `V92.2 Bingo 快速刷新按鈕版（build ${BUILD}）`;
+  const BUILD = window.__APP_BUILD__ || "92.4";
+  const APP_VERSION = `V92.4 Bingo 最新一期 + 立即刷新合併置頂版（build ${BUILD}）`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v922";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v922";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v922";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v922";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v922";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v924";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v924";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v924";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v924";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v924";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -184,11 +184,11 @@
   }
 
   function showToast(text) {
-    const old = document.getElementById("v922Toast");
+    const old = document.getElementById("v924Toast");
     if (old) old.remove();
 
     const el = document.createElement("div");
-    el.id = "v922Toast";
+    el.id = "v924Toast";
     el.textContent = text;
     el.style.position = "fixed";
     el.style.left = "50%";
@@ -1157,6 +1157,31 @@
     return `${main}${special}`;
   }
 
+  function renderPinnedLatestBanner(gameCode, latestDraw) {
+    if (gameCode !== "bingo" || !latestDraw) return "";
+
+    const cfg = GAME_CONFIG[gameCode];
+    return `
+      <div class="v924-sticky-latest">
+        <div class="v924-sticky-top">
+          <div>
+            <div class="v924-sticky-title">Bingo 最新一期</div>
+            <div class="v924-sticky-time">${escapeHtml(formatDate(latestDraw.drawDate || ""))}</div>
+          </div>
+          <div class="v924-sticky-side">
+            <div class="v924-sticky-period">第 ${escapeHtml(latestDraw.period || "—")} 期</div>
+            <button class="v924-refresh-btn" id="v924StickyRefreshBtn" type="button">
+              ${state.manualBingoRefreshing ? "刷新中..." : "立即刷新"}
+            </button>
+          </div>
+        </div>
+        <div class="v924-sticky-balls">
+          ${renderBalls(latestDraw.numbers || [], latestDraw.specialNumber, cfg.specialLabel, "light")}
+        </div>
+      </div>
+    `;
+  }
+
   function renderTagList(items, type) {
     if (!items.length) return `<span class="text-muted">無資料</span>`;
     if (type === "tail") return items.map(item => `<span class="badge">尾${item.tail}（${item.count}）</span>`).join("");
@@ -1403,27 +1428,16 @@
         state.autoRefreshing ? "更新中" : "可用";
     }
 
-    updateBingoRefreshButton();
+    updateStickyRefreshButtons();
   }
 
-  function updateBingoRefreshButton() {
-    const btn = $("v922BingoRefreshBtn");
-    if (!btn) return;
-
-    const isBingo = ($("lotterySelect")?.value || "") === "bingo";
-    const busy = state.manualBingoRefreshing || state.bingoFastRefreshing;
-
-    btn.disabled = busy;
-    btn.style.opacity = busy ? "0.7" : "1";
-
-    if (!isBingo) {
-      btn.textContent = "切到 Bingo 才可刷新";
-    } else if (state.manualBingoRefreshing) {
-      btn.textContent = "Bingo 刷新中...";
-    } else if (state.bingoFastRefreshing) {
-      btn.textContent = "Bingo 檢查中...";
-    } else {
-      btn.textContent = "Bingo 立即刷新";
+  function updateStickyRefreshButtons() {
+    const stickyBtn = $("v924StickyRefreshBtn");
+    if (stickyBtn) {
+      const busy = state.manualBingoRefreshing || state.bingoFastRefreshing;
+      stickyBtn.disabled = busy;
+      stickyBtn.textContent = state.manualBingoRefreshing ? "刷新中..." : (busy ? "檢查中..." : "立即刷新");
+      stickyBtn.style.opacity = busy ? "0.72" : "1";
     }
   }
 
@@ -1465,6 +1479,14 @@
     }
   }
 
+  function bindStickyButtons() {
+    const stickyBtn = $("v924StickyRefreshBtn");
+    if (stickyBtn) {
+      stickyBtn.onclick = () => manualRefreshBingoNow();
+    }
+    updateStickyRefreshButtons();
+  }
+
   function renderPrediction(gameCode) {
     const cfg = GAME_CONFIG[gameCode];
     const historyPeriods = Number($("historyPeriods")?.value || 50);
@@ -1492,6 +1514,7 @@
     setBadge("已完成", true);
 
     container.innerHTML = `
+      ${renderPinnedLatestBanner(gameCode, latestDraw)}
       <div class="v84-main">
         <div class="v84-section">
           <div class="v84-section-head">
@@ -1506,8 +1529,8 @@
         <div class="v84-section">
           <div class="v84-section-head">
             <div>
-              <h3>最新一期</h3>
-              <p>官方最新資料摘要</p>
+              <h3>${gameCode === "bingo" ? "最新一期（同步置頂顯示）" : "最新一期"}</h3>
+              <p>${gameCode === "bingo" ? "上方固定列會同步顯示 Bingo 最新資料與立即刷新按鈕" : "官方最新資料摘要"}</p>
             </div>
           </div>
           <div class="result-grid">
@@ -1599,6 +1622,7 @@
     `;
 
     bindInlineTrackingButtons();
+    bindStickyButtons();
     renderHeroKpis(gameCode);
     renderMiniStats();
     renderOps();
@@ -1881,7 +1905,6 @@
     const clearBtn = $("v84ClearBtn");
     const topBtn = $("v84TopBtn");
     const resetWeightsBtn = $("v90ResetWeightsBtn");
-    const bingoRefreshBtn = $("v922BingoRefreshBtn");
 
     if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
     if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
@@ -1895,17 +1918,12 @@
       };
     }
 
-    if (bingoRefreshBtn) {
-      bingoRefreshBtn.onclick = () => manualRefreshBingoNow();
-    }
-
     ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
       const el = $(id);
-      if (el && !el.dataset.boundV922) {
-        el.dataset.boundV922 = "1";
+      if (el && !el.dataset.boundV924) {
+        el.dataset.boundV924 = "1";
         el.addEventListener("change", async () => {
           saveUiSettings();
-          updateBingoRefreshButton();
 
           if (id === "lotterySelect" && el.value) {
             await runPrediction(el.value);
@@ -1954,7 +1972,6 @@
       renderMiniStats();
       renderHeroKpis(null);
       updateTopStatus(null);
-      updateBingoRefreshButton();
 
       await initData();
       const trackingResult = updatePredictionTracking();
