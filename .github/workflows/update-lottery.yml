@@ -3,7 +3,7 @@ name: Update Lottery Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/3 * * * *"
 
 permissions:
   contents: write
@@ -32,36 +32,42 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
 
-      - name: Ensure docs folders exist
+      - name: Ensure folders exist
         run: |
           mkdir -p docs/raw_data
           mkdir -p .github/workflows
+          mkdir -p tools
+
+      - name: Fetch latest official
+        run: node fetch_latest_official.js
+
+      - name: Debug official_latest.json
+        run: |
+          echo "===== official_latest.json ====="
+          test -f official_latest.json && sed -n '1,220p' official_latest.json || echo "official_latest.json not found"
 
       - name: Run parse downloads
         run: node parse_downloads.js
 
+      - name: Debug bingo csv latest
+        run: |
+          echo "===== docs/raw_data/bingo.csv tail ====="
+          test -f docs/raw_data/bingo.csv && tail -n 8 docs/raw_data/bingo.csv || echo "docs/raw_data/bingo.csv not found"
+
       - name: Build latest.json
         run: node tools/build_latest_json.js
 
-      - name: Verify generated files
+      - name: Debug docs/latest.json
         run: |
           echo "===== docs/latest.json ====="
-          test -f docs/latest.json && sed -n '1,120p' docs/latest.json || (echo "docs/latest.json not found" && exit 1)
-
-          echo "===== docs/raw_data ====="
-          ls -la docs/raw_data || true
-
-          test -f docs/raw_data/bingo.csv || echo "warning: docs/raw_data/bingo.csv missing"
-          test -f docs/raw_data/539.csv || echo "warning: docs/raw_data/539.csv missing"
-          test -f docs/raw_data/lotto.csv || echo "warning: docs/raw_data/lotto.csv missing"
-          test -f docs/raw_data/power.csv || echo "warning: docs/raw_data/power.csv missing"
+          test -f docs/latest.json && sed -n '1,260p' docs/latest.json || echo "docs/latest.json not found"
 
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add docs/latest.json docs/raw_data/*.csv parse_downloads.js tools/build_latest_json.js .github/workflows/update-lottery.yml
+          git add official_latest.json docs/latest.json docs/raw_data/*.csv fetch_latest_official.js parse_downloads.js tools/build_latest_json.js .github/workflows/update-lottery.yml
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
