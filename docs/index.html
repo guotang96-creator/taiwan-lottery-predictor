@@ -6,21 +6,21 @@
     name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
   />
-  <title>台灣彩券 AI 預測系統 V93.1.4</title>
+  <title>台灣彩券 AI 預測系統 V93.1.5</title>
 
   <meta name="theme-color" content="#081224" />
   <meta
     name="description"
-    content="台灣彩券 AI 預測系統 V93.1.4｜GitHub Pages 強化學習增強修正版｜BINGO 每日全期數學習｜四彩種自動學習"
+    content="台灣彩券 AI 預測系統 V93.1.5｜GitHub Pages 最新資料修正版｜BINGO 每日全期數學習｜四彩種自動學習"
   />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="彩券 AI 預測" />
+  <meta name="apple-mobile-web-app-title" content="彩券AI" />
 
-  <link rel="manifest" href="manifest.json?v=93.1.4" />
+  <link rel="manifest" href="manifest.json?v=93.1.5" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <link rel="stylesheet" href="style.css?v=93.1.4" />
+  <link rel="stylesheet" href="style.css?v=93.1.5" />
 
   <style>
     :root {
@@ -309,6 +309,7 @@
       font-size: 2rem;
       font-weight: 800;
       line-height: 1.2;
+      word-break: break-word;
     }
 
     .status-note {
@@ -470,7 +471,7 @@
         <div class="brand-text">
           <h1 class="brand-title">台灣彩券 AI 預測系統</h1>
           <p class="brand-subtitle">
-            <span id="appVersion">V93.1.4 | GitHub Pages 強化學習增強修正版</span><br />
+            <span id="appVersion">V93.1.5 | GitHub Pages 最新資料修正版</span><br />
             極簡首頁｜BINGO 每日全期數學習｜四彩種自動學習
           </p>
         </div>
@@ -512,7 +513,7 @@
               id="versionInput"
               data-role="version-input"
               type="text"
-              value="V93.1.4"
+              value="V93.1.5"
               readonly
             />
           </div>
@@ -609,16 +610,21 @@
   <div id="toast" class="toast" data-role="toast"></div>
 
   <script>
-    window.__APP_BUILD__ = "93.1.4";
+    window.__APP_BUILD__ = "93.1.5";
   </script>
-  <script defer src="app.js?v=93.1.4"></script>
+  <script defer src="app.js?v=93.1.5"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch((err) => {
-          console.warn("service worker 註冊失敗", err);
-        });
+        navigator.serviceWorker
+          .register("./service-worker.js?v=93.1.5")
+          .then((registration) => {
+            console.log("service worker 註冊成功:", registration.scope);
+          })
+          .catch((err) => {
+            console.warn("service worker 註冊失敗", err);
+          });
       });
     }
   </script>
