@@ -1,2034 +1,1430 @@
 (() => {
-  const BUILD = window.__APP_BUILD__ || "93.0.0";
-  const APP_VERSION = `V93.0.0 GitHub Pages 最終版（build ${BUILD}）`;
+  "use strict";
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9300";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v9300";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9300";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9300";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9300";
+  const BUILD = window.__APP_BUILD__ || "93.1.0";
+  const APP_VERSION = `V93.1.0 GitHub Pages 精簡自學版（build ${BUILD}）`;
+
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9310";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v9310";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9310";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9310";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9310";
+  const UI_MODE_KEY = "taiwan_lottery_ui_mode_v9310";
+  const LEARNING_KEY = "taiwan_lottery_learning_v9310";
+  const LAST_FETCH_KEY = "taiwan_lottery_last_fetch_v9310";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
 
-  const JSON_CANDIDATES = [
-    "./latest.json"
-  ];
+  const JSON_CANDIDATES = ["./latest.json"];
 
   const CSV_CANDIDATES = {
-    bingo: [
-      "./raw_data/bingo.csv"
-    ],
-    daily539: [
-      "./raw_data/539.csv"
-    ],
-    lotto649: [
-      "./raw_data/lotto.csv"
-    ],
-    superLotto638: [
-      "./raw_data/power.csv"
-    ]
+    bingo: ["./raw_data/bingo.csv"],
+    daily539: ["./raw_data/539.csv"],
+    lotto649: ["./raw_data/649.csv", "./raw_data/lotto649.csv"],
+    power: ["./raw_data/power.csv", "./raw_data/superlotto638.csv", "./raw_data/638.csv"]
   };
 
-  const GAME_CONFIG = {
+  const GAME_META = {
+    bingo: { label: "BINGO BINGO", max: 80, pick: 10, colorClass: "g-bingo" },
+    daily539: { label: "今彩539", max: 39, pick: 5, colorClass: "g-539" },
+    lotto649: { label: "大樂透", max: 49, pick: 6, colorClass: "g-649" },
+    power: { label: "威力彩", max: 38, pick: 6, colorClass: "g-power" }
+  };
+
+  const DEFAULT_SETTINGS = {
+    simpleUI: true,
+    selectedGame: "bingo",
+    bingoPickCount: 10,
+    autoRefresh: true
+  };
+
+  const DEFAULT_AUTO_STATE = {
+    bingo: { lastRunAt: null, lastSuccess: false, lastPeriod: null, nextAt: null },
+    daily539: { lastRunAt: null, lastSuccess: false, lastPeriod: null, nextAt: null },
+    lotto649: { lastRunAt: null, lastSuccess: false, lastPeriod: null, nextAt: null },
+    power: { lastRunAt: null, lastSuccess: false, lastPeriod: null, nextAt: null }
+  };
+
+  const LEARNING_DEFAULT = {
     bingo: {
-      code: "bingo",
-      key: "bingo",
-      label: "Bingo Bingo",
-      min: 1,
-      max: 80,
-      mainCount: () => Number(document.getElementById("bingoCount")?.value || 10),
-      historyMainCount: 20,
-      specialLabel: "超級獎號",
-      specialMin: 1,
-      specialMax: 80
+      drawsLearned: 0,
+      lastPeriod: null,
+      numberWeights: {},
+      tailWeights: {},
+      pairWeights: {},
+      missWeights: {},
+      updatedAt: null
     },
-    "539": {
-      code: "539",
-      key: "daily539",
-      label: "今彩539",
-      min: 1,
-      max: 39,
-      mainCount: () => 5,
-      historyMainCount: 5,
-      specialLabel: "",
-      specialMin: null,
-      specialMax: null
+    daily539: {
+      drawsLearned: 0,
+      lastPeriod: null,
+      numberWeights: {},
+      tailWeights: {},
+      pairWeights: {},
+      missWeights: {},
+      updatedAt: null
     },
-    "649": {
-      code: "649",
-      key: "lotto649",
-      label: "大樂透",
-      min: 1,
-      max: 49,
-      mainCount: () => 6,
-      historyMainCount: 6,
-      specialLabel: "特別號",
-      specialMin: 1,
-      specialMax: 49
+    lotto649: {
+      drawsLearned: 0,
+      lastPeriod: null,
+      numberWeights: {},
+      tailWeights: {},
+      pairWeights: {},
+      missWeights: {},
+      updatedAt: null
     },
-    "638": {
-      code: "638",
-      key: "superLotto638",
-      label: "威力彩",
-      min: 1,
-      max: 38,
-      mainCount: () => 6,
-      historyMainCount: 6,
-      specialLabel: "第二區",
-      specialMin: 1,
-      specialMax: 8
+    power: {
+      drawsLearned: 0,
+      lastPeriod: null,
+      zone1Weights: {},
+      zone2Weights: {},
+      tailWeights: {},
+      pairWeights: {},
+      missWeights: {},
+      updatedAt: null
     }
   };
 
   const state = {
-    latestJson: null,
-    latestJsonPath: "",
-    currentGameCode: null,
-    currentModes: [],
-    currentLatestDraw: null,
-    autoTimer: null,
-    bingoFastTimer: null,
-    autoRefreshing: false,
-    bingoFastRefreshing: false,
-    manualBingoRefreshing: false,
-    lastAutoRefreshAt: null,
-    lastBingoFastRefreshAt: null,
-    lastCacheBust: "",
-    history: {
+    initialized: false,
+    loading: false,
+    mounted: false,
+    root: null,
+    settings: readJsonStorage(SETTINGS_KEY, DEFAULT_SETTINGS),
+    autoState: { ...DEFAULT_AUTO_STATE, ...readJsonStorage(AUTO_STATE_KEY, {}) },
+    lastFetchState: readJsonStorage(LAST_FETCH_KEY, {
+      bingo: { lastPeriod: null, updatedAt: null },
+      daily539: { lastPeriod: null, updatedAt: null },
+      lotto649: { lastPeriod: null, updatedAt: null },
+      power: { lastPeriod: null, updatedAt: null }
+    }),
+    data: {
       bingo: [],
       daily539: [],
       lotto649: [],
-      superLotto638: []
+      power: []
     },
-    historySourcePath: {
-      bingo: "",
-      daily539: "",
-      lotto649: "",
-      superLotto638: ""
+    latest: {},
+    predictions: {
+      bingo: [],
+      daily539: [],
+      lotto649: [],
+      power: { zone1: [], zone2: null }
     },
-    bingoLiveDraw: null
+    statusText: "初始化中…",
+    lastRenderAt: null,
+    timers: {
+      bingoSchedule: null,
+      generalRefresh: null,
+      bingoFastRefresh: null
+    }
   };
 
-  function $(id) {
-    return document.getElementById(id);
+  function readJsonStorage(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return structuredClone(fallback);
+      return JSON.parse(raw);
+    } catch (err) {
+      console.warn("readJsonStorage failed:", key, err);
+      return structuredClone(fallback);
+    }
+  }
+
+  function writeJsonStorage(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (err) {
+      console.warn("writeJsonStorage failed:", key, err);
+    }
+  }
+
+  function nowTs() {
+    return new Date().toISOString();
   }
 
   function pad2(n) {
     return String(n).padStart(2, "0");
   }
 
-  function nowStamp() {
-    return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  function formatDateTime(value) {
+    if (!value) return "-";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
   }
 
-  function cacheBustUrl(url) {
-    const joiner = url.includes("?") ? "&" : "?";
-    return `${url}${joiner}v=${encodeURIComponent(state.lastCacheBust || nowStamp())}&t=${Date.now()}`;
+  function formatOnlyDate(value) {
+    if (!value) return "-";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
   }
 
-  function escapeHtml(str) {
-    return String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+  function formatPeriod(period) {
+    return period == null ? "-" : String(period);
   }
 
-  function range(min, max) {
-    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  function uniqSorted(nums) {
+    return [...new Set((nums || []).map((n) => Number(n)).filter((n) => Number.isFinite(n)))].sort((a, b) => a - b);
   }
 
-  function uniqSorted(arr) {
-    return [...new Set(arr)].sort((a, b) => a - b);
+  function getTail(n) {
+    return Number(n) % 10;
   }
 
-  function numericArray(arr, min, max) {
-    if (!Array.isArray(arr)) return [];
-    return uniqSorted(
-      arr.map(v => Number(v)).filter(v => Number.isFinite(v) && v >= min && v <= max)
-    );
+  function safeInc(obj, key, amount = 1) {
+    obj[key] = (obj[key] || 0) + amount;
   }
 
-  function setBadge(text, ok = true) {
-    const badge = $("resultBadge");
-    if (!badge) return;
-    badge.textContent = text;
-    if (ok) {
-      badge.style.background = "rgba(255,255,255,.08)";
-      badge.style.color = "#ffffff";
-      badge.style.border = "1px solid rgba(255,255,255,.10)";
-    } else {
-      badge.style.background = "rgba(255,193,7,.15)";
-      badge.style.color = "#ffe08a";
-      badge.style.border = "1px solid rgba(255,193,7,.25)";
+  function decayWeights(obj, decay = 0.985, minKeep = 0.0001) {
+    for (const k of Object.keys(obj)) {
+      obj[k] *= decay;
+      if (Math.abs(obj[k]) < minKeep) delete obj[k];
     }
   }
 
-  function showToast(text) {
-    const old = document.getElementById("v9300Toast");
-    if (old) old.remove();
-
-    const el = document.createElement("div");
-    el.id = "v9300Toast";
-    el.textContent = text;
-    el.style.position = "fixed";
-    el.style.left = "50%";
-    el.style.bottom = "110px";
-    el.style.transform = "translateX(-50%)";
-    el.style.background = "rgba(6,17,32,.96)";
-    el.style.color = "#fff";
-    el.style.padding = "12px 18px";
-    el.style.borderRadius = "999px";
-    el.style.zIndex = "4000";
-    el.style.fontWeight = "800";
-    el.style.fontSize = "14px";
-    el.style.border = "1px solid rgba(255,255,255,.10)";
-    el.style.boxShadow = "0 10px 30px rgba(0,0,0,.3)";
-    document.body.appendChild(el);
-
-    setTimeout(() => {
-      el.style.transition = "opacity .2s ease";
-      el.style.opacity = "0";
-      setTimeout(() => el.remove(), 220);
-    }, 1500);
+  function pairKey(a, b) {
+    const x = Math.min(Number(a), Number(b));
+    const y = Math.max(Number(a), Number(b));
+    return `${x}-${y}`;
   }
 
-  function formatTaiwanTime(input = new Date()) {
-    const d = input instanceof Date ? input : new Date(input);
-    if (Number.isNaN(d.getTime())) return "";
-
-    const taiwan = new Date(d.getTime() + 8 * 60 * 60 * 1000);
-    const y = taiwan.getUTCFullYear();
-    const m = String(taiwan.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(taiwan.getUTCDate()).padStart(2, "0");
-    const hh = String(taiwan.getUTCHours()).padStart(2, "0");
-    const mm = String(taiwan.getUTCMinutes()).padStart(2, "0");
-
-    return `${y}-${m}-${day} ${hh}:${mm}`;
-  }
-
-  function formatDate(value) {
-    if (!value) return "—";
-    const raw = String(value).trim();
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
-    if (m) return `${m[1]}-${m[2]}-${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
-    const d = new Date(raw);
-    if (Number.isNaN(d.getTime())) return raw;
-    return formatTaiwanTime(d);
-  }
-
-  function toLocaleDateText(value) {
-    if (!value) return "尚未取得";
-    const raw = String(value).trim();
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
-    if (m) return `${m[1]}/${m[2]}/${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
-    const d = new Date(raw);
-    if (Number.isNaN(d.getTime())) return raw;
-    const taiwan = new Date(d.getTime() + 8 * 60 * 60 * 1000);
-    return `${taiwan.getUTCFullYear()}/${pad2(taiwan.getUTCMonth() + 1)}/${pad2(taiwan.getUTCDate())} ${pad2(taiwan.getUTCHours())}:${pad2(taiwan.getUTCMinutes())}`;
-  }
-
-  function getSetCount() {
-    return Math.max(1, Math.min(5, Number($("setCount")?.value || 3)));
-  }
-
-  function normalizeSpecialValue(value, min = 1, max = 99) {
-    if (value === null || value === undefined || value === "") return null;
-    const num = Number(value);
-    if (!Number.isFinite(num)) return null;
-    if (min != null && num < min) return null;
-    if (max != null && num > max) return null;
-    return num;
-  }
-
-  function sanitizeDraw(gameCode, draw) {
-    if (!draw || typeof draw !== "object") return null;
-    const cfg = GAME_CONFIG[gameCode];
-    if (!cfg) return draw;
-    return {
-      ...draw,
-      numbers: Array.isArray(draw.numbers) ? draw.numbers.map(Number).filter(Number.isFinite) : [],
-      orderNumbers: Array.isArray(draw.orderNumbers) ? draw.orderNumbers.map(Number).filter(Number.isFinite) : [],
-      specialNumber: normalizeSpecialValue(draw.specialNumber, cfg.specialMin, cfg.specialMax)
-    };
-  }
-
-  function defaultLearningWeights() {
-    return {
-      bingo: { freq: 2.0, miss: 1.3, tail: 0.15, latestPenalty: -1.2, special: 1.0 },
-      "539": { freq: 2.0, miss: 1.3, tail: 0.15, latestPenalty: -1.2, special: 0 },
-      "649": { freq: 2.0, miss: 1.3, tail: 0.15, latestPenalty: -1.2, special: 1.4 },
-      "638": { freq: 2.0, miss: 1.3, tail: 0.15, latestPenalty: -1.2, special: 1.8 }
-    };
-  }
-
-  function readLearningWeights() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(WEIGHTS_KEY) || "null");
-      const defaults = defaultLearningWeights();
-      if (!raw || typeof raw !== "object") return defaults;
-      return {
-        bingo: { ...defaults.bingo, ...(raw.bingo || {}) },
-        "539": { ...defaults["539"], ...(raw["539"] || {}) },
-        "649": { ...defaults["649"], ...(raw["649"] || {}) },
-        "638": { ...defaults["638"], ...(raw["638"] || {}) }
-      };
-    } catch {
-      return defaultLearningWeights();
+  function normalizeScores(scoreMap) {
+    const values = Object.values(scoreMap);
+    if (!values.length) return scoreMap;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (max === min) return scoreMap;
+    const out = {};
+    for (const [k, v] of Object.entries(scoreMap)) {
+      out[k] = (v - min) / (max - min);
     }
+    return out;
   }
 
-  function writeLearningWeights(weights) {
-    localStorage.setItem(WEIGHTS_KEY, JSON.stringify(weights));
+  function pickTopNumbers(scoreMap, count, exclude = []) {
+    const excluded = new Set(exclude.map(Number));
+    return Object.entries(scoreMap)
+      .filter(([n]) => !excluded.has(Number(n)))
+      .sort((a, b) => b[1] - a[1] || Number(a[0]) - Number(b[0]))
+      .slice(0, count)
+      .map(([n]) => Number(n));
   }
 
-  function clampWeight(value, min, max) {
-    return Math.max(min, Math.min(max, Number(value)));
-  }
-
-  function getLearningWeights(gameCode) {
-    const all = readLearningWeights();
-    return all[gameCode] || defaultLearningWeights()[gameCode];
-  }
-
-  function resetLearningWeights() {
-    writeLearningWeights(defaultLearningWeights());
-  }
-
-  function readAutoState() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(AUTO_STATE_KEY) || "{}");
-      return raw && typeof raw === "object" ? raw : {};
-    } catch {
-      return {};
+  function sampleRecentNumbers(gameKey, count = 3) {
+    const rows = state.data[gameKey] || [];
+    const recent = rows.slice(0, count);
+    if (gameKey === "power") {
+      const out = [];
+      recent.forEach((row) => {
+        (row.zone1 || []).forEach((n) => out.push(n));
+      });
+      return uniqSorted(out).slice(0, 12);
     }
+    const out = [];
+    recent.forEach((row) => {
+      (row.numbers || []).forEach((n) => out.push(n));
+    });
+    return uniqSorted(out).slice(0, 12);
   }
 
-  function writeAutoState(data) {
-    localStorage.setItem(AUTO_STATE_KEY, JSON.stringify(data || {}));
+  async function fetchJSON(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${url}`);
+    }
+    return await res.json();
   }
 
-  function migrateOldTimeRecords() {
-    try {
-      const opsRaw = JSON.parse(localStorage.getItem(OPS_KEY) || "[]");
-      if (Array.isArray(opsRaw)) {
-        const fixedOps = opsRaw.map(item => {
-          const rawTime = String(item?.time || "").trim();
-          if (/T.*Z$/.test(rawTime)) {
-            return {
-              ...item,
-              time: formatTaiwanTime(rawTime)
-            };
-          }
-          return item;
-        });
-        localStorage.setItem(OPS_KEY, JSON.stringify(fixedOps));
-      }
-    } catch {}
-
-    try {
-      const historyRaw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      if (Array.isArray(historyRaw)) {
-        const fixedHistory = historyRaw.map(item => {
-          const rawCreatedAt = String(item?.createdAt || "").trim();
-          if (/T.*Z$/.test(rawCreatedAt)) {
-            return {
-              ...item,
-              createdAt: formatTaiwanTime(rawCreatedAt)
-            };
-          }
-          return item;
-        });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(fixedHistory));
-      }
-    } catch {}
+  async function fetchText(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${url}`);
+    }
+    return await res.text();
   }
 
-  async function fetchFirstText(paths) {
+  async function fetchFirstSuccess(candidates, reader) {
     const errors = [];
-    for (const path of paths) {
+    for (const url of candidates) {
       try {
-        const res = await fetch(cacheBustUrl(path), {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            Pragma: "no-cache"
-          }
-        });
-        if (!res.ok) {
-          errors.push(`${path}: HTTP ${res.status}`);
-          continue;
-        }
-        return { path, text: await res.text() };
+        return await reader(url);
       } catch (err) {
-        errors.push(`${path}: ${err.message}`);
+        errors.push(`${url}: ${err.message}`);
       }
     }
     throw new Error(errors.join(" | "));
   }
 
-  async function fetchFirstJson(paths) {
-    const result = await fetchFirstText(paths);
-    return { path: result.path, json: JSON.parse(result.text) };
-  }
-
-  function parseCsvLine(line) {
-    const out = [];
-    let current = "";
+  function parseCSV(text) {
+    const rows = [];
+    let row = [];
+    let cell = "";
     let inQuotes = false;
 
-    for (let i = 0; i < line.length; i += 1) {
-      const ch = line[i];
-      const next = line[i + 1];
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      const next = text[i + 1];
+
       if (ch === '"') {
         if (inQuotes && next === '"') {
-          current += '"';
-          i += 1;
+          cell += '"';
+          i++;
         } else {
           inQuotes = !inQuotes;
         }
       } else if (ch === "," && !inQuotes) {
-        out.push(current);
-        current = "";
+        row.push(cell);
+        cell = "";
+      } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+        if (ch === "\r" && next === "\n") i++;
+        row.push(cell);
+        if (row.some((c) => String(c).trim() !== "")) rows.push(row);
+        row = [];
+        cell = "";
       } else {
-        current += ch;
+        cell += ch;
       }
     }
+    row.push(cell);
+    if (row.some((c) => String(c).trim() !== "")) rows.push(row);
 
-    out.push(current);
-    return out.map(v => v.trim());
-  }
-
-  function parseCsv(text) {
-    const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(Boolean);
-    if (!lines.length) return [];
-    const headers = parseCsvLine(lines[0]).map(h => h.trim());
-    const rows = [];
-    for (let i = 1; i < lines.length; i += 1) {
-      const cols = parseCsvLine(lines[i]);
-      const row = {};
+    if (!rows.length) return [];
+    const headers = rows[0].map((h) => String(h).trim());
+    return rows.slice(1).map((r) => {
+      const obj = {};
       headers.forEach((h, idx) => {
-        row[h] = cols[idx] ?? "";
+        obj[h] = r[idx] != null ? String(r[idx]).trim() : "";
       });
-      row.__raw = cols;
-      rows.push(row);
-    }
-    return rows;
-  }
-
-  function firstMatchValue(obj, aliases) {
-    const keys = Object.keys(obj);
-    for (const alias of aliases) {
-      const key = keys.find(k => k.toLowerCase() === alias.toLowerCase());
-      if (key && obj[key] !== "") return obj[key];
-    }
-    for (const alias of aliases) {
-      const key = keys.find(k => k.toLowerCase().includes(alias.toLowerCase()));
-      if (key && obj[key] !== "") return obj[key];
-    }
-    return "";
-  }
-
-  function findSequentialNumberKeys(row) {
-    return Object.keys(row)
-      .filter(k => k !== "__raw")
-      .filter(k => /(^n\d+$)|(^num\d+$)|(^no\d+$)|(^ball\d+$)|(^m\d+$)/i.test(k))
-      .sort((a, b) => Number((a.match(/\d+/) || ["0"])[0]) - Number((b.match(/\d+/) || ["0"])[0]));
-  }
-
-  function extractNumbersFromRow(row, min, max, desiredCount) {
-    const seqKeys = findSequentialNumberKeys(row);
-    if (seqKeys.length) {
-      const nums = numericArray(seqKeys.map(k => row[k]), min, max);
-      if (nums.length) return nums.slice(0, desiredCount);
-    }
-
-    const numberKeys = Object.keys(row)
-      .filter(k => k !== "__raw")
-      .filter(k => /number|draw|show|open|big|ball|num|special|second/i.test(k));
-
-    for (const key of numberKeys) {
-      const raw = String(row[key] ?? "").trim();
-      if (!raw) continue;
-      if (/[ |\-/|]/.test(raw)) {
-        const parts = raw.split(/[\s|/-]+/).filter(Boolean);
-        const nums = numericArray(parts, min, max);
-        if (nums.length >= Math.min(3, desiredCount)) return nums.slice(0, desiredCount);
-      }
-    }
-
-    return numericArray(row.__raw || [], min, max).slice(0, desiredCount);
-  }
-
-  function inferPeriod(row) {
-    const direct = firstMatchValue(row, ["issue", "period", "drawterm", "term", "期別", "期數"]);
-    if (direct) return String(direct);
-    const raw = row.__raw || [];
-    const candidate = raw.find(v => /^\d{6,}$/.test(String(v)));
-    return candidate ? String(candidate) : "";
-  }
-
-  function inferDate(row) {
-    const direct = firstMatchValue(row, ["date", "drawdate", "lotterydate", "ddate", "開獎日期", "日期"]);
-    if (direct) return String(direct);
-    const raw = row.__raw || [];
-    const candidate = raw.find(v => /\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(String(v)));
-    return candidate ? String(candidate) : "";
-  }
-
-  function inferSpecial(row, aliases, min, max) {
-    return normalizeSpecialValue(firstMatchValue(row, aliases), min, max);
-  }
-
-  function normalizeHistoryRows(gameKey, rows) {
-    const cfg = Object.values(GAME_CONFIG).find(g => g.key === gameKey);
-    if (!cfg) return [];
-
-    const normalized = rows.map(row => {
-      const period = inferPeriod(row);
-      const drawDate = inferDate(row);
-
-      if (gameKey === "bingo") {
-        const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 20);
-        const specialNumber = inferSpecial(row, ["special", "specialnumber", "supernumber", "超級獎號"], cfg.specialMin, cfg.specialMax);
-        return {
-          period,
-          drawDate,
-          redeemableDate: "",
-          numbers,
-          orderNumbers: numbers.slice(),
-          specialNumber,
-          source: "history-csv"
-        };
-      }
-
-      if (gameKey === "daily539") {
-        const numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 5);
-        return {
-          period,
-          drawDate,
-          redeemableDate: "",
-          numbers,
-          orderNumbers: [],
-          specialNumber: null,
-          source: "history-csv"
-        };
-      }
-
-      if (gameKey === "lotto649") {
-        let numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 6);
-        let specialNumber = inferSpecial(row, ["special", "specialnumber", "specialnum", "bonusnumber", "特別號"], cfg.specialMin, cfg.specialMax);
-        if (specialNumber == null) {
-          const seqKeys = findSequentialNumberKeys(row);
-          if (seqKeys.length >= 7) specialNumber = normalizeSpecialValue(row[seqKeys[6]], cfg.specialMin, cfg.specialMax);
-        }
-        if (numbers.length > 6) numbers = numbers.slice(0, 6);
-        return {
-          period,
-          drawDate,
-          redeemableDate: "",
-          numbers,
-          orderNumbers: [],
-          specialNumber,
-          source: "history-csv"
-        };
-      }
-
-      if (gameKey === "superLotto638") {
-        let numbers = extractNumbersFromRow(row, cfg.min, cfg.max, 6);
-        let specialNumber = inferSpecial(row, ["second", "special", "specialnumber", "specialnum", "secondareanumber", "第二區", "第二區號碼"], cfg.specialMin, cfg.specialMax);
-        if (specialNumber == null) specialNumber = normalizeSpecialValue(firstMatchValue(row, ["second"]), cfg.specialMin, cfg.specialMax);
-        if (numbers.length > 6) numbers = numbers.slice(0, 6);
-        return {
-          period,
-          drawDate,
-          redeemableDate: "",
-          numbers,
-          orderNumbers: [],
-          specialNumber,
-          source: "history-csv"
-        };
-      }
-
-      return null;
-    }).filter(Boolean);
-
-    return normalized
-      .filter(item => item.period || item.drawDate || (item.numbers && item.numbers.length))
-      .filter(item => item.numbers.length >= Math.min(cfg.historyMainCount, 3));
-  }
-
-  async function loadHistoryCsv(gameKey) {
-    const result = await fetchFirstText(CSV_CANDIDATES[gameKey]);
-    return {
-      path: result.path,
-      data: normalizeHistoryRows(gameKey, parseCsv(result.text))
-    };
-  }
-
-  function toSortableTime(draw) {
-    const raw = String(draw?.drawDate || "").replace(" ", "T");
-    const dateValue = raw ? new Date(raw).getTime() : 0;
-    return {
-      safeDate: Number.isFinite(dateValue) ? dateValue : 0,
-      safePeriod: Number(draw?.period || 0)
-    };
-  }
-
-  function sortDrawsDesc(draws) {
-    return [...draws].sort((a, b) => {
-      const ta = toSortableTime(a);
-      const tb = toSortableTime(b);
-      if (tb.safeDate !== ta.safeDate) return tb.safeDate - ta.safeDate;
-      return tb.safePeriod - ta.safePeriod;
+      return obj;
     });
   }
 
-  function getLatestDraw(gameKey) {
-    if (gameKey === "bingo" && state.bingoLiveDraw) {
-      return sanitizeDraw("bingo", state.bingoLiveDraw);
+  function detectNumberArrayFromObject(obj, maxCount) {
+    const candidates = [];
+
+    for (const [k, v] of Object.entries(obj)) {
+      if (Array.isArray(v)) {
+        const nums = v.map(Number).filter(Number.isFinite);
+        if (nums.length) candidates.push(nums);
+      } else if (typeof v === "string" && /[,、\s]/.test(v)) {
+        const nums = v.split(/[,、\s]+/).map(Number).filter(Number.isFinite);
+        if (nums.length) candidates.push(nums);
+      }
     }
 
-    const raw =
-      state.latestJson?.[gameKey]?.latestOfficial ||
-      state.latestJson?.[gameKey]?.latest ||
-      state.latestJson?.officialLatest?.[gameKey] ||
-      null;
+    candidates.sort((a, b) => b.length - a.length);
+    const best = candidates[0] || [];
+    return uniqSorted(maxCount ? best.slice(0, maxCount) : best);
+  }
 
-    const map = {
-      bingo: "bingo",
-      daily539: "539",
-      lotto649: "649",
-      superLotto638: "638"
+  function normalizeGameRowsFromLatestJson(json) {
+    const out = {
+      bingo: [],
+      daily539: [],
+      lotto649: [],
+      power: []
     };
 
-    return sanitizeDraw(map[gameKey], raw);
+    if (!json || typeof json !== "object") return out;
+
+    const possibleBuckets = [
+      json.bingo,
+      json.daily539,
+      json.lotto649,
+      json.power,
+      json.games,
+      json.content,
+      json.data,
+      json
+    ].filter(Boolean);
+
+    for (const bucket of possibleBuckets) {
+      if (Array.isArray(bucket?.bingo)) {
+        out.bingo = normalizeBingoRows(bucket.bingo);
+      }
+      if (Array.isArray(bucket?.daily539)) {
+        out.daily539 = normalize539Rows(bucket.daily539);
+      }
+      if (Array.isArray(bucket?.lotto649)) {
+        out.lotto649 = normalize649Rows(bucket.lotto649);
+      }
+      if (Array.isArray(bucket?.power)) {
+        out.power = normalizePowerRows(bucket.power);
+      }
+
+      if (Array.isArray(bucket?.bingoBingoRes)) {
+        out.bingo = normalizeBingoRows(bucket.bingoBingoRes);
+      }
+      if (Array.isArray(bucket?.daily539Res)) {
+        out.daily539 = normalize539Rows(bucket.daily539Res);
+      }
+      if (Array.isArray(bucket?.lotto649Res)) {
+        out.lotto649 = normalize649Rows(bucket.lotto649Res);
+      }
+      if (Array.isArray(bucket?.superLotto638Res)) {
+        out.power = normalizePowerRows(bucket.superLotto638Res);
+      }
+    }
+
+    return out;
   }
 
-  function getHistory(gameKey, limit) {
-    const map = {
-      bingo: "bingo",
-      daily539: "539",
-      lotto649: "649",
-      superLotto638: "638"
-    };
-    const gameCode = map[gameKey];
-    const history = (state.history[gameKey] || []).map(item => sanitizeDraw(gameCode, item)).filter(Boolean);
-    const latest = getLatestDraw(gameKey);
-    const merged = [...history];
-
-    if (latest) {
-      const latestKey = `${latest.period || ""}__${latest.drawDate || ""}`;
-      const idx = merged.findIndex(item => `${item.period || ""}__${item.drawDate || ""}` === latestKey);
-      if (idx >= 0) merged[idx] = latest;
-      else merged.push(latest);
-    }
-
-    const deduped = new Map();
-    for (const item of merged) {
-      const key = `${item.period || ""}__${item.drawDate || ""}`;
-      if (!deduped.has(key)) deduped.set(key, item);
-      else if ((item.numbers?.length || 0) >= (deduped.get(key).numbers?.length || 0)) deduped.set(key, item);
-    }
-
-    return sortDrawsDesc([...deduped.values()]).slice(0, limit);
+  function normalizeBingoRows(rows) {
+    return (rows || [])
+      .map((row) => {
+        const numbers = uniqSorted(row.drawNumberAppear || row.drawNumberSize || row.numbers || detectNumberArrayFromObject(row, 20));
+        return {
+          period: row.period || row.draw || row.issue || null,
+          lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+          numbers
+        };
+      })
+      .filter((row) => row.period && row.numbers.length)
+      .sort((a, b) => Number(b.period) - Number(a.period));
   }
 
-  function getBingoCsvLatestDraw() {
-    const list = sortDrawsDesc(state.history.bingo || []);
-    return list[0] ? sanitizeDraw("bingo", list[0]) : null;
+  function normalize539Rows(rows) {
+    return (rows || [])
+      .map((row) => {
+        const numbers = uniqSorted(row.drawNumberSize || row.numbers || detectNumberArrayFromObject(row, 5));
+        return {
+          period: row.period || row.draw || row.issue || null,
+          lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+          numbers
+        };
+      })
+      .filter((row) => row.period && row.numbers.length)
+      .sort((a, b) => Number(b.period) - Number(a.period));
   }
 
-  function pickNewerBingoSource() {
-    const jsonLatest =
-      sanitizeDraw("bingo", state.latestJson?.bingo?.latestOfficial) ||
-      sanitizeDraw("bingo", state.latestJson?.bingo?.latest) ||
-      sanitizeDraw("bingo", state.latestJson?.officialLatest?.bingo);
-
-    const csvLatest = getBingoCsvLatestDraw();
-
-    if (!jsonLatest && csvLatest) {
-      state.bingoLiveDraw = { ...csvLatest, source: "bingo-csv-live" };
-      return;
-    }
-
-    if (!csvLatest && jsonLatest) {
-      state.bingoLiveDraw = { ...jsonLatest, source: jsonLatest.source || "official-api" };
-      return;
-    }
-
-    if (!jsonLatest && !csvLatest) {
-      state.bingoLiveDraw = null;
-      return;
-    }
-
-    const jsonPeriod = Number(jsonLatest?.period || 0);
-    const csvPeriod = Number(csvLatest?.period || 0);
-
-    if (csvPeriod >= jsonPeriod) {
-      state.bingoLiveDraw = { ...csvLatest, source: "bingo-csv-live" };
-    } else {
-      state.bingoLiveDraw = { ...jsonLatest, source: jsonLatest.source || "official-api" };
-    }
+  function normalize649Rows(rows) {
+    return (rows || [])
+      .map((row) => {
+        const numbers = uniqSorted(row.drawNumberSize || row.numbers || detectNumberArrayFromObject(row, 6));
+        return {
+          period: row.period || row.draw || row.issue || null,
+          lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+          numbers,
+          special: row.specialNum != null ? Number(row.specialNum) : row.bonus != null ? Number(row.bonus) : null
+        };
+      })
+      .filter((row) => row.period && row.numbers.length)
+      .sort((a, b) => Number(b.period) - Number(a.period));
   }
 
-  function frequencyAnalysis(draws, min, max) {
-    const freq = new Map(range(min, max).map(n => [n, 0]));
-    draws.forEach(draw => (draw.numbers || []).forEach(n => freq.set(n, (freq.get(n) || 0) + 1)));
-    const arr = [...freq.entries()].map(([number, count]) => ({ number, count }));
-    return {
-      hot: [...arr].sort((a, b) => b.count - a.count || a.number - b.number).slice(0, 10),
-      cold: [...arr].sort((a, b) => a.count - b.count || a.number - b.number).slice(0, 10),
-      map: freq
-    };
+  function normalizePowerRows(rows) {
+    return (rows || [])
+      .map((row) => {
+        const zone1 = uniqSorted(row.drawNumberSize || row.zone1 || row.numbers || detectNumberArrayFromObject(row, 6));
+        const zone2 =
+          row.superNumber != null
+            ? Number(row.superNumber)
+            : row.specialNum != null
+            ? Number(row.specialNum)
+            : row.zone2 != null
+            ? Number(row.zone2)
+            : null;
+        return {
+          period: row.period || row.draw || row.issue || null,
+          lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+          zone1,
+          zone2
+        };
+      })
+      .filter((row) => row.period && row.zone1.length)
+      .sort((a, b) => Number(b.period) - Number(a.period));
   }
 
-  function missAnalysis(draws, min, max) {
-    return range(min, max)
-      .map(n => {
-        let miss = 0;
-        let found = false;
-        for (const draw of draws) {
-          if ((draw.numbers || []).includes(n)) {
-            found = true;
-            break;
+  function normalizeGameRowsFromCsv(gameKey, rows) {
+    if (gameKey === "bingo") {
+      return rows
+        .map((row) => {
+          const nums = [];
+          for (let i = 1; i <= 20; i++) {
+            const v = row[`n${i}`] || row[`num${i}`] || row[`ball${i}`];
+            if (v !== undefined && v !== "") nums.push(Number(v));
           }
-          miss += 1;
-        }
-        return { number: n, miss: found ? miss : draws.length };
-      })
-      .sort((a, b) => b.miss - a.miss || a.number - b.number)
-      .slice(0, 10);
-  }
-
-  function missMap(draws, min, max) {
-    const map = new Map();
-    range(min, max).forEach(n => {
-      let miss = 0;
-      let found = false;
-      for (const draw of draws) {
-        if ((draw.numbers || []).includes(n)) {
-          found = true;
-          break;
-        }
-        miss += 1;
-      }
-      map.set(n, found ? miss : draws.length);
-    });
-    return map;
-  }
-
-  function tailAnalysis(draws) {
-    const tails = new Map(Array.from({ length: 10 }, (_, i) => [i, 0]));
-    draws.forEach(draw => (draw.numbers || []).forEach(n => tails.set(n % 10, (tails.get(n % 10) || 0) + 1)));
-    return [...tails.entries()]
-      .map(([tail, count]) => ({ tail, count }))
-      .sort((a, b) => b.count - a.count || a.tail - b.tail)
-      .slice(0, 6);
-  }
-
-  function consecutiveAnalysis(draws) {
-    const pairs = new Map();
-    draws.forEach(draw => {
-      const nums = [...(draw.numbers || [])].sort((a, b) => a - b);
-      for (let i = 0; i < nums.length - 1; i += 1) {
-        if (nums[i + 1] === nums[i] + 1) {
-          const key = `${pad2(nums[i])}-${pad2(nums[i + 1])}`;
-          pairs.set(key, (pairs.get(key) || 0) + 1);
-        }
-      }
-    });
-    return [...pairs.entries()]
-      .map(([pair, count]) => ({ pair, count }))
-      .sort((a, b) => b.count - a.count || a.pair.localeCompare(b.pair))
-      .slice(0, 8);
-  }
-
-  function computeTailHotness(draws) {
-    const map = new Map(Array.from({ length: 10 }, (_, i) => [i, 0]));
-    draws.forEach(draw => (draw.numbers || []).forEach(n => map.set(n % 10, (map.get(n % 10) || 0) + 1)));
-    return map;
-  }
-
-  function buildScorePool(gameCode, draws, min, max, latestDraw) {
-    const freq = frequencyAnalysis(draws, min, max).map;
-    const miss = missMap(draws, min, max);
-    const tailHot = computeTailHotness(draws);
-    const latestNums = new Set(latestDraw?.numbers || []);
-    const weights = getLearningWeights(gameCode);
-
-    return range(min, max)
-      .map(number => {
-        const score =
-          (freq.get(number) || 0) * weights.freq +
-          (miss.get(number) || 0) * weights.miss +
-          (tailHot.get(number % 10) || 0) * weights.tail +
-          (latestNums.has(number) ? weights.latestPenalty : 0);
-        return { number, score };
-      })
-      .sort((a, b) => b.score - a.score || a.number - b.number);
-  }
-
-  function buildSecondAreaPool(gameCode, draws, min = 1, max = 8) {
-    const map = new Map(range(min, max).map(n => [n, 0]));
-    const miss = new Map(range(min, max).map(n => [n, 0]));
-    const weights = getLearningWeights(gameCode);
-
-    draws.forEach(draw => {
-      const s = Number(draw.specialNumber);
-      if (Number.isFinite(s) && s >= min && s <= max) map.set(s, (map.get(s) || 0) + 1);
-    });
-
-    range(min, max).forEach(n => {
-      let missCount = 0;
-      let found = false;
-      for (const draw of draws) {
-        if (Number(draw.specialNumber) === n) {
-          found = true;
-          break;
-        }
-        missCount += 1;
-      }
-      miss.set(n, found ? missCount : draws.length);
-    });
-
-    return range(min, max)
-      .map(n => ({ number: n, score: (map.get(n) || 0) * weights.special + (miss.get(n) || 0) * 1.1 }))
-      .sort((a, b) => b.score - a.score || a.number - b.number);
-  }
-
-  function buildSpecialPool649(gameCode, draws, min = 1, max = 49) {
-    const map = new Map(range(min, max).map(n => [n, 0]));
-    const miss = new Map(range(min, max).map(n => [n, 0]));
-    const weights = getLearningWeights(gameCode);
-
-    draws.forEach(draw => {
-      const s = Number(draw.specialNumber);
-      if (Number.isFinite(s) && s >= min && s <= max) map.set(s, (map.get(s) || 0) + 1);
-    });
-
-    range(min, max).forEach(n => {
-      let missCount = 0;
-      let found = false;
-      for (const draw of draws) {
-        if (Number(draw.specialNumber) === n) {
-          found = true;
-          break;
-        }
-        missCount += 1;
-      }
-      miss.set(n, found ? missCount : draws.length);
-    });
-
-    return range(min, max)
-      .map(n => ({ number: n, score: (map.get(n) || 0) * weights.special + (miss.get(n) || 0) * 1.05 }))
-      .sort((a, b) => b.score - a.score || a.number - b.number);
-  }
-
-  function pickNumbersFromPool(pool, count, strategy, shift = 0) {
-    if (!pool.length) return [];
-
-    if (strategy === "safe") {
-      return pool.slice(shift, shift + count).map(x => x.number).sort((a, b) => a - b);
+          if (!nums.length && row.numbers) {
+            row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
+          }
+          return {
+            period: row.period || row.issue || row.draw,
+            lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+            numbers: uniqSorted(nums)
+          };
+        })
+        .filter((row) => row.period && row.numbers.length)
+        .sort((a, b) => Number(b.period) - Number(a.period));
     }
 
-    if (strategy === "balanced") {
-      const top = pool.slice(0, count * 3 + shift);
-      const picked = [];
-      for (let i = shift; i < top.length && picked.length < count; i += 2) {
-        if (!picked.includes(top[i]?.number)) picked.push(top[i].number);
-      }
-      for (let i = 0; i < top.length && picked.length < count; i += 1) {
-        if (!picked.includes(top[i]?.number)) picked.push(top[i].number);
-      }
-      return picked.sort((a, b) => a - b);
+    if (gameKey === "daily539") {
+      return rows
+        .map((row) => {
+          const nums = [];
+          for (let i = 1; i <= 5; i++) {
+            const v = row[`n${i}`] || row[`num${i}`] || row[`ball${i}`];
+            if (v !== undefined && v !== "") nums.push(Number(v));
+          }
+          if (!nums.length && row.numbers) {
+            row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
+          }
+          return {
+            period: row.period || row.issue || row.draw,
+            lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+            numbers: uniqSorted(nums)
+          };
+        })
+        .filter((row) => row.period && row.numbers.length)
+        .sort((a, b) => Number(b.period) - Number(a.period));
     }
 
-    const top = pool.slice(0, count * 4 + shift);
-    const picked = [];
-    for (let i = shift; i < top.length && picked.length < count; i += 3) {
-      const n = top[i]?.number;
-      if (n != null && !picked.includes(n)) picked.push(n);
+    if (gameKey === "lotto649") {
+      return rows
+        .map((row) => {
+          const nums = [];
+          for (let i = 1; i <= 6; i++) {
+            const v = row[`n${i}`] || row[`num${i}`] || row[`ball${i}`];
+            if (v !== undefined && v !== "") nums.push(Number(v));
+          }
+          if (!nums.length && row.numbers) {
+            row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
+          }
+          return {
+            period: row.period || row.issue || row.draw,
+            lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+            numbers: uniqSorted(nums),
+            special: row.specialNum != null ? Number(row.specialNum) : row.bonus != null ? Number(row.bonus) : null
+          };
+        })
+        .filter((row) => row.period && row.numbers.length)
+        .sort((a, b) => Number(b.period) - Number(a.period));
     }
-    for (let i = 1; i < top.length && picked.length < count; i += 2) {
-      const n = top[i]?.number;
-      if (n != null && !picked.includes(n)) picked.push(n);
+
+    if (gameKey === "power") {
+      return rows
+        .map((row) => {
+          const zone1 = [];
+          for (let i = 1; i <= 6; i++) {
+            const v = row[`n${i}`] || row[`num${i}`] || row[`ball${i}`];
+            if (v !== undefined && v !== "") zone1.push(Number(v));
+          }
+          if (!zone1.length && row.zone1) {
+            row.zone1.split(/[,、\s]+/).forEach((v) => zone1.push(Number(v)));
+          }
+          return {
+            period: row.period || row.issue || row.draw,
+            lotteryDate: row.lotteryDate || row.date || row.drawDate || null,
+            zone1: uniqSorted(zone1),
+            zone2: row.zone2 != null ? Number(row.zone2) : row.specialNum != null ? Number(row.specialNum) : row.superNumber != null ? Number(row.superNumber) : null
+          };
+        })
+        .filter((row) => row.period && row.zone1.length)
+        .sort((a, b) => Number(b.period) - Number(a.period));
     }
-    for (const item of top) {
-      if (picked.length >= count) break;
-      if (!picked.includes(item.number)) picked.push(item.number);
+
+    return [];
+  }
+
+  function getLearningState() {
+    const current = readJsonStorage(LEARNING_KEY, null);
+    if (!current) {
+      writeJsonStorage(LEARNING_KEY, LEARNING_DEFAULT);
+      return structuredClone(LEARNING_DEFAULT);
     }
-    return picked.sort((a, b) => a - b);
-  }
-
-  function buildPredictionModes(gameCode, draws, latestDraw) {
-    const cfg = GAME_CONFIG[gameCode];
-    const pickCount = cfg.mainCount();
-    const setCount = getSetCount();
-    const pool = buildScorePool(gameCode, draws, cfg.min, cfg.max, latestDraw);
-
-    const baseModes = [
-      { mode: "保守組", desc: "偏重高頻熱號與穩定分布", strategy: "safe", shift: 0 },
-      { mode: "平衡組", desc: "兼顧熱號、遺漏與尾數平衡", strategy: "balanced", shift: 0 },
-      { mode: "進攻組", desc: "提高冷熱混搭與追擊波動", strategy: "attack", shift: 0 },
-      { mode: "延伸組", desc: "延伸熱門池，避開過度集中", strategy: "safe", shift: 1 },
-      { mode: "衝刺組", desc: "加大變化幅度，做高低搭配", strategy: "attack", shift: 1 }
-    ];
-
-    const spPool638 = gameCode === "638" ? buildSecondAreaPool("638", draws, 1, 8) : [];
-    const spPool649 = gameCode === "649" ? buildSpecialPool649("649", draws, 1, 49) : [];
-
-    return baseModes.slice(0, setCount).map((item, idx) => {
-      let specialNumber = null;
-      if (gameCode === "649") {
-        specialNumber = spPool649[idx]?.number ?? spPool649[0]?.number ?? normalizeSpecialValue(latestDraw?.specialNumber, 1, 49) ?? null;
-      }
-      if (gameCode === "638") {
-        specialNumber = spPool638[idx]?.number ?? spPool638[0]?.number ?? normalizeSpecialValue(latestDraw?.specialNumber, 1, 8) ?? 1;
-      }
-      if (gameCode === "bingo") {
-        specialNumber = normalizeSpecialValue(latestDraw?.specialNumber, 1, 80);
-      }
-
-      return {
-        mode: item.mode,
-        desc: item.desc,
-        numbers: pickNumbersFromPool(pool, pickCount, item.strategy, item.shift),
-        specialNumber
-      };
-    });
-  }
-
-  function countHits(predicted, actual) {
-    const actualSet = new Set(actual || []);
-    return (predicted || []).filter(n => actualSet.has(n)).length;
-  }
-
-  function countSpecialHit(predictedSpecial, actualSpecial, gameCode) {
-    const cfg = GAME_CONFIG[gameCode];
-    const p = normalizeSpecialValue(predictedSpecial, cfg.specialMin, cfg.specialMax);
-    const a = normalizeSpecialValue(actualSpecial, cfg.specialMin, cfg.specialMax);
-    if (p == null || a == null) return 0;
-    return p === a ? 1 : 0;
-  }
-
-  function simulatePredictionForIndex(gameCode, historyDraws) {
-    const cfg = GAME_CONFIG[gameCode];
-    const target = historyDraws[0];
-    const train = historyDraws.slice(1);
-    if (!target || train.length < 5) return null;
-    const modes = buildPredictionModes(gameCode, train, train[0]);
-    const bestHit = Math.max(...modes.map(mode => countHits(mode.numbers, target.numbers)));
     return {
-      period: target.period,
-      hit: bestHit,
-      targetNumbers: target.numbers,
-      pickCount: cfg.mainCount()
+      ...structuredClone(LEARNING_DEFAULT),
+      ...current,
+      bingo: { ...structuredClone(LEARNING_DEFAULT.bingo), ...(current.bingo || {}) },
+      daily539: { ...structuredClone(LEARNING_DEFAULT.daily539), ...(current.daily539 || {}) },
+      lotto649: { ...structuredClone(LEARNING_DEFAULT.lotto649), ...(current.lotto649 || {}) },
+      power: { ...structuredClone(LEARNING_DEFAULT.power), ...(current.power || {}) }
     };
   }
 
-  function runBacktest(gameCode, historyDraws) {
-    const windows = [30, 50, 100];
-    return windows.map(windowSize => {
-      const usable = historyDraws.slice(0, windowSize + 10);
-      const results = [];
-      for (let i = 0; i < Math.min(windowSize, usable.length - 5); i += 1) {
-        const segment = usable.slice(i);
-        const result = simulatePredictionForIndex(gameCode, segment);
-        if (result) results.push(result);
-      }
-      if (!results.length) {
-        return { windowSize, samples: 0, avgHit: 0, hit1: 0, hit2: 0, hit3: 0 };
-      }
-      const totalHit = results.reduce((sum, r) => sum + r.hit, 0);
-      return {
-        windowSize,
-        samples: results.length,
-        avgHit: (totalHit / results.length).toFixed(2),
-        hit1: results.filter(r => r.hit >= 1).length,
-        hit2: results.filter(r => r.hit >= 2).length,
-        hit3: results.filter(r => r.hit >= 3).length
-      };
-    });
+  function saveLearningState(learning) {
+    writeJsonStorage(LEARNING_KEY, learning);
+    writeJsonStorage(WEIGHTS_KEY, learning);
   }
 
-  function readPredictionHistory() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const data = raw ? JSON.parse(raw) : [];
-      return Array.isArray(data) ? data : [];
-    } catch {
-      return [];
-    }
-  }
+  function learnNumberSet(baseObj, numbers, options = {}) {
+    const {
+      numberKey = "numberWeights",
+      tailKey = "tailWeights",
+      pairKeyName = "pairWeights",
+      missKey = "missWeights",
+      decay = 0.985,
+      reward = 1.0,
+      pairReward = 0.35,
+      tailReward = 0.18
+    } = options;
 
-  function writePredictionHistory(list) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 100)));
-  }
+    baseObj[numberKey] ||= {};
+    baseObj[tailKey] ||= {};
+    baseObj[pairKeyName] ||= {};
+    baseObj[missKey] ||= {};
 
-  function savePredictionRecord(gameCode, latestDraw, modes) {
-    const cfg = GAME_CONFIG[gameCode];
-    const list = readPredictionHistory();
-    const safeLatest = sanitizeDraw(gameCode, latestDraw);
+    decayWeights(baseObj[numberKey], decay);
+    decayWeights(baseObj[tailKey], decay);
+    decayWeights(baseObj[pairKeyName], decay);
+    decayWeights(baseObj[missKey], decay);
 
-    const record = {
-      id: `${gameCode}_${Date.now()}`,
-      gameCode,
-      gameKey: cfg.key,
-      gameLabel: cfg.label,
-      createdAt: formatTaiwanTime(),
-      referencePeriod: safeLatest?.period || "",
-      referenceDrawDate: safeLatest?.drawDate || "",
-      learningWeights: getLearningWeights(gameCode),
-      modes: modes.map(mode => ({
-        mode: mode.mode,
-        numbers: mode.numbers || [],
-        specialNumber: normalizeSpecialValue(mode.specialNumber, cfg.specialMin, cfg.specialMax)
-      })),
-      checked: false,
-      learned: false,
-      resultPeriod: "",
-      resultDrawDate: "",
-      resultNumbers: [],
-      resultSpecialNumber: null,
-      bestHit: 0,
-      specialHit: 0
-    };
-
-    const deduped = list.filter(item => !(item.gameCode === gameCode && item.referencePeriod === record.referencePeriod));
-    deduped.unshift(record);
-    writePredictionHistory(deduped);
-    return record;
-  }
-
-  function applyLearningFromRecord(record) {
-    if (!record || !record.checked || record.learned) return false;
-
-    const weightsAll = readLearningWeights();
-    const gameCode = record.gameCode;
-    const current = { ...(weightsAll[gameCode] || defaultLearningWeights()[gameCode]) };
-    const totalPredicted = Math.max(...record.modes.map(mode => Array.isArray(mode.numbers) ? mode.numbers.length : 0), 1);
-    const hitRate = Number(record.bestHit || 0) / totalPredicted;
-    const specialBoost = Number(record.specialHit || 0) > 0 ? 0.04 : -0.02;
-
-    if (hitRate >= 0.5) {
-      current.freq = clampWeight(current.freq + 0.08, 0.8, 4.0);
-      current.miss = clampWeight(current.miss + 0.05, 0.4, 3.5);
-      current.tail = clampWeight(current.tail + 0.01, 0.01, 0.8);
-    } else if (hitRate >= 0.3) {
-      current.freq = clampWeight(current.freq + 0.03, 0.8, 4.0);
-      current.miss = clampWeight(current.miss + 0.02, 0.4, 3.5);
-    } else {
-      current.freq = clampWeight(current.freq - 0.04, 0.8, 4.0);
-      current.miss = clampWeight(current.miss - 0.03, 0.4, 3.5);
-      current.tail = clampWeight(current.tail - 0.005, 0.01, 0.8);
-    }
-
-    current.special = clampWeight((current.special || 1) + specialBoost, 0.2, 3.5);
-    current.latestPenalty = clampWeight(hitRate < 0.25 ? current.latestPenalty - 0.05 : current.latestPenalty + 0.03, -3.0, 0);
-
-    weightsAll[gameCode] = current;
-    writeLearningWeights(weightsAll);
-    record.learned = true;
-    return true;
-  }
-
-  function updatePredictionTracking() {
-    const list = readPredictionHistory();
-    let changed = false;
-    let learnedCount = 0;
-
-    for (const item of list) {
-      const latest = getLatestDraw(item.gameKey);
-      if (!latest || !latest.period) continue;
-
-      const latestPeriodNum = Number(latest.period || 0);
-      const refPeriodNum = Number(item.referencePeriod || 0);
-
-      if (latestPeriodNum > refPeriodNum && !item.checked) {
-        item.checked = true;
-        item.resultPeriod = latest.period || "";
-        item.resultDrawDate = latest.drawDate || "";
-        item.resultNumbers = latest.numbers || [];
-        item.resultSpecialNumber = latest.specialNumber ?? null;
-        item.bestHit = Math.max(...item.modes.map(mode => countHits(mode.numbers || [], latest.numbers || [])));
-        item.specialHit = Math.max(...item.modes.map(mode => countSpecialHit(mode.specialNumber, latest.specialNumber, item.gameCode)));
-        changed = true;
-      }
-
-      if (applyLearningFromRecord(item)) {
-        learnedCount += 1;
-        changed = true;
-      }
-    }
-
-    if (changed) writePredictionHistory(list);
-    return { list, learnedCount };
-  }
-
-  function clearPredictionHistory() {
-    localStorage.removeItem(STORAGE_KEY);
-  }
-
-  function getTrackingSummary(gameCode) {
-    const cfg = GAME_CONFIG[gameCode];
-    const list = readPredictionHistory().filter(item => item.gameCode === gameCode);
-    const checked = list.filter(item => item.checked);
-    const waiting = list.filter(item => !item.checked);
-
-    const avgHit = checked.length
-      ? (checked.reduce((sum, item) => sum + Number(item.bestHit || 0), 0) / checked.length).toFixed(2)
-      : "0.00";
-
-    return {
-      total: list.length,
-      checked: checked.length,
-      waiting: waiting.length,
-      avgHit,
-      hit1: checked.filter(item => Number(item.bestHit || 0) >= 1).length,
-      hit2: checked.filter(item => Number(item.bestHit || 0) >= 2).length,
-      hit3: checked.filter(item => Number(item.bestHit || 0) >= 3).length,
-      recent: list.slice(0, 3),
-      cfg
-    };
-  }
-
-  function getTrackingRollup() {
-    const gameCodes = ["bingo", "649", "638", "539"];
-    let total = 0;
-    let checked = 0;
-    let waiting = 0;
-    let avgAccumulator = 0;
-    let avgCount = 0;
-
-    gameCodes.forEach(code => {
-      const summary = getTrackingSummary(code);
-      total += Number(summary.total || 0);
-      checked += Number(summary.checked || 0);
-      waiting += Number(summary.waiting || 0);
-      const avg = Number(summary.avgHit || 0);
-      if (!Number.isNaN(avg) && Number(summary.checked || 0) > 0) {
-        avgAccumulator += avg;
-        avgCount += 1;
-      }
+    const nums = uniqSorted(numbers);
+    nums.forEach((n) => {
+      safeInc(baseObj[numberKey], String(n), reward);
+      safeInc(baseObj[tailKey], String(getTail(n)), tailReward);
     });
 
-    return {
-      total,
-      checked,
-      waiting,
-      avgHit: avgCount ? (avgAccumulator / avgCount).toFixed(2) : "0.00"
-    };
-  }
-
-  function getOps() {
-    try {
-      const data = JSON.parse(localStorage.getItem(OPS_KEY) || "[]");
-      return Array.isArray(data) ? data : [];
-    } catch {
-      return [];
+    for (let i = 0; i < nums.length; i++) {
+      for (let j = i + 1; j < nums.length; j++) {
+        safeInc(baseObj[pairKeyName], pairKey(nums[i], nums[j]), pairReward);
+      }
     }
   }
 
-  function saveOps(list) {
-    localStorage.setItem(OPS_KEY, JSON.stringify(list.slice(0, 12)));
-  }
-
-  function pushOp(text) {
-    const list = getOps();
-    list.unshift({ text, time: formatTaiwanTime() });
-    saveOps(list);
-    renderOps();
-  }
-
-  function renderOps() {
-    const box = $("v84RecentOps");
-    if (!box) return;
-    const list = getOps();
-    if (!list.length) {
-      box.innerHTML = `<div class="v84-recent-item">尚未有操作紀錄</div>`;
-      return;
-    }
-    box.innerHTML = list.slice(0, 6).map(item => `
-      <div class="v84-recent-item">
-        <div style="font-weight:800;margin-bottom:6px;">${escapeHtml(item.text)}</div>
-        <div style="font-size:12px;opacity:.72;">${escapeHtml(toLocaleDateText(item.time))}</div>
-      </div>
-    `).join("");
-  }
-
-  function saveUiSettings() {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      lotterySelect: $("lotterySelect")?.value || "bingo",
-      setCount: $("setCount")?.value || "3",
-      historyPeriods: $("historyPeriods")?.value || "50",
-      bingoCount: $("bingoCount")?.value || "10"
-    }));
-  }
-
-  function restoreUiSettings() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-      if (raw.lotterySelect && $("lotterySelect")) $("lotterySelect").value = raw.lotterySelect;
-      if (raw.setCount && $("setCount")) $("setCount").value = raw.setCount;
-      if (raw.historyPeriods && $("historyPeriods")) $("historyPeriods").value = raw.historyPeriods;
-      if (raw.bingoCount && $("bingoCount")) $("bingoCount").value = raw.bingoCount;
-    } catch {}
-  }
-
-  function renderBalls(numbers, specialNumber = null, specialLabel = "", type = "dark") {
-    const ballClass = type === "light" ? "ball main" : "ball";
-    const main = (numbers || []).map(n => `<span class="${ballClass}">${pad2(n)}</span>`).join("");
-    const safeSpecial = specialNumber === null || specialNumber === undefined || specialNumber === "" ? null : Number(specialNumber);
-
-    const special = Number.isFinite(safeSpecial)
-      ? `<div class="special-box">${specialLabel ? `<span>${escapeHtml(specialLabel)}</span>` : ""}<span class="ball special">${pad2(safeSpecial)}</span></div>`
-      : "";
-
-    if (!main && !special) return `<span class="text-muted">無資料</span>`;
-    return `${main}${special}`;
-  }
-
-  function renderTopLatestBanner(gameCode, latestDraw) {
-    if (gameCode !== "bingo" || !latestDraw) return "";
-
-    const cfg = GAME_CONFIG[gameCode];
-    return `
-      <div class="v924-top-latest">
-        <div class="v924-top-head">
-          <div>
-            <div class="v924-top-title">Bingo 最新一期</div>
-            <div class="v924-top-time">${escapeHtml(formatDate(latestDraw.drawDate || ""))}</div>
-          </div>
-          <div class="v924-top-side">
-            <div class="v924-top-period">第 ${escapeHtml(latestDraw.period || "—")} 期</div>
-            <button
-              class="v924-refresh-btn"
-              id="v924TopRefreshBtn"
-              type="button"
-              onclick="manualRefreshBingoNow()"
-            >
-              ${state.manualBingoRefreshing ? "刷新中..." : "立即刷新"}
-            </button>
-          </div>
-        </div>
-        <div class="v924-top-balls">
-          ${renderBalls(latestDraw.numbers || [], latestDraw.specialNumber, cfg.specialLabel, "light")}
-        </div>
-      </div>
-    `;
-  }
-
-  function renderTagList(items, type) {
-    if (!items.length) return `<span class="text-muted">無資料</span>`;
-    if (type === "tail") return items.map(item => `<span class="badge">尾${item.tail}（${item.count}）</span>`).join("");
-    if (type === "pair") return items.map(item => `<span class="badge">${item.pair}（${item.count}）</span>`).join("");
-    if (type === "miss") return items.map(item => `<span class="badge">${pad2(item.number)}（${item.miss}）</span>`).join("");
-    return items.map(item => `<span class="badge">${pad2(item.number)}（${item.count}）</span>`).join("");
-  }
-
-  function renderLatestFive(draws, gameCode) {
-    const cfg = GAME_CONFIG[gameCode];
-    if (!draws.length) return `<div class="text-muted">尚無資料</div>`;
-    return sortDrawsDesc(draws).slice(0, 5).map(draw => `
-      <div class="latest-five-item">
-        <div class="latest-five-issue">第 ${escapeHtml(draw.period || "—")} 期｜${escapeHtml(formatDate(draw.drawDate || ""))}</div>
-        <div class="ball-row">${renderBalls(draw.numbers || [], draw.specialNumber, cfg.specialLabel, "light")}</div>
-      </div>
-    `).join("");
-  }
-
-  function renderBacktest(backtests) {
-    return `
-      <div class="result-grid">
-        ${backtests.map(item => `
-          <div class="result-card">
-            <div class="card-title">近 ${item.windowSize} 期回測</div>
-            <div class="text-block">
-              樣本數：${item.samples}<br>
-              平均命中：${item.avgHit}<br>
-              命中 1 碼以上：${item.hit1}<br>
-              命中 2 碼以上：${item.hit2}<br>
-              命中 3 碼以上：${item.hit3}
-            </div>
-          </div>
-        `).join("")}
-      </div>
-    `;
-  }
-
-  function renderModes(modes, gameCode) {
-    const cfg = GAME_CONFIG[gameCode];
-    return `
-      <div class="group-list">
-        ${modes.map(mode => `
-          <div class="result-card highlight-card">
-            <div class="card-title">${escapeHtml(mode.mode)}</div>
-            <div class="text-block" style="margin-bottom:12px;">${escapeHtml(mode.desc)}</div>
-            <div class="ball-row">${renderBalls(mode.numbers, mode.specialNumber, cfg.specialLabel, "light")}</div>
-          </div>
-        `).join("")}
-      </div>
-    `;
-  }
-
-  function renderLearningWeights(gameCode) {
-    const w = getLearningWeights(gameCode);
-    return `
-      <div class="result-grid">
-        <div class="result-card"><div class="card-title">熱號權重</div><div class="text-block">${w.freq.toFixed(2)}</div></div>
-        <div class="result-card"><div class="card-title">遺漏權重</div><div class="text-block">${w.miss.toFixed(2)}</div></div>
-        <div class="result-card"><div class="card-title">尾數權重</div><div class="text-block">${w.tail.toFixed(2)}</div></div>
-        <div class="result-card"><div class="card-title">避開上期權重</div><div class="text-block">${w.latestPenalty.toFixed(2)}</div></div>
-        <div class="result-card full-width"><div class="card-title">特別號 / 第二區權重</div><div class="text-block">${Number(w.special || 0).toFixed(2)}</div></div>
-      </div>
-    `;
-  }
-
-  function getDataStatus(gameCode, draws, latestDraw) {
-    const historyPath = state.historySourcePath[GAME_CONFIG[gameCode].key] || "";
-    const latestPath = state.latestJsonPath || "";
-    const generatedAt = state.latestJson?.generatedAt || "";
-    const source = latestDraw?.source || state.latestJson?.source || "unknown";
-    const latestStamp = latestDraw?.drawDate || "";
-    const lagMin = latestStamp
-      ? Math.max(0, Math.floor((Date.now() - new Date(String(latestStamp).replace(" ", "T")).getTime()) / 60000))
-      : null;
-
-    let syncText = "—";
-    let compareText = "—";
-    const refreshLines = [];
-    if (state.lastAutoRefreshAt) refreshLines.push(`一般檢查：${toLocaleDateText(state.lastAutoRefreshAt)}`);
-    if (state.lastBingoFastRefreshAt) refreshLines.push(`Bingo 快刷：${toLocaleDateText(state.lastBingoFastRefreshAt)}`);
-    if (!refreshLines.length) refreshLines.push("等待第一次自動檢查");
-
-    if (gameCode === "bingo") {
-      if (lagMin === null || Number.isNaN(lagMin)) {
-        syncText = "未知";
-        compareText = "無法判定";
-      } else if (lagMin <= 8) {
-        syncText = `很快（落後約 ${lagMin} 分鐘）`;
-        compareText = "已啟用 Bingo 快刷";
-      } else if (lagMin <= 20) {
-        syncText = `正常（落後約 ${lagMin} 分鐘）`;
-        compareText = "大多為正常延遲";
-      } else if (lagMin <= 60) {
-        syncText = `稍慢（落後約 ${lagMin} 分鐘）`;
-        compareText = "可能比官方站慢數期";
+  function learnMissPattern(baseObj, universeMax, hitNumbers, missReward = 0.03) {
+    baseObj.missWeights ||= {};
+    const hitSet = new Set((hitNumbers || []).map(Number));
+    for (let i = 1; i <= universeMax; i++) {
+      if (!hitSet.has(i)) {
+        safeInc(baseObj.missWeights, String(i), missReward);
       } else {
-        syncText = `偏慢（落後約 ${lagMin} 分鐘）`;
-        compareText = "後端資料可能尚未更新";
+        baseObj.missWeights[String(i)] = 0;
       }
+    }
+  }
+
+  async function learnFromCurrentData(gameKey) {
+    const learning = getLearningState();
+    const gameState = learning[gameKey];
+    const rows = state.data[gameKey] || [];
+    if (!gameState || !rows.length) return;
+
+    const recentRows = rows.slice().reverse();
+
+    for (const row of recentRows) {
+      if (gameState.lastPeriod && String(row.period) <= String(gameState.lastPeriod)) continue;
+
+      if (gameKey === "power") {
+        learnNumberSet(gameState, row.zone1, {
+          numberKey: "zone1Weights",
+          tailKey: "tailWeights",
+          pairKeyName: "pairWeights",
+          missKey: "missWeights",
+          decay: 0.992,
+          reward: 1.0,
+          pairReward: 0.4,
+          tailReward: 0.15
+        });
+        learnMissPattern(gameState, 38, row.zone1, 0.025);
+        gameState.zone2Weights ||= {};
+        decayWeights(gameState.zone2Weights, 0.992);
+        if (row.zone2 != null) safeInc(gameState.zone2Weights, String(row.zone2), 1.2);
+      } else {
+        learnNumberSet(gameState, row.numbers, {
+          numberKey: "numberWeights",
+          tailKey: "tailWeights",
+          pairKeyName: "pairWeights",
+          missKey: "missWeights",
+          decay: gameKey === "bingo" ? 0.996 : 0.992,
+          reward: gameKey === "bingo" ? 0.8 : 1.0,
+          pairReward: gameKey === "bingo" ? 0.18 : 0.35,
+          tailReward: 0.12
+        });
+        learnMissPattern(gameState, GAME_META[gameKey].max, row.numbers, gameKey === "bingo" ? 0.01 : 0.03);
+      }
+
+      gameState.drawsLearned += 1;
+      gameState.lastPeriod = row.period;
+      gameState.updatedAt = nowTs();
+    }
+
+    saveLearningState(learning);
+  }
+
+  function buildLearnedScoreMap(gameKey, maxNumber, recentNumbers = []) {
+    const learning = getLearningState();
+    const learned = learning[gameKey];
+    const scoreMap = {};
+
+    const numWeights = learned?.numberWeights || {};
+    const tailWeights = learned?.tailWeights || {};
+    const pairWeights = learned?.pairWeights || {};
+    const missWeights = learned?.missWeights || {};
+
+    for (let n = 1; n <= maxNumber; n++) {
+      let score = 0;
+      score += (numWeights[String(n)] || 0) * 1.35;
+      score += (tailWeights[String(getTail(n))] || 0) * 0.55;
+      score += (missWeights[String(n)] || 0) * 0.85;
+
+      for (const r of recentNumbers) {
+        score += (pairWeights[pairKey(n, r)] || 0) * 0.45;
+      }
+      scoreMap[n] = score;
+    }
+    return normalizeScores(scoreMap);
+  }
+
+  function buildPowerLearnedScores(recentZone1 = []) {
+    const learning = getLearningState();
+    const learned = learning.power || {};
+
+    const zone1Weights = learned.zone1Weights || {};
+    const zone2Weights = learned.zone2Weights || {};
+    const tailWeights = learned.tailWeights || {};
+    const pairWeights = learned.pairWeights || {};
+    const missWeights = learned.missWeights || {};
+
+    const zone1 = {};
+    for (let n = 1; n <= 38; n++) {
+      let score = 0;
+      score += (zone1Weights[String(n)] || 0) * 1.35;
+      score += (tailWeights[String(getTail(n))] || 0) * 0.50;
+      score += (missWeights[String(n)] || 0) * 0.80;
+      for (const r of recentZone1) {
+        score += (pairWeights[pairKey(n, r)] || 0) * 0.45;
+      }
+      zone1[n] = score;
+    }
+
+    const zone2 = {};
+    for (let n = 1; n <= 8; n++) {
+      zone2[n] = zone2Weights[String(n)] || 0;
     }
 
     return {
-      generatedAt,
-      source,
-      latestPath,
-      historyPath,
-      historyCount: draws.length,
-      bingoSyncText: syncText,
-      bingoCompareText: compareText,
-      refreshText: refreshLines.join("｜")
+      zone1: normalizeScores(zone1),
+      zone2: normalizeScores(zone2)
     };
   }
 
-  function renderStatus(status, gameCode) {
-    return `
-      <div class="result-grid">
-        <div class="result-card"><div class="card-title">版本</div><div class="text-block">${escapeHtml(APP_VERSION)}</div></div>
-        <div class="result-card"><div class="card-title">資料最後更新</div><div class="text-block">${escapeHtml(formatDate(status.generatedAt))}</div></div>
-        <div class="result-card"><div class="card-title">最新資料來源</div><div class="text-block">${escapeHtml(status.source)}</div></div>
-        <div class="result-card"><div class="card-title">歷史學習期數</div><div class="text-block">${escapeHtml(String(status.historyCount))} 期</div></div>
-        <div class="result-card full-width"><div class="card-title">自動檢查狀態</div><div class="text-block">${escapeHtml(status.refreshText)}</div></div>
-        ${gameCode === "bingo"
-          ? `<div class="result-card full-width"><div class="card-title">Bingo 即時同步狀態</div><div class="text-block">${escapeHtml(status.bingoSyncText)}｜${escapeHtml(status.bingoCompareText)}</div></div>`
-          : ""}
-        <div class="result-card full-width"><div class="card-title">技術資訊</div><div class="text-block">JSON：${escapeHtml(status.latestPath || "—")}<br>CSV：${escapeHtml(status.historyPath || "—")}</div></div>
-      </div>
-    `;
-  }
+  function predictByLearning() {
+    const recentBingo = sampleRecentNumbers("bingo", 2);
+    const recent539 = sampleRecentNumbers("daily539", 3);
+    const recent649 = sampleRecentNumbers("lotto649", 3);
+    const recentPower = sampleRecentNumbers("power", 3);
 
-  function renderTracking(gameCode) {
-    const summary = getTrackingSummary(gameCode);
-    const cfg = summary.cfg;
-
-    return `
-      <div class="result-grid">
-        <div class="result-card"><div class="card-title">已儲存預測</div><div class="text-block">${summary.total} 筆</div></div>
-        <div class="result-card"><div class="card-title">已完成比對</div><div class="text-block">${summary.checked} 筆</div></div>
-        <div class="result-card"><div class="card-title">等待開獎比對</div><div class="text-block">${summary.waiting} 筆</div></div>
-        <div class="result-card"><div class="card-title">平均命中</div><div class="text-block">${summary.avgHit}</div></div>
-      </div>
-
-      <div class="v84-toolbar">
-        <button id="v84InlineSaveBtn" class="toolbar-btn" type="button">儲存本次預測</button>
-        <button id="v84InlineClearBtn" class="toolbar-btn" type="button">清空命中紀錄</button>
-        <button id="v92InlineResetWeightsBtn" class="toolbar-btn" type="button">重置學習權重</button>
-      </div>
-
-      <div class="group-list" style="margin-top:14px;">
-        ${
-          summary.recent.length
-            ? summary.recent.map(item => `
-              <div class="result-card">
-                <div class="card-title">${escapeHtml(item.gameLabel)}</div>
-                <div class="text-block" style="margin-bottom:10px;">
-                  建立：${escapeHtml(formatDate(item.createdAt))}<br>
-                  參考期數：${escapeHtml(item.referencePeriod || "—")}<br>
-                  ${item.checked ? `比對期數：${escapeHtml(item.resultPeriod || "—")}` : "尚未比對"}<br>
-                  學習狀態：${item.learned ? "已學習" : (item.checked ? "待學習" : "等待比對")}
-                </div>
-                ${item.modes.slice(0, 2).map(mode => `
-                  <div class="group-item" style="margin-bottom:10px;">
-                    <div class="group-label">${escapeHtml(mode.mode)}</div>
-                    <div class="ball-row">${renderBalls(mode.numbers || [], mode.specialNumber, cfg.specialLabel, "light")}</div>
-                  </div>
-                `).join("")}
-                ${
-                  item.checked
-                    ? `<div class="text-block">最佳命中：${item.bestHit} 碼${item.resultSpecialNumber != null ? `｜特別號/第二區命中：${item.specialHit ? "是" : "否"}` : ""}</div>`
-                    : `<div class="text-block">等待下一期開獎後自動比對</div>`
-                }
-              </div>
-            `).join("")
-            : `<div class="result-card"><div class="text-block">目前尚無預測紀錄。</div></div>`
-        }
-      </div>
-    `;
-  }
-
-  function renderHeroKpis(gameCode) {
-    const box = $("v84HeroKpis");
-    if (!box) return;
-    const latestDraw = state.currentLatestDraw;
-    const stat = getTrackingRollup();
-
-    box.innerHTML = `
-      <div class="v84-kpi-card">
-        <div class="v84-kpi-label">目前彩種</div>
-        <div class="v84-kpi-value">${escapeHtml(gameCode ? GAME_CONFIG[gameCode].label : "待選擇")}</div>
-        <div class="v84-kpi-note">目前顯示中的預測頁</div>
-      </div>
-      <div class="v84-kpi-card">
-        <div class="v84-kpi-label">最新期數</div>
-        <div class="v84-kpi-value">${escapeHtml(latestDraw?.period || "—")}</div>
-        <div class="v84-kpi-note">${escapeHtml(latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未載入")}</div>
-      </div>
-      <div class="v84-kpi-card">
-        <div class="v84-kpi-label">已儲存預測</div>
-        <div class="v84-kpi-value">${stat.total}</div>
-        <div class="v84-kpi-note">命中追蹤資料庫</div>
-      </div>
-      <div class="v84-kpi-card">
-        <div class="v84-kpi-label">平均命中</div>
-        <div class="v84-kpi-value">${stat.avgHit}</div>
-        <div class="v84-kpi-note">跨彩種統計</div>
-      </div>
-    `;
-  }
-
-  function renderMiniStats() {
-    const box = $("v84MiniStats");
-    if (!box) return;
-    const s = getTrackingRollup();
-    box.innerHTML = `
-      <div class="v84-mini-stat"><span>已儲存預測</span><strong>${s.total}</strong></div>
-      <div class="v84-mini-stat"><span>已完成比對</span><strong>${s.checked}</strong></div>
-      <div class="v84-mini-stat"><span>等待比對</span><strong>${s.waiting}</strong></div>
-      <div class="v84-mini-stat"><span>平均命中</span><strong>${s.avgHit}</strong></div>
-    `;
-  }
-
-  function updateTopStatus(gameCode) {
-    const latestDraw = state.currentLatestDraw;
-    if ($("v84CurrentGameBadge")) $("v84CurrentGameBadge").textContent = gameCode ? `目前彩種：${GAME_CONFIG[gameCode].label}` : "尚未選擇彩種";
-
-    if ($("v84SiteStateBadge")) {
-      if (state.manualBingoRefreshing) {
-        $("v84SiteStateBadge").textContent = "Bingo 手動刷新中";
-      } else if (state.bingoFastRefreshing) {
-        $("v84SiteStateBadge").textContent = "Bingo 快速檢查中";
-      } else if (state.autoRefreshing) {
-        $("v84SiteStateBadge").textContent = "系統更新中";
-      } else {
-        $("v84SiteStateBadge").textContent = `系統運作中 ${BUILD}`;
-      }
-    }
-
-    if ($("v84DataStateText")) $("v84DataStateText").textContent = latestDraw ? "已載入最新資料" : "待載入";
-    if ($("v84LastUpdateText")) $("v84LastUpdateText").textContent = latestDraw?.drawDate ? toLocaleDateText(latestDraw.drawDate) : "尚未取得";
-    if ($("v84TrackingStateText")) {
-      $("v84TrackingStateText").textContent =
-        state.manualBingoRefreshing ? "手動刷新中" :
-        state.bingoFastRefreshing ? "Bingo 快刷中" :
-        state.autoRefreshing ? "更新中" : "可用";
-    }
-
-    updateTopRefreshButton();
-  }
-
-  function updateTopRefreshButton() {
-    const btn = $("v924TopRefreshBtn");
-    if (!btn) return;
-    const busy = state.manualBingoRefreshing || state.bingoFastRefreshing;
-    btn.disabled = busy;
-    btn.textContent = state.manualBingoRefreshing ? "刷新中..." : (busy ? "檢查中..." : "立即刷新");
-    btn.style.opacity = busy ? "0.72" : "1";
-  }
-
-  function injectAnchors() {
-    const el = $("predictionResult");
-    if (!el || !el.innerHTML) return;
-
-    const mapping = [
-      ["AI 推薦組合", "anchor-ai"],
-      ["最新一期", "anchor-current"],
-      ["最新五期", "anchor-latest"],
-      ["命中追蹤", "anchor-tracking"],
-      ["資料狀態", "anchor-status"],
-      ["號碼分析", "anchor-analysis"],
-      ["回測表現", "anchor-backtest"],
-      ["自動學習權重", "anchor-learning"]
-    ];
-
-    for (const [text, id] of mapping) {
-      if (!el.innerHTML.includes(`id="${id}"`)) {
-        el.innerHTML = el.innerHTML.replace(text, `<div id="${id}" class="section-anchor"></div>${text}`);
-      }
-    }
-  }
-
-  function bindInlineTrackingButtons() {
-    const saveBtn = $("v84InlineSaveBtn");
-    const clearBtn = $("v84InlineClearBtn");
-    const resetBtn = $("v92InlineResetWeightsBtn");
-
-    if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
-    if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
-    if (resetBtn) {
-      resetBtn.onclick = () => {
-        resetLearningWeights();
-        if (state.currentGameCode) renderPrediction(state.currentGameCode);
-        showToast("已重置學習權重");
-      };
-    }
-  }
-
-  function bindTopBannerButtons() {
-    updateTopRefreshButton();
-  }
-
-  function renderPrediction(gameCode) {
-    const cfg = GAME_CONFIG[gameCode];
-    const historyPeriods = Number($("historyPeriods")?.value || 50);
-
-    state.currentGameCode = gameCode;
-
-    const latestDraw = sanitizeDraw(gameCode, getLatestDraw(cfg.key));
-    const draws = getHistory(cfg.key, historyPeriods);
-    const fullHistory = getHistory(cfg.key, 120);
-    const status = getDataStatus(gameCode, draws, latestDraw);
-
-    const frequency = frequencyAnalysis(draws, cfg.min, cfg.max);
-    const miss = missAnalysis(draws, cfg.min, cfg.max);
-    const tails = tailAnalysis(draws);
-    const consecutive = consecutiveAnalysis(draws);
-    const modes = buildPredictionModes(gameCode, draws, latestDraw);
-    const backtests = runBacktest(gameCode, fullHistory);
-
-    state.currentModes = modes;
-    state.currentLatestDraw = latestDraw;
-
-    const container = $("predictionResult");
-    const titleEl = $("resultGameName");
-    if (titleEl) titleEl.textContent = `${cfg.label}｜${APP_VERSION}`;
-    setBadge("已完成", true);
-
-    container.innerHTML = `
-      ${renderTopLatestBanner(gameCode, latestDraw)}
-      <div class="v84-main">
-        <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>AI 推薦組合</h3>
-              <p>先看推薦，再看分析</p>
-            </div>
-          </div>
-          ${renderModes(modes, gameCode)}
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>${gameCode === "bingo" ? "最新一期（上方區塊同步顯示）" : "最新一期"}</h3>
-              <p>${gameCode === "bingo" ? "上方會顯示 Bingo 最新資料與立即刷新按鈕，但不會黏住畫面" : "官方最新資料摘要"}</p>
-            </div>
-          </div>
-          <div class="result-grid">
-            <div class="result-card">
-              <div class="card-title">最新期數</div>
-              <div class="text-block">${escapeHtml(latestDraw?.period || "—")}</div>
-            </div>
-            <div class="result-card">
-              <div class="card-title">開獎時間</div>
-              <div class="text-block">${escapeHtml(formatDate(latestDraw?.drawDate || ""))}</div>
-            </div>
-            <div class="result-card full-width">
-              <div class="card-title">最新號碼</div>
-              <div class="ball-row">${renderBalls(latestDraw?.numbers || [], latestDraw?.specialNumber, cfg.specialLabel, "light")}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>最新五期</h3>
-              <p>最近五期實際開獎資料</p>
-            </div>
-          </div>
-          <div class="latest-five-list">${renderLatestFive(draws, gameCode)}</div>
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>命中追蹤</h3>
-              <p>本地預測紀錄與自動比對結果</p>
-            </div>
-          </div>
-          ${renderTracking(gameCode)}
-        </div>
-
-        <div class="v84-section">
-          <div class="v84-section-head">
-            <div>
-              <h3>資料狀態</h3>
-              <p>來源、同步狀態與自動檢查</p>
-            </div>
-          </div>
-          ${renderStatus(status, gameCode)}
-        </div>
-
-        <details class="v92-collapse" open>
-          <summary>號碼分析</summary>
-          <div class="v92-collapse-body">
-            <div class="v84-section">
-              <div class="v84-section-head"><div><h3>熱號分析</h3><p>近期高頻號碼</p></div></div>
-              <div class="ball-row">${renderTagList(frequency.hot, "count")}</div>
-            </div>
-            <div class="v84-section">
-              <div class="v84-section-head"><div><h3>冷號分析</h3><p>近期低頻號碼</p></div></div>
-              <div class="ball-row">${renderTagList(frequency.cold, "count")}</div>
-            </div>
-            <div class="v84-section">
-              <div class="v84-section-head"><div><h3>拖號 / 遺漏分析</h3><p>近期較久未出的號碼</p></div></div>
-              <div class="ball-row">${renderTagList(miss, "miss")}</div>
-            </div>
-            <div class="v84-section">
-              <div class="v84-section-head"><div><h3>連號偵測</h3><p>近期常見連號組合</p></div></div>
-              <div class="ball-row">${consecutive.length ? renderTagList(consecutive, "pair") : `<span class="text-muted">無資料</span>`}</div>
-            </div>
-            <div class="v84-section">
-              <div class="v84-section-head"><div><h3>尾數分析</h3><p>近期熱門尾數分布</p></div></div>
-              <div class="ball-row">${renderTagList(tails, "tail")}</div>
-            </div>
-          </div>
-        </details>
-
-        <details class="v92-collapse">
-          <summary>回測表現</summary>
-          <div class="v92-collapse-body">
-            ${renderBacktest(backtests)}
-          </div>
-        </details>
-
-        <details class="v92-collapse">
-          <summary>自動學習權重</summary>
-          <div class="v92-collapse-body">
-            ${renderLearningWeights(gameCode)}
-          </div>
-        </details>
-      </div>
-    `;
-
-    bindInlineTrackingButtons();
-    bindTopBannerButtons();
-    renderHeroKpis(gameCode);
-    renderMiniStats();
-    renderOps();
-    updateTopStatus(gameCode);
-    injectAnchors();
-  }
-
-  function saveCurrentPrediction() {
-    if (!state.currentGameCode) {
-      showToast("請先執行一次預測");
-      return;
-    }
-    if (!state.currentLatestDraw) {
-      showToast("目前沒有可儲存的最新期數資料");
-      return;
-    }
-    if (!state.currentModes || !state.currentModes.length) {
-      showToast("目前沒有可儲存的預測組合");
-      return;
-    }
-
-    const record = savePredictionRecord(
-      state.currentGameCode,
-      sanitizeDraw(state.currentGameCode, state.currentLatestDraw),
-      state.currentModes.map(mode => ({
-        ...mode,
-        specialNumber: normalizeSpecialValue(mode.specialNumber, GAME_CONFIG[state.currentGameCode].specialMin, GAME_CONFIG[state.currentGameCode].specialMax)
-      }))
+    state.predictions.bingo = pickTopNumbers(
+      buildLearnedScoreMap("bingo", 80, recentBingo),
+      Number(state.settings.bingoPickCount) || 10
     );
 
-    pushOp(`已儲存 ${record.gameLabel} 預測`);
-    renderMiniStats();
-    renderHeroKpis(state.currentGameCode);
-    renderPrediction(state.currentGameCode);
-    showToast("已儲存本次預測");
-  }
+    state.predictions.daily539 = pickTopNumbers(
+      buildLearnedScoreMap("daily539", 39, recent539),
+      5
+    );
 
-  function clearPredictionRecords() {
-    clearPredictionHistory();
-    renderMiniStats();
-    renderHeroKpis(state.currentGameCode);
-    if (state.currentGameCode) renderPrediction(state.currentGameCode);
-    showToast("已清空命中紀錄");
-  }
+    state.predictions.lotto649 = pickTopNumbers(
+      buildLearnedScoreMap("lotto649", 49, recent649),
+      6
+    );
 
-  async function initData() {
-    state.lastCacheBust = nowStamp();
-
-    const latestResult = await fetchFirstJson(JSON_CANDIDATES);
-    state.latestJson = latestResult.json;
-    state.latestJsonPath = latestResult.path;
-
-    const [bingoHistory, daily539History, lotto649History, superLotto638History] = await Promise.all([
-      loadHistoryCsv("bingo").catch(() => ({ data: [], path: "" })),
-      loadHistoryCsv("daily539").catch(() => ({ data: [], path: "" })),
-      loadHistoryCsv("lotto649").catch(() => ({ data: [], path: "" })),
-      loadHistoryCsv("superLotto638").catch(() => ({ data: [], path: "" }))
-    ]);
-
-    state.history.bingo = bingoHistory.data;
-    state.history.daily539 = daily539History.data;
-    state.history.lotto649 = lotto649History.data;
-    state.history.superLotto638 = superLotto638History.data;
-
-    state.historySourcePath.bingo = bingoHistory.path || "";
-    state.historySourcePath.daily539 = daily539History.path || "";
-    state.historySourcePath.lotto649 = lotto649History.path || "";
-    state.historySourcePath.superLotto638 = superLotto638History.path || "";
-
-    pickNewerBingoSource();
-  }
-
-  async function refreshOnlyBingoCsv() {
-    const bingoHistory = await loadHistoryCsv("bingo");
-    state.history.bingo = bingoHistory.data;
-    state.historySourcePath.bingo = bingoHistory.path || state.historySourcePath.bingo;
-    pickNewerBingoSource();
-  }
-
-  function getPeriodSnapshot() {
-    return {
-      bingo: getLatestDraw("bingo")?.period || "",
-      daily539: getLatestDraw("daily539")?.period || "",
-      lotto649: getLatestDraw("lotto649")?.period || "",
-      superLotto638: getLatestDraw("superLotto638")?.period || ""
+    const powerScores = buildPowerLearnedScores(recentPower);
+    state.predictions.power = {
+      zone1: pickTopNumbers(powerScores.zone1, 6),
+      zone2: pickTopNumbers(powerScores.zone2, 1)[0] || null
     };
   }
 
-  async function refreshAllDataSilently() {
-    if (state.autoRefreshing) return;
-    state.autoRefreshing = true;
-    updateTopStatus(state.currentGameCode);
+  function computeStats(gameKey) {
+    const rows = state.data[gameKey] || [];
+    const meta = GAME_META[gameKey];
+    const counts = {};
+    const tailCounts = {};
+    for (let i = 1; i <= meta.max; i++) counts[i] = 0;
+    for (let i = 0; i <= 9; i++) tailCounts[i] = 0;
 
-    try {
-      const before = state.latestJson ? getPeriodSnapshot() : {};
-      await initData();
-      const after = getPeriodSnapshot();
-      const trackingResult = updatePredictionTracking();
-
-      const changedGames = Object.keys(after).filter(key => String(before[key] || "") !== String(after[key] || ""));
-      const hasNewDraw = changedGames.length > 0;
-
-      state.lastAutoRefreshAt = formatTaiwanTime();
-      writeAutoState({
-        lastAutoRefreshAt: state.lastAutoRefreshAt,
-        lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
-        lastPeriods: after,
-        build: BUILD
+    rows.slice(0, Math.min(rows.length, gameKey === "bingo" ? 60 : 80)).forEach((row) => {
+      const numbers = gameKey === "power" ? row.zone1 || [] : row.numbers || [];
+      numbers.forEach((n) => {
+        counts[n] = (counts[n] || 0) + 1;
+        tailCounts[getTail(n)] = (tailCounts[getTail(n)] || 0) + 1;
       });
+    });
 
-      if (state.currentGameCode) renderPrediction(state.currentGameCode);
-      else {
-        renderHeroKpis(null);
-        renderMiniStats();
-        updateTopStatus(null);
-      }
+    const hotNumbers = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1] || Number(a[0]) - Number(b[0]))
+      .slice(0, Math.min(10, meta.max))
+      .map(([n]) => Number(n));
 
-      if (hasNewDraw) {
-        pushOp(`系統自動更新：${changedGames.join("、")} 有新一期`);
-        showToast(`已自動更新 ${changedGames.length} 個彩種`);
-      } else if (trackingResult.learnedCount > 0) {
-        pushOp(`系統自動學習：完成 ${trackingResult.learnedCount} 筆`);
-      } else {
-        pushOp("系統自動檢查：無新一期");
-      }
-    } catch (err) {
-      console.error("auto refresh failed:", err);
-      pushOp(`自動更新失敗：${err.message || "未知錯誤"}`);
-    } finally {
-      state.autoRefreshing = false;
-      updateTopStatus(state.currentGameCode);
-    }
+    const hotTails = Object.entries(tailCounts)
+      .sort((a, b) => b[1] - a[1] || Number(a[0]) - Number(b[0]))
+      .slice(0, 3)
+      .map(([n]) => Number(n));
+
+    return {
+      hotNumbers,
+      hotTails
+    };
   }
 
-  async function refreshBingoFastSilently(forceRender = true) {
-    if (state.bingoFastRefreshing || state.manualBingoRefreshing) return;
-    state.bingoFastRefreshing = true;
-    updateTopStatus(state.currentGameCode);
+  async function loadAllData() {
+    state.loading = true;
+    state.statusText = "載入資料中…";
+    render();
 
+    let latestJson = null;
     try {
-      const beforePeriod = getLatestDraw("bingo")?.period || "";
-      await refreshOnlyBingoCsv();
-      const afterPeriod = getLatestDraw("bingo")?.period || "";
-
-      state.lastBingoFastRefreshAt = formatTaiwanTime();
-      writeAutoState({
-        lastAutoRefreshAt: state.lastAutoRefreshAt,
-        lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
-        lastPeriods: getPeriodSnapshot(),
-        build: BUILD
-      });
-
-      const trackingResult = updatePredictionTracking();
-
-      if (forceRender && state.currentGameCode === "bingo") {
-        renderPrediction(state.currentGameCode);
-      }
-
-      if (String(afterPeriod) !== String(beforePeriod) && afterPeriod) {
-        pushOp(`Bingo 快刷更新：第 ${afterPeriod} 期`);
-        showToast(`Bingo 已更新到第 ${afterPeriod} 期`);
-      } else if (trackingResult.learnedCount > 0) {
-        pushOp(`Bingo 快刷後自動學習：${trackingResult.learnedCount} 筆`);
-      }
+      latestJson = await fetchFirstSuccess(JSON_CANDIDATES, fetchJSON);
     } catch (err) {
-      console.error("bingo fast refresh failed:", err);
-    } finally {
-      state.bingoFastRefreshing = false;
-      updateTopStatus(state.currentGameCode);
+      console.warn("latest.json load failed:", err.message);
     }
+
+    if (latestJson) {
+      const normalized = normalizeGameRowsFromLatestJson(latestJson);
+      for (const key of Object.keys(state.data)) {
+        if (normalized[key] && normalized[key].length) {
+          state.data[key] = normalized[key];
+        }
+      }
+    }
+
+    for (const gameKey of Object.keys(state.data)) {
+      if (state.data[gameKey].length) continue;
+      try {
+        const csvText = await fetchFirstSuccess(CSV_CANDIDATES[gameKey] || [], fetchText);
+        const csvRows = parseCSV(csvText);
+        state.data[gameKey] = normalizeGameRowsFromCsv(gameKey, csvRows);
+      } catch (err) {
+        console.warn(`${gameKey} csv load failed:`, err.message);
+      }
+    }
+
+    for (const gameKey of Object.keys(state.data)) {
+      state.latest[gameKey] = state.data[gameKey][0] || null;
+    }
+
+    for (const gameKey of Object.keys(state.data)) {
+      await learnFromCurrentData(gameKey);
+      const latest = state.latest[gameKey];
+      if (latest) {
+        state.lastFetchState[gameKey] = {
+          lastPeriod: latest.period,
+          updatedAt: nowTs()
+        };
+      }
+    }
+    writeJsonStorage(LAST_FETCH_KEY, state.lastFetchState);
+
+    predictByLearning();
+    state.loading = false;
+    state.statusText = "資料已更新";
+    render();
   }
 
-  async function manualRefreshBingoNow() {
-    if (($("lotterySelect")?.value || "") !== "bingo") {
-      showToast("請先切換到 Bingo");
-      return;
-    }
+  function getNextBingoScheduleTime(base = new Date()) {
+    const now = new Date(base);
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const d = now.getDate();
+    const start = new Date(y, m, d, 7, 3, 0, 0);
+    const end = new Date(y, m, d, 23, 57, 0, 0);
 
-    if (state.manualBingoRefreshing || state.bingoFastRefreshing) return;
+    if (now < start) return start;
+    if (now > end) return new Date(y, m, d + 1, 7, 3, 0, 0);
 
-    state.manualBingoRefreshing = true;
-    updateTopStatus(state.currentGameCode);
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+    const startMins = 7 * 60 + 3;
+    const diff = currentMins - startMins;
+    const nextSlot = Math.floor(diff / 5) * 5 + startMins + 5;
+    const h = Math.floor(nextSlot / 60);
+    const mm = nextSlot % 60;
+    const next = new Date(y, m, d, h, mm, 0, 0);
 
-    try {
-      const before = getLatestDraw("bingo")?.period || "";
-      await refreshOnlyBingoCsv();
-      const after = getLatestDraw("bingo")?.period || "";
-
-      state.lastBingoFastRefreshAt = formatTaiwanTime();
-      writeAutoState({
-        lastAutoRefreshAt: state.lastAutoRefreshAt,
-        lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
-        lastPeriods: getPeriodSnapshot(),
-        build: BUILD
-      });
-
-      updatePredictionTracking();
-
-      if (state.currentGameCode === "bingo") {
-        renderPrediction("bingo");
-      }
-
-      if (String(after) !== String(before) && after) {
-        pushOp(`手動刷新 Bingo 成功：第 ${after} 期`);
-        showToast(`Bingo 已刷新到第 ${after} 期`);
-      } else {
-        pushOp("手動刷新 Bingo：目前無更近資料");
-        showToast("目前沒有更近的 Bingo 資料");
-      }
-    } catch (err) {
-      console.error(err);
-      pushOp(`手動刷新 Bingo 失敗：${err.message || "未知錯誤"}`);
-      showToast("Bingo 刷新失敗");
-    } finally {
-      state.manualBingoRefreshing = false;
-      updateTopStatus(state.currentGameCode);
-    }
+    if (next > end) return new Date(y, m, d + 1, 7, 3, 0, 0);
+    return next;
   }
 
-  function startAutoRefresh() {
-    if (state.autoTimer) clearInterval(state.autoTimer);
-    state.autoTimer = setInterval(() => {
-      refreshAllDataSilently();
+  async function runBingoAutoUpdateCycle() {
+    state.autoState.bingo.lastRunAt = nowTs();
+    writeJsonStorage(AUTO_STATE_KEY, state.autoState);
+
+    const prevPeriod = state.lastFetchState.bingo?.lastPeriod || null;
+    let success = false;
+    let latestPeriod = prevPeriod;
+
+    for (let i = 0; i < 10; i++) {
+      try {
+        const json = await fetchFirstSuccess(JSON_CANDIDATES, fetchJSON);
+        const normalized = normalizeGameRowsFromLatestJson(json);
+        if (normalized.bingo.length) {
+          state.data.bingo = normalized.bingo;
+          state.latest.bingo = normalized.bingo[0] || null;
+          latestPeriod = state.latest.bingo?.period || prevPeriod;
+          if (String(latestPeriod) !== String(prevPeriod)) {
+            success = true;
+            break;
+          }
+        } else {
+          const csvText = await fetchFirstSuccess(CSV_CANDIDATES.bingo, fetchText);
+          const csvRows = parseCSV(csvText);
+          const normalizedCsv = normalizeGameRowsFromCsv("bingo", csvRows);
+          if (normalizedCsv.length) {
+            state.data.bingo = normalizedCsv;
+            state.latest.bingo = normalizedCsv[0] || null;
+            latestPeriod = state.latest.bingo?.period || prevPeriod;
+            if (String(latestPeriod) !== String(prevPeriod)) {
+              success = true;
+              break;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("runBingoAutoUpdateCycle retry failed:", err.message);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 15000));
+    }
+
+    state.autoState.bingo.lastSuccess = success;
+    state.autoState.bingo.lastPeriod = latestPeriod || null;
+    state.autoState.bingo.nextAt = getNextBingoScheduleTime().toISOString();
+
+    if (success) {
+      state.lastFetchState.bingo = { lastPeriod: latestPeriod, updatedAt: nowTs() };
+      writeJsonStorage(LAST_FETCH_KEY, state.lastFetchState);
+      await learnFromCurrentData("bingo");
+      predictByLearning();
+      state.statusText = "BINGO 已抓到新期數並完成自動學習";
+    } else {
+      state.statusText = "BINGO 自動檢查完成，尚未抓到新期數";
+    }
+
+    writeJsonStorage(AUTO_STATE_KEY, state.autoState);
+    render();
+  }
+
+  function scheduleNextBingoAutoUpdate() {
+    if (state.timers.bingoSchedule) clearTimeout(state.timers.bingoSchedule);
+
+    const nextTime = getNextBingoScheduleTime();
+    state.autoState.bingo.nextAt = nextTime.toISOString();
+    writeJsonStorage(AUTO_STATE_KEY, state.autoState);
+
+    const delay = Math.max(1000, nextTime.getTime() - Date.now());
+    state.timers.bingoSchedule = setTimeout(async () => {
+      try {
+        await runBingoAutoUpdateCycle();
+      } finally {
+        scheduleNextBingoAutoUpdate();
+      }
+    }, delay);
+  }
+
+  function setupPeriodicRefresh() {
+    if (state.timers.generalRefresh) clearInterval(state.timers.generalRefresh);
+    if (state.timers.bingoFastRefresh) clearInterval(state.timers.bingoFastRefresh);
+
+    state.timers.generalRefresh = setInterval(async () => {
+      if (!state.settings.autoRefresh) return;
+      try {
+        await loadAllData();
+      } catch (err) {
+        console.warn("generalRefresh failed:", err.message);
+      }
     }, GENERAL_REFRESH_MS);
-  }
 
-  function startBingoFastRefresh() {
-    if (state.bingoFastTimer) clearInterval(state.bingoFastTimer);
-    state.bingoFastTimer = setInterval(() => {
-      refreshBingoFastSilently(state.currentGameCode === "bingo");
+    state.timers.bingoFastRefresh = setInterval(async () => {
+      if (!state.settings.autoRefresh) return;
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+      if (h < 7 || h > 23 || (h === 23 && m > 57)) return;
+
+      try {
+        const json = await fetchFirstSuccess(JSON_CANDIDATES, fetchJSON);
+        const normalized = normalizeGameRowsFromLatestJson(json);
+        if (normalized.bingo.length) {
+          const newest = normalized.bingo[0];
+          const prev = state.latest.bingo?.period || null;
+          if (String(newest.period) !== String(prev)) {
+            state.data.bingo = normalized.bingo;
+            state.latest.bingo = newest;
+            state.lastFetchState.bingo = { lastPeriod: newest.period, updatedAt: nowTs() };
+            writeJsonStorage(LAST_FETCH_KEY, state.lastFetchState);
+            await learnFromCurrentData("bingo");
+            predictByLearning();
+            state.statusText = "BINGO 快速輪詢偵測到新資料";
+            render();
+          }
+        }
+      } catch (err) {
+        console.warn("bingoFastRefresh failed:", err.message);
+      }
     }, BINGO_FAST_REFRESH_MS);
   }
 
-  async function runPrediction(gameCode) {
-    try {
-      if (!state.latestJson) await initData();
-      saveUiSettings();
-
-      if (gameCode === "bingo") {
-        await refreshBingoFastSilently(false);
+  function createBaseStyle() {
+    if (document.getElementById("v9310-style")) return;
+    const style = document.createElement("style");
+    style.id = "v9310-style";
+    style.textContent = `
+      :root{
+        --bg:#0b1220;
+        --panel:#111a2b;
+        --panel-2:#0f1727;
+        --line:rgba(255,255,255,.08);
+        --text:#f8fafc;
+        --muted:#94a3b8;
+        --accent:#38bdf8;
+        --good:#22c55e;
+        --warn:#f59e0b;
+        --bad:#ef4444;
       }
-
-      const trackingResult = updatePredictionTracking();
-      if (trackingResult.learnedCount > 0) pushOp(`自動學習完成 ${trackingResult.learnedCount} 筆`);
-      renderPrediction(gameCode);
-      pushOp(`已執行 ${GAME_CONFIG[gameCode].label} 預測`);
-    } catch (err) {
-      console.error(err);
-      showError(err.message || "未知錯誤");
-    }
+      body.simple-ui{
+        background:linear-gradient(180deg,#071019 0%, #0b1220 100%);
+        color:var(--text);
+      }
+      body.simple-ui .guide-section,
+      body.simple-ui .onboarding-section,
+      body.simple-ui .intro-section,
+      body.simple-ui .tips-section,
+      body.simple-ui .tutorial-section,
+      body.simple-ui .hero-guide,
+      body.simple-ui .quick-guide,
+      body.simple-ui .new-user-guide,
+      body.simple-ui .walkthrough-section,
+      body.simple-ui .welcome-guide{
+        display:none !important;
+      }
+      #lottery-ai-root-v9310{
+        width:min(100%,960px);
+        margin:0 auto;
+        padding:12px;
+        box-sizing:border-box;
+      }
+      .v93-shell{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+      }
+      .v93-card{
+        background:rgba(17,26,43,.92);
+        border:1px solid var(--line);
+        border-radius:16px;
+        padding:12px;
+        box-shadow:0 10px 30px rgba(0,0,0,.18);
+      }
+      .v93-top{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:12px;
+      }
+      .v93-title{
+        font-size:20px;
+        font-weight:800;
+        margin:0 0 6px;
+      }
+      .v93-sub{
+        color:var(--muted);
+        font-size:13px;
+        line-height:1.4;
+      }
+      .v93-actions{
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+      }
+      .v93-btn,.v93-select{
+        border:none;
+        border-radius:12px;
+        min-height:42px;
+        padding:0 12px;
+        background:#1e293b;
+        color:#fff;
+        cursor:pointer;
+      }
+      .v93-btn.primary{
+        background:linear-gradient(135deg,#0ea5e9,#2563eb);
+      }
+      .v93-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:12px;
+      }
+      .v93-metrics{
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:10px;
+      }
+      .v93-metric{
+        background:rgba(255,255,255,.04);
+        border:1px solid var(--line);
+        border-radius:14px;
+        padding:10px;
+      }
+      .v93-metric-label{
+        color:var(--muted);
+        font-size:12px;
+        margin-bottom:6px;
+      }
+      .v93-metric-value{
+        font-weight:800;
+        font-size:18px;
+      }
+      .v93-section-title{
+        font-size:15px;
+        font-weight:800;
+        margin:0 0 10px;
+      }
+      .v93-row{
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+      }
+      .num{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:38px;
+        height:38px;
+        border-radius:999px;
+        font-weight:800;
+        font-size:14px;
+        background:#1f2937;
+        border:1px solid rgba(255,255,255,.06);
+      }
+      .num.small{
+        width:32px;
+        height:32px;
+        font-size:13px;
+      }
+      .g-bingo .num{ background:linear-gradient(135deg,#2563eb,#0ea5e9); }
+      .g-539 .num{ background:linear-gradient(135deg,#16a34a,#22c55e); }
+      .g-649 .num{ background:linear-gradient(135deg,#7c3aed,#a855f7); }
+      .g-power .num{ background:linear-gradient(135deg,#ea580c,#f97316); }
+      .num.zone2{ background:linear-gradient(135deg,#ef4444,#fb7185)!important; }
+      .v93-kv{
+        display:grid;
+        grid-template-columns:100px 1fr;
+        gap:8px;
+        font-size:13px;
+        margin:6px 0;
+      }
+      .v93-kv .k{ color:var(--muted); }
+      .v93-list{
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+      }
+      .v93-list-item{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        padding:8px 10px;
+        background:rgba(255,255,255,.03);
+        border:1px solid var(--line);
+        border-radius:12px;
+        font-size:13px;
+      }
+      .v93-footer{
+        text-align:center;
+        color:var(--muted);
+        font-size:12px;
+        padding:6px 0 18px;
+      }
+      @media (max-width:768px){
+        .v93-grid{ grid-template-columns:1fr; }
+        .v93-metrics{ grid-template-columns:1fr 1fr; }
+        .v93-top{ flex-direction:column; }
+        .v93-title{ font-size:18px; }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
-  function showError(message) {
-    const container = $("predictionResult");
-    if (!container) return;
-    setBadge("載入失敗", false);
-    container.innerHTML = `
-      <div class="v84-panel">
-        <div class="empty-state">
-          <div class="empty-icon">⚠️</div>
-          <div class="empty-title">資料載入失敗</div>
-          <div class="empty-text">${escapeHtml(message || "未知錯誤")}</div>
+  function applySimpleUIMode() {
+    document.body.classList.add("simple-ui");
+
+    const hideSelectors = [
+      ".guide-section",
+      ".onboarding-section",
+      ".intro-section",
+      ".tips-section",
+      ".tutorial-section",
+      ".hero-guide",
+      ".quick-guide",
+      ".new-user-guide",
+      ".walkthrough-section",
+      ".welcome-guide"
+    ];
+
+    hideSelectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((el) => {
+        el.style.display = "none";
+      });
+    });
+
+    writeJsonStorage(UI_MODE_KEY, { simple: true, updatedAt: nowTs() });
+  }
+
+  function ensureRoot() {
+    let root =
+      document.getElementById("lottery-ai-root-v9310") ||
+      document.getElementById("app") ||
+      document.getElementById("root") ||
+      document.querySelector("[data-lottery-root]");
+
+    if (!root || root.id !== "lottery-ai-root-v9310") {
+      const shell = document.createElement("div");
+      shell.id = "lottery-ai-root-v9310";
+      if (root) {
+        root.innerHTML = "";
+        root.appendChild(shell);
+        root = shell;
+      } else {
+        document.body.innerHTML = "";
+        document.body.appendChild(shell);
+        root = shell;
+      }
+    } else {
+      root.innerHTML = "";
+    }
+
+    state.root = root;
+  }
+
+  function renderBalls(nums, extraClass = "") {
+    return (nums || [])
+      .map((n) => `<span class="num ${extraClass}">${pad2(n)}</span>`)
+      .join("");
+  }
+
+  function renderLatestCard(gameKey) {
+    const row = state.latest[gameKey];
+    const meta = GAME_META[gameKey];
+    const stats = computeStats(gameKey);
+    const learning = getLearningState()[gameKey];
+
+    let numbersHtml = "-";
+    if (gameKey === "power" && row) {
+      numbersHtml = `
+        <div class="v93-row">${renderBalls(row.zone1)}</div>
+        <div class="v93-row" style="margin-top:8px;">
+          <span class="num zone2">${pad2(row.zone2 || 0)}</span>
         </div>
-      </div>
+      `;
+    } else if (row) {
+      numbersHtml = `<div class="v93-row">${renderBalls(row.numbers)}</div>`;
+    }
+
+    const pickPreview =
+      gameKey === "power"
+        ? `
+          <div class="v93-row">${renderBalls(state.predictions.power.zone1 || [], "small")}</div>
+          <div class="v93-row" style="margin-top:8px;">
+            <span class="num zone2 small">${pad2(state.predictions.power.zone2 || 0)}</span>
+          </div>
+        `
+        : `<div class="v93-row">${renderBalls(state.predictions[gameKey] || [], "small")}</div>`;
+
+    return `
+      <section class="v93-card ${meta.colorClass}">
+        <h3 class="v93-section-title">${meta.label}</h3>
+        <div class="v93-kv"><div class="k">最新期數</div><div>${formatPeriod(row?.period)}</div></div>
+        <div class="v93-kv"><div class="k">開獎日期</div><div>${formatOnlyDate(row?.lotteryDate)}</div></div>
+        <div class="v93-kv"><div class="k">最新號碼</div><div>${numbersHtml}</div></div>
+        <div class="v93-kv"><div class="k">AI推薦</div><div>${pickPreview}</div></div>
+        <div class="v93-kv"><div class="k">熱門尾數</div><div>${stats.hotTails.map((n) => `${n}尾`).join("、") || "-"}</div></div>
+        <div class="v93-kv"><div class="k">學習期數</div><div>${learning?.drawsLearned || 0}</div></div>
+      </section>
     `;
   }
 
-  function bindBottomNav() {
-    const items = document.querySelectorAll(".bottom-nav .nav-pill");
-    items.forEach(btn => {
-      btn.addEventListener("click", () => {
-        items.forEach(x => x.classList.remove("active"));
-        btn.classList.add("active");
-      });
-    });
+  function renderOpsList() {
+    const ops = readJsonStorage(OPS_KEY, []);
+    if (!ops.length) {
+      return `<div class="v93-list-item"><span>尚無操作記錄</span><span>-</span></div>`;
+    }
+    return ops
+      .slice(0, 8)
+      .map((item) => {
+        return `<div class="v93-list-item"><span>${item.action || "操作"}</span><span>${formatDateTime(item.at)}</span></div>`;
+      })
+      .join("");
   }
 
-  function wireToolbar() {
-    const saveBtn = $("v84SaveBtn");
-    const clearBtn = $("v84ClearBtn");
-    const topBtn = $("v84TopBtn");
-    const resetWeightsBtn = $("v90ResetWeightsBtn");
+  function logOp(action) {
+    const ops = readJsonStorage(OPS_KEY, []);
+    ops.unshift({ action, at: nowTs() });
+    writeJsonStorage(OPS_KEY, ops.slice(0, 30));
+  }
 
-    if (saveBtn) saveBtn.onclick = () => saveCurrentPrediction();
-    if (clearBtn) clearBtn.onclick = () => clearPredictionRecords();
-    if (topBtn) topBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  function savePredictionHistory() {
+    const history = readJsonStorage(STORAGE_KEY, []);
+    history.unshift({
+      at: nowTs(),
+      predictions: state.predictions,
+      latestPeriods: {
+        bingo: state.latest.bingo?.period || null,
+        daily539: state.latest.daily539?.period || null,
+        lotto649: state.latest.lotto649?.period || null,
+        power: state.latest.power?.period || null
+      }
+    });
+    writeJsonStorage(STORAGE_KEY, history.slice(0, 50));
+  }
 
-    if (resetWeightsBtn) {
-      resetWeightsBtn.onclick = () => {
-        resetLearningWeights();
-        if (state.currentGameCode) renderPrediction(state.currentGameCode);
-        showToast("已重置學習權重");
+  function render() {
+    if (!state.root) return;
+
+    const learning = getLearningState();
+    const totalLearned =
+      (learning.bingo.drawsLearned || 0) +
+      (learning.daily539.drawsLearned || 0) +
+      (learning.lotto649.drawsLearned || 0) +
+      (learning.power.drawsLearned || 0);
+
+    state.lastRenderAt = nowTs();
+    state.root.innerHTML = `
+      <div class="v93-shell">
+        <section class="v93-card">
+          <div class="v93-top">
+            <div>
+              <h1 class="v93-title">台灣彩券 AI 預測系統</h1>
+              <div class="v93-sub">${APP_VERSION}</div>
+              <div class="v93-sub" style="margin-top:4px;">極簡首頁｜BINGO 排程更新｜四种彩票自動學習</div>
+            </div>
+            <div class="v93-actions">
+              <select class="v93-select" id="gameSelect">
+                <option value="bingo" ${state.settings.selectedGame === "bingo" ? "selected" : ""}>BINGO</option>
+                <option value="daily539" ${state.settings.selectedGame === "daily539" ? "selected" : ""}>539</option>
+                <option value="lotto649" ${state.settings.selectedGame === "lotto649" ? "selected" : ""}>大樂透</option>
+                <option value="power" ${state.settings.selectedGame === "power" ? "selected" : ""}>威力彩</option>
+              </select>
+              <select class="v93-select" id="bingoPickCount">
+                ${[4,5,6,7,8,9,10].map((n) => `<option value="${n}" ${Number(state.settings.bingoPickCount) === n ? "selected" : ""}>BINGO選${n}顆</option>`).join("")}
+              </select>
+              <button class="v93-btn primary" id="refreshBtn">立即更新</button>
+              <button class="v93-btn" id="predictBtn">重新預測</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="v93-card">
+          <div class="v93-metrics">
+            <div class="v93-metric">
+              <div class="v93-metric-label">狀態</div>
+              <div class="v93-metric-value">${state.loading ? "更新中" : "已就緒"}</div>
+            </div>
+            <div class="v93-metric">
+              <div class="v93-metric-label">BINGO 下次排程</div>
+              <div class="v93-metric-value" style="font-size:14px;">${formatDateTime(state.autoState.bingo.nextAt)}</div>
+            </div>
+            <div class="v93-metric">
+              <div class="v93-metric-label">總學習期數</div>
+              <div class="v93-metric-value">${totalLearned}</div>
+            </div>
+            <div class="v93-metric">
+              <div class="v93-metric-label">最後渲染</div>
+              <div class="v93-metric-value" style="font-size:14px;">${formatDateTime(state.lastRenderAt)}</div>
+            </div>
+          </div>
+          <div class="v93-sub" style="margin-top:10px;">${state.statusText}</div>
+        </section>
+
+        <div class="v93-grid">
+          ${renderLatestCard("bingo")}
+          ${renderLatestCard("daily539")}
+          ${renderLatestCard("lotto649")}
+          ${renderLatestCard("power")}
+        </div>
+
+        <div class="v93-grid">
+          <section class="v93-card">
+            <h3 class="v93-section-title">自動更新 / 學習狀態</h3>
+            <div class="v93-list">
+              <div class="v93-list-item"><span>BINGO 最新期數</span><span>${formatPeriod(state.latest.bingo?.period)}</span></div>
+              <div class="v93-list-item"><span>BINGO 上次成功</span><span>${state.autoState.bingo.lastSuccess ? "成功" : "待更新"}</span></div>
+              <div class="v93-list-item"><span>BINGO 上次執行</span><span>${formatDateTime(state.autoState.bingo.lastRunAt)}</span></div>
+              <div class="v93-list-item"><span>BINGO 下次排程</span><span>${formatDateTime(state.autoState.bingo.nextAt)}</span></div>
+              <div class="v93-list-item"><span>539 學習期數</span><span>${learning.daily539.drawsLearned || 0}</span></div>
+              <div class="v93-list-item"><span>威力彩學習期數</span><span>${learning.power.drawsLearned || 0}</span></div>
+              <div class="v93-list-item"><span>大樂透學習期數</span><span>${learning.lotto649.drawsLearned || 0}</span></div>
+            </div>
+          </section>
+
+          <section class="v93-card">
+            <h3 class="v93-section-title">最近操作</h3>
+            <div class="v93-list">${renderOpsList()}</div>
+          </section>
+        </div>
+
+        <div class="v93-footer">手機操作優化版｜導引已關閉｜本機學習已啟用</div>
+      </div>
+    `;
+
+    bindUI();
+  }
+
+  function bindUI() {
+    const refreshBtn = document.getElementById("refreshBtn");
+    const predictBtn = document.getElementById("predictBtn");
+    const gameSelect = document.getElementById("gameSelect");
+    const bingoPickCount = document.getElementById("bingoPickCount");
+
+    if (refreshBtn) {
+      refreshBtn.onclick = async () => {
+        logOp("手動立即更新");
+        state.statusText = "手動更新中…";
+        render();
+        await loadAllData();
       };
     }
 
-    ["lotterySelect", "setCount", "historyPeriods", "bingoCount"].forEach(id => {
-      const el = $(id);
-      if (el && !el.dataset.boundV9300) {
-        el.dataset.boundV9300 = "1";
-        el.addEventListener("change", async () => {
-          saveUiSettings();
+    if (predictBtn) {
+      predictBtn.onclick = () => {
+        logOp("手動重新預測");
+        predictByLearning();
+        savePredictionHistory();
+        state.statusText = "已重新生成 AI 推薦號碼";
+        render();
+      };
+    }
 
-          if (id === "lotterySelect" && el.value) {
-            await runPrediction(el.value);
-          } else if (state.currentGameCode) {
-            if ((id === "bingoCount" || id === "historyPeriods") && $("lotterySelect")?.value === "bingo") {
-              await refreshBingoFastSilently(false);
-            }
-            renderPrediction($("lotterySelect")?.value || state.currentGameCode);
-          }
-        });
-      }
-    });
+    if (gameSelect) {
+      gameSelect.onchange = (e) => {
+        state.settings.selectedGame = e.target.value;
+        writeJsonStorage(SETTINGS_KEY, state.settings);
+        logOp(`切換遊戲 ${e.target.value}`);
+      };
+    }
+
+    if (bingoPickCount) {
+      bingoPickCount.onchange = (e) => {
+        state.settings.bingoPickCount = Number(e.target.value);
+        writeJsonStorage(SETTINGS_KEY, state.settings);
+        predictByLearning();
+        logOp(`BINGO 改為選 ${e.target.value} 顆`);
+        render();
+      };
+    }
   }
 
-  function bindVisibilityRefresh() {
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        refreshBingoFastSilently(state.currentGameCode === "bingo");
-      }
-    });
+  async function bootstrap() {
+    if (state.initialized) return;
+    state.initialized = true;
 
-    window.addEventListener("focus", () => {
-      refreshBingoFastSilently(state.currentGameCode === "bingo");
-    });
-  }
+    createBaseStyle();
+    applySimpleUIMode();
+    ensureRoot();
+    render();
 
-  window.runPrediction = runPrediction;
-  window.saveCurrentPrediction = saveCurrentPrediction;
-  window.clearPredictionRecords = clearPredictionRecords;
-  window.resetLearningWeights = resetLearningWeights;
-  window.refreshAllDataSilently = refreshAllDataSilently;
-  window.refreshBingoFastSilently = refreshBingoFastSilently;
-  window.manualRefreshBingoNow = manualRefreshBingoNow;
-
-  document.addEventListener("DOMContentLoaded", async () => {
     try {
-      migrateOldTimeRecords();
-
-      restoreUiSettings();
-      const autoState = readAutoState();
-      if (autoState?.lastAutoRefreshAt) state.lastAutoRefreshAt = autoState.lastAutoRefreshAt;
-      if (autoState?.lastBingoFastRefreshAt) state.lastBingoFastRefreshAt = autoState.lastBingoFastRefreshAt;
-
-      wireToolbar();
-      bindBottomNav();
-      bindVisibilityRefresh();
-      renderOps();
-      renderMiniStats();
-      renderHeroKpis(null);
-      updateTopStatus(null);
-
-      await initData();
-      const trackingResult = updatePredictionTracking();
-      if (trackingResult.learnedCount > 0) pushOp(`初始化自動學習 ${trackingResult.learnedCount} 筆`);
-
-      setBadge("待預測", true);
-
-      if ($("resultGameName")) {
-        $("resultGameName").textContent = `${APP_VERSION}｜請先選擇彩種並開始預測`;
-      }
-
-      const defaultGame = $("lotterySelect")?.value || "bingo";
-      await runPrediction(defaultGame);
-
-      startAutoRefresh();
-      startBingoFastRefresh();
-
-      showToast(`已載入 ${APP_VERSION}`);
+      await loadAllData();
+      logOp("系統初始化完成");
     } catch (err) {
       console.error(err);
-      showError(err.message || "初始化失敗");
+      state.statusText = `初始化失敗：${err.message}`;
+      render();
     }
-  });
+
+    scheduleNextBingoAutoUpdate();
+    setupPeriodicRefresh();
+  }
+
+  document.addEventListener("DOMContentLoaded", bootstrap);
 })();
