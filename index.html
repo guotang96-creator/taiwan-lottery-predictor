@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>台灣彩券 AI 預測系統</title>
   <meta name="theme-color" content="#081224" />
-  <meta name="description" content="台灣彩券 AI 預測系統｜V92 手機好操作版" />
+  <meta name="description" content="台灣彩券 AI 預測系統｜V92.2 Bingo 快速刷新按鈕版" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./style.css?v=92" />
+  <link rel="stylesheet" href="./style.css?v=92.2" />
 </head>
 <body>
   <main class="app-shell v92-shell">
@@ -20,12 +20,12 @@
         <div class="app-logo">AI</div>
         <div>
           <h1 class="hero-title">台灣彩券 AI 預測系統</h1>
-          <p class="hero-subtitle">V92｜手機好操作版｜先預測、再分析、單手也好點</p>
+          <p class="hero-subtitle">V92.2｜Bingo 快速刷新按鈕版｜手機單手更好操作</p>
         </div>
       </div>
 
       <div class="chip-row">
-        <span class="chip">V92 手機版</span>
+        <span class="chip">V92.2 手機版</span>
         <span class="chip" id="v84SiteStateBadge">系統待命中</span>
         <span class="chip" id="v84CurrentGameBadge">尚未選擇彩種</span>
       </div>
@@ -81,6 +81,9 @@
           <button class="primary-btn v92-primary-btn" type="button" onclick="runPrediction(document.getElementById('lotterySelect').value)">
             開始預測
           </button>
+          <button class="secondary-btn" type="button" id="v922BingoRefreshBtn">
+            Bingo 立即刷新
+          </button>
           <button class="secondary-btn" type="button" onclick="document.getElementById('latestSection').scrollIntoView({behavior:'smooth'})">
             查看最新一期
           </button>
@@ -113,7 +116,7 @@
     <!-- AI推薦 -->
     <section class="section-card" id="predictSection">
       <div class="result-head">
-        <h2 class="result-title" id="resultGameName">V92｜請先選擇彩種並開始預測</h2>
+        <h2 class="result-title" id="resultGameName">V92.2｜請先選擇彩種並開始預測</h2>
         <div class="badge" id="v84TrackingStateText">待機中</div>
       </div>
 
@@ -230,8 +233,8 @@
   </nav>
 
   <script>
-    window.__APP_BUILD__ = "92.0";
+    window.__APP_BUILD__ = "92.2";
   </script>
-  <script src="./app.js?v=91.2"></script>
+  <script src="./app.js?v=92.2"></script>
 </body>
 </html>
