@@ -1,625 +1,1084 @@
 {
-  "generatedAt": "2026-03-21T05:56:41.735Z",
+  "generatedAt": "2026-03-21T06:37:30.288Z",
   "source": "official-api",
   "bingo": {
     "latestOfficial": {
-      "period": "115016119",
-      "drawDate": "2026-03-21 13:50",
+      "period": "115016128",
+      "drawDate": "2026-03-21 14:35",
       "redeemableDate": "",
       "numbers": [
-        5,
-        11,
-        19,
-        20,
-        23,
-        24,
-        25,
+        4,
+        9,
+        13,
+        16,
+        18,
         26,
-        31,
-        32,
+        27,
+        34,
         37,
-        40,
-        43,
-        46,
+        49,
         52,
         56,
-        59,
+        60,
         61,
+        62,
         67,
-        76
+        70,
+        75,
+        76,
+        77
       ],
       "orderNumbers": [
-        5,
-        11,
-        19,
-        20,
-        23,
-        24,
-        25,
+        4,
+        9,
+        13,
+        16,
+        18,
         26,
-        31,
-        32,
+        27,
+        34,
         37,
-        40,
-        43,
-        46,
+        49,
         52,
         56,
-        59,
+        60,
         61,
+        62,
         67,
-        76
+        70,
+        75,
+        76,
+        77
       ],
-      "specialNumber": 56,
-      "source": "official-api"
+      "specialNumber": 52,
+      "source": "history-csv"
     },
     "latest": {
-      "period": "115016119",
-      "drawDate": "2026-03-21 13:50",
+      "period": "115016128",
+      "drawDate": "2026-03-21 14:35",
       "redeemableDate": "",
       "numbers": [
-        5,
-        11,
-        19,
-        20,
-        23,
-        24,
-        25,
+        4,
+        9,
+        13,
+        16,
+        18,
         26,
-        31,
-        32,
+        27,
+        34,
         37,
-        40,
-        43,
-        46,
+        49,
         52,
         56,
-        59,
+        60,
         61,
+        62,
         67,
-        76
+        70,
+        75,
+        76,
+        77
       ],
       "orderNumbers": [
-        5,
-        11,
-        19,
-        20,
-        23,
-        24,
-        25,
+        4,
+        9,
+        13,
+        16,
+        18,
         26,
-        31,
-        32,
+        27,
+        34,
         37,
-        40,
-        43,
-        46,
+        49,
         52,
         56,
-        59,
+        60,
         61,
+        62,
         67,
-        76
+        70,
+        75,
+        76,
+        77
       ],
-      "specialNumber": 56,
-      "source": "official-api"
+      "specialNumber": 52,
+      "source": "history-csv"
     },
     "recentOfficial": [
       {
-        "period": "115016119",
-        "drawDate": "2026-03-21 13:50",
+        "period": "115016128",
+        "drawDate": "2026-03-21 14:35",
         "redeemableDate": "",
         "numbers": [
-          5,
-          11,
-          19,
-          20,
-          23,
-          24,
-          25,
+          4,
+          9,
+          13,
+          16,
+          18,
           26,
-          31,
-          32,
+          27,
+          34,
           37,
-          40,
-          43,
-          46,
+          49,
           52,
           56,
-          59,
+          60,
           61,
+          62,
           67,
-          76
+          70,
+          75,
+          76,
+          77
         ],
         "orderNumbers": [
-          5,
-          11,
-          19,
-          20,
-          23,
-          24,
-          25,
+          4,
+          9,
+          13,
+          16,
+          18,
           26,
-          31,
-          32,
+          27,
+          34,
           37,
-          40,
-          43,
-          46,
+          49,
           52,
           56,
-          59,
+          60,
           61,
+          62,
           67,
-          76
+          70,
+          75,
+          76,
+          77
         ],
-        "specialNumber": 56,
-        "source": "official-api"
+        "specialNumber": 52,
+        "source": "history-csv"
       },
       {
-        "period": "115016118",
-        "drawDate": "2026-03-21 13:45",
+        "period": "115016127",
+        "drawDate": "2026-03-21 14:30",
         "redeemableDate": "",
         "numbers": [
-          2,
-          6,
-          7,
-          10,
-          14,
-          15,
-          21,
-          26,
-          28,
-          29,
-          30,
-          35,
-          40,
+          8,
+          17,
+          22,
+          32,
+          33,
+          34,
+          36,
+          37,
+          39,
+          41,
+          44,
+          48,
           52,
+          54,
+          55,
+          57,
+          66,
+          75,
+          76,
+          79
+        ],
+        "orderNumbers": [
+          8,
+          17,
+          22,
+          32,
+          33,
+          34,
+          36,
+          37,
+          39,
+          41,
+          44,
+          48,
+          52,
+          54,
+          55,
+          57,
+          66,
+          75,
+          76,
+          79
+        ],
+        "specialNumber": 75,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016126",
+        "drawDate": "2026-03-21 14:25",
+        "redeemableDate": "",
+        "numbers": [
+          9,
+          11,
+          13,
+          14,
+          28,
+          34,
+          39,
+          42,
+          52,
+          55,
+          56,
+          57,
+          58,
           59,
+          60,
           61,
           63,
-          65,
-          66,
+          68,
+          70,
           75
         ],
         "orderNumbers": [
-          2,
-          6,
-          7,
-          10,
+          9,
+          11,
+          13,
           14,
-          15,
-          21,
-          26,
           28,
-          29,
-          30,
-          35,
-          40,
+          34,
+          39,
+          42,
           52,
+          55,
+          56,
+          57,
+          58,
           59,
+          60,
           61,
           63,
-          65,
-          66,
+          68,
+          70,
           75
-        ],
-        "specialNumber": 6,
-        "source": "official-api"
-      },
-      {
-        "period": "115016117",
-        "drawDate": "2026-03-21 13:40",
-        "redeemableDate": "",
-        "numbers": [
-          7,
-          13,
-          17,
-          22,
-          24,
-          27,
-          34,
-          35,
-          37,
-          41,
-          43,
-          44,
-          54,
-          55,
-          61,
-          65,
-          72,
-          77,
-          79,
-          80
-        ],
-        "orderNumbers": [
-          7,
-          13,
-          17,
-          22,
-          24,
-          27,
-          34,
-          35,
-          37,
-          41,
-          43,
-          44,
-          54,
-          55,
-          61,
-          65,
-          72,
-          77,
-          79,
-          80
-        ],
-        "specialNumber": 72,
-        "source": "official-api"
-      },
-      {
-        "period": "115016116",
-        "drawDate": "2026-03-21 13:35",
-        "redeemableDate": "",
-        "numbers": [
-          1,
-          8,
-          10,
-          11,
-          17,
-          19,
-          20,
-          22,
-          26,
-          32,
-          33,
-          35,
-          38,
-          40,
-          55,
-          56,
-          61,
-          70,
-          76,
-          78
-        ],
-        "orderNumbers": [
-          1,
-          8,
-          10,
-          11,
-          17,
-          19,
-          20,
-          22,
-          26,
-          32,
-          33,
-          35,
-          38,
-          40,
-          55,
-          56,
-          61,
-          70,
-          76,
-          78
-        ],
-        "specialNumber": 20,
-        "source": "official-api"
-      },
-      {
-        "period": "115016115",
-        "drawDate": "2026-03-21 13:30",
-        "redeemableDate": "",
-        "numbers": [
-          2,
-          4,
-          10,
-          14,
-          18,
-          19,
-          20,
-          31,
-          42,
-          44,
-          45,
-          48,
-          49,
-          56,
-          61,
-          67,
-          69,
-          73,
-          75,
-          80
-        ],
-        "orderNumbers": [
-          2,
-          4,
-          10,
-          14,
-          18,
-          19,
-          20,
-          31,
-          42,
-          44,
-          45,
-          48,
-          49,
-          56,
-          61,
-          67,
-          69,
-          73,
-          75,
-          80
         ],
         "specialNumber": 42,
-        "source": "official-api"
+        "source": "history-csv"
+      },
+      {
+        "period": "115016125",
+        "drawDate": "2026-03-21 14:20",
+        "redeemableDate": "",
+        "numbers": [
+          4,
+          6,
+          8,
+          12,
+          16,
+          20,
+          29,
+          31,
+          34,
+          35,
+          43,
+          45,
+          50,
+          54,
+          57,
+          63,
+          64,
+          67,
+          68,
+          71
+        ],
+        "orderNumbers": [
+          4,
+          6,
+          8,
+          12,
+          16,
+          20,
+          29,
+          31,
+          34,
+          35,
+          43,
+          45,
+          50,
+          54,
+          57,
+          63,
+          64,
+          67,
+          68,
+          71
+        ],
+        "specialNumber": 20,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016124",
+        "drawDate": "2026-03-21 14:15",
+        "redeemableDate": "",
+        "numbers": [
+          11,
+          12,
+          13,
+          19,
+          23,
+          24,
+          28,
+          29,
+          30,
+          34,
+          35,
+          37,
+          43,
+          45,
+          49,
+          59,
+          60,
+          63,
+          73,
+          79
+        ],
+        "orderNumbers": [
+          11,
+          12,
+          13,
+          19,
+          23,
+          24,
+          28,
+          29,
+          30,
+          34,
+          35,
+          37,
+          43,
+          45,
+          49,
+          59,
+          60,
+          63,
+          73,
+          79
+        ],
+        "specialNumber": 37,
+        "source": "history-csv"
       }
     ],
     "recent": [
       {
-        "period": "115016119",
-        "drawDate": "2026-03-21 13:50",
+        "period": "115016128",
+        "drawDate": "2026-03-21 14:35",
         "redeemableDate": "",
         "numbers": [
-          5,
-          11,
-          19,
-          20,
-          23,
-          24,
-          25,
+          4,
+          9,
+          13,
+          16,
+          18,
           26,
-          31,
-          32,
+          27,
+          34,
           37,
-          40,
-          43,
-          46,
+          49,
           52,
           56,
-          59,
+          60,
           61,
+          62,
           67,
-          76
+          70,
+          75,
+          76,
+          77
         ],
         "orderNumbers": [
-          5,
-          11,
-          19,
-          20,
-          23,
-          24,
-          25,
+          4,
+          9,
+          13,
+          16,
+          18,
           26,
-          31,
-          32,
+          27,
+          34,
           37,
-          40,
-          43,
-          46,
+          49,
           52,
           56,
-          59,
+          60,
           61,
+          62,
           67,
-          76
+          70,
+          75,
+          76,
+          77
         ],
-        "specialNumber": 56,
-        "source": "official-api"
+        "specialNumber": 52,
+        "source": "history-csv"
       },
       {
-        "period": "115016118",
-        "drawDate": "2026-03-21 13:45",
+        "period": "115016127",
+        "drawDate": "2026-03-21 14:30",
         "redeemableDate": "",
         "numbers": [
-          2,
-          6,
-          7,
-          10,
-          14,
-          15,
-          21,
-          26,
-          28,
-          29,
-          30,
-          35,
-          40,
+          8,
+          17,
+          22,
+          32,
+          33,
+          34,
+          36,
+          37,
+          39,
+          41,
+          44,
+          48,
           52,
+          54,
+          55,
+          57,
+          66,
+          75,
+          76,
+          79
+        ],
+        "orderNumbers": [
+          8,
+          17,
+          22,
+          32,
+          33,
+          34,
+          36,
+          37,
+          39,
+          41,
+          44,
+          48,
+          52,
+          54,
+          55,
+          57,
+          66,
+          75,
+          76,
+          79
+        ],
+        "specialNumber": 75,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016126",
+        "drawDate": "2026-03-21 14:25",
+        "redeemableDate": "",
+        "numbers": [
+          9,
+          11,
+          13,
+          14,
+          28,
+          34,
+          39,
+          42,
+          52,
+          55,
+          56,
+          57,
+          58,
           59,
+          60,
           61,
           63,
-          65,
-          66,
+          68,
+          70,
           75
         ],
         "orderNumbers": [
-          2,
-          6,
-          7,
-          10,
+          9,
+          11,
+          13,
           14,
-          15,
-          21,
-          26,
           28,
-          29,
-          30,
-          35,
-          40,
+          34,
+          39,
+          42,
           52,
+          55,
+          56,
+          57,
+          58,
           59,
+          60,
           61,
           63,
-          65,
-          66,
+          68,
+          70,
           75
-        ],
-        "specialNumber": 6,
-        "source": "official-api"
-      },
-      {
-        "period": "115016117",
-        "drawDate": "2026-03-21 13:40",
-        "redeemableDate": "",
-        "numbers": [
-          7,
-          13,
-          17,
-          22,
-          24,
-          27,
-          34,
-          35,
-          37,
-          41,
-          43,
-          44,
-          54,
-          55,
-          61,
-          65,
-          72,
-          77,
-          79,
-          80
-        ],
-        "orderNumbers": [
-          7,
-          13,
-          17,
-          22,
-          24,
-          27,
-          34,
-          35,
-          37,
-          41,
-          43,
-          44,
-          54,
-          55,
-          61,
-          65,
-          72,
-          77,
-          79,
-          80
-        ],
-        "specialNumber": 72,
-        "source": "official-api"
-      },
-      {
-        "period": "115016116",
-        "drawDate": "2026-03-21 13:35",
-        "redeemableDate": "",
-        "numbers": [
-          1,
-          8,
-          10,
-          11,
-          17,
-          19,
-          20,
-          22,
-          26,
-          32,
-          33,
-          35,
-          38,
-          40,
-          55,
-          56,
-          61,
-          70,
-          76,
-          78
-        ],
-        "orderNumbers": [
-          1,
-          8,
-          10,
-          11,
-          17,
-          19,
-          20,
-          22,
-          26,
-          32,
-          33,
-          35,
-          38,
-          40,
-          55,
-          56,
-          61,
-          70,
-          76,
-          78
-        ],
-        "specialNumber": 20,
-        "source": "official-api"
-      },
-      {
-        "period": "115016115",
-        "drawDate": "2026-03-21 13:30",
-        "redeemableDate": "",
-        "numbers": [
-          2,
-          4,
-          10,
-          14,
-          18,
-          19,
-          20,
-          31,
-          42,
-          44,
-          45,
-          48,
-          49,
-          56,
-          61,
-          67,
-          69,
-          73,
-          75,
-          80
-        ],
-        "orderNumbers": [
-          2,
-          4,
-          10,
-          14,
-          18,
-          19,
-          20,
-          31,
-          42,
-          44,
-          45,
-          48,
-          49,
-          56,
-          61,
-          67,
-          69,
-          73,
-          75,
-          80
         ],
         "specialNumber": 42,
-        "source": "official-api"
+        "source": "history-csv"
+      },
+      {
+        "period": "115016125",
+        "drawDate": "2026-03-21 14:20",
+        "redeemableDate": "",
+        "numbers": [
+          4,
+          6,
+          8,
+          12,
+          16,
+          20,
+          29,
+          31,
+          34,
+          35,
+          43,
+          45,
+          50,
+          54,
+          57,
+          63,
+          64,
+          67,
+          68,
+          71
+        ],
+        "orderNumbers": [
+          4,
+          6,
+          8,
+          12,
+          16,
+          20,
+          29,
+          31,
+          34,
+          35,
+          43,
+          45,
+          50,
+          54,
+          57,
+          63,
+          64,
+          67,
+          68,
+          71
+        ],
+        "specialNumber": 20,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016124",
+        "drawDate": "2026-03-21 14:15",
+        "redeemableDate": "",
+        "numbers": [
+          11,
+          12,
+          13,
+          19,
+          23,
+          24,
+          28,
+          29,
+          30,
+          34,
+          35,
+          37,
+          43,
+          45,
+          49,
+          59,
+          60,
+          63,
+          73,
+          79
+        ],
+        "orderNumbers": [
+          11,
+          12,
+          13,
+          19,
+          23,
+          24,
+          28,
+          29,
+          30,
+          34,
+          35,
+          37,
+          43,
+          45,
+          49,
+          59,
+          60,
+          63,
+          73,
+          79
+        ],
+        "specialNumber": 37,
+        "source": "history-csv"
       }
     ],
     "history": [
       {
+        "period": "115016128",
+        "drawDate": "2026-03-21 14:35",
+        "redeemableDate": "",
+        "numbers": [
+          4,
+          9,
+          13,
+          16,
+          18,
+          26,
+          27,
+          34,
+          37,
+          49,
+          52,
+          56,
+          60,
+          61,
+          62,
+          67,
+          70,
+          75,
+          76,
+          77
+        ],
+        "orderNumbers": [
+          4,
+          9,
+          13,
+          16,
+          18,
+          26,
+          27,
+          34,
+          37,
+          49,
+          52,
+          56,
+          60,
+          61,
+          62,
+          67,
+          70,
+          75,
+          76,
+          77
+        ],
+        "specialNumber": 52,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016127",
+        "drawDate": "2026-03-21 14:30",
+        "redeemableDate": "",
+        "numbers": [
+          8,
+          17,
+          22,
+          32,
+          33,
+          34,
+          36,
+          37,
+          39,
+          41,
+          44,
+          48,
+          52,
+          54,
+          55,
+          57,
+          66,
+          75,
+          76,
+          79
+        ],
+        "orderNumbers": [
+          8,
+          17,
+          22,
+          32,
+          33,
+          34,
+          36,
+          37,
+          39,
+          41,
+          44,
+          48,
+          52,
+          54,
+          55,
+          57,
+          66,
+          75,
+          76,
+          79
+        ],
+        "specialNumber": 75,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016126",
+        "drawDate": "2026-03-21 14:25",
+        "redeemableDate": "",
+        "numbers": [
+          9,
+          11,
+          13,
+          14,
+          28,
+          34,
+          39,
+          42,
+          52,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          63,
+          68,
+          70,
+          75
+        ],
+        "orderNumbers": [
+          9,
+          11,
+          13,
+          14,
+          28,
+          34,
+          39,
+          42,
+          52,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          63,
+          68,
+          70,
+          75
+        ],
+        "specialNumber": 42,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016125",
+        "drawDate": "2026-03-21 14:20",
+        "redeemableDate": "",
+        "numbers": [
+          4,
+          6,
+          8,
+          12,
+          16,
+          20,
+          29,
+          31,
+          34,
+          35,
+          43,
+          45,
+          50,
+          54,
+          57,
+          63,
+          64,
+          67,
+          68,
+          71
+        ],
+        "orderNumbers": [
+          4,
+          6,
+          8,
+          12,
+          16,
+          20,
+          29,
+          31,
+          34,
+          35,
+          43,
+          45,
+          50,
+          54,
+          57,
+          63,
+          64,
+          67,
+          68,
+          71
+        ],
+        "specialNumber": 20,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016124",
+        "drawDate": "2026-03-21 14:15",
+        "redeemableDate": "",
+        "numbers": [
+          11,
+          12,
+          13,
+          19,
+          23,
+          24,
+          28,
+          29,
+          30,
+          34,
+          35,
+          37,
+          43,
+          45,
+          49,
+          59,
+          60,
+          63,
+          73,
+          79
+        ],
+        "orderNumbers": [
+          11,
+          12,
+          13,
+          19,
+          23,
+          24,
+          28,
+          29,
+          30,
+          34,
+          35,
+          37,
+          43,
+          45,
+          49,
+          59,
+          60,
+          63,
+          73,
+          79
+        ],
+        "specialNumber": 37,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016123",
+        "drawDate": "2026-03-21 14:10",
+        "redeemableDate": "",
+        "numbers": [
+          2,
+          8,
+          13,
+          18,
+          22,
+          30,
+          33,
+          44,
+          45,
+          49,
+          51,
+          52,
+          54,
+          55,
+          58,
+          64,
+          75,
+          77,
+          79,
+          80
+        ],
+        "orderNumbers": [
+          2,
+          8,
+          13,
+          18,
+          22,
+          30,
+          33,
+          44,
+          45,
+          49,
+          51,
+          52,
+          54,
+          55,
+          58,
+          64,
+          75,
+          77,
+          79,
+          80
+        ],
+        "specialNumber": 49,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016122",
+        "drawDate": "2026-03-21 14:05",
+        "redeemableDate": "",
+        "numbers": [
+          2,
+          3,
+          7,
+          11,
+          13,
+          21,
+          23,
+          34,
+          35,
+          41,
+          43,
+          44,
+          50,
+          57,
+          61,
+          63,
+          69,
+          71,
+          77,
+          79
+        ],
+        "orderNumbers": [
+          2,
+          3,
+          7,
+          11,
+          13,
+          21,
+          23,
+          34,
+          35,
+          41,
+          43,
+          44,
+          50,
+          57,
+          61,
+          63,
+          69,
+          71,
+          77,
+          79
+        ],
+        "specialNumber": 34,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016121",
+        "drawDate": "2026-03-21 14:00",
+        "redeemableDate": "",
+        "numbers": [
+          3,
+          9,
+          11,
+          13,
+          20,
+          29,
+          30,
+          37,
+          39,
+          40,
+          42,
+          47,
+          53,
+          57,
+          62,
+          65,
+          70,
+          71,
+          78,
+          80
+        ],
+        "orderNumbers": [
+          3,
+          9,
+          11,
+          13,
+          20,
+          29,
+          30,
+          37,
+          39,
+          40,
+          42,
+          47,
+          53,
+          57,
+          62,
+          65,
+          70,
+          71,
+          78,
+          80
+        ],
+        "specialNumber": 39,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016120",
+        "drawDate": "2026-03-21 13:55",
+        "redeemableDate": "",
+        "numbers": [
+          3,
+          11,
+          30,
+          31,
+          32,
+          44,
+          48,
+          49,
+          50,
+          51,
+          53,
+          54,
+          64,
+          66,
+          69,
+          72,
+          74,
+          76,
+          77,
+          79
+        ],
+        "orderNumbers": [
+          3,
+          11,
+          30,
+          31,
+          32,
+          44,
+          48,
+          49,
+          50,
+          51,
+          53,
+          54,
+          64,
+          66,
+          69,
+          72,
+          74,
+          76,
+          77,
+          79
+        ],
+        "specialNumber": 50,
+        "source": "history-csv"
+      },
+      {
         "period": "115016119",
         "drawDate": "2026-03-21 13:50",
         "redeemableDate": "",
@@ -668,7 +1127,7 @@
           76
         ],
         "specialNumber": 56,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016118",
@@ -719,7 +1178,7 @@
           75
         ],
         "specialNumber": 6,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016117",
@@ -770,7 +1229,7 @@
           80
         ],
         "specialNumber": 72,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016116",
@@ -821,7 +1280,7 @@
           78
         ],
         "specialNumber": 20,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016115",
@@ -872,7 +1331,7 @@
           80
         ],
         "specialNumber": 42,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016114",
@@ -923,7 +1382,7 @@
           79
         ],
         "specialNumber": 4,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016113",
@@ -974,7 +1433,7 @@
           73
         ],
         "specialNumber": 56,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016112",
@@ -1025,7 +1484,7 @@
           80
         ],
         "specialNumber": 70,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016111",
@@ -1076,7 +1535,7 @@
           79
         ],
         "specialNumber": 21,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016110",
@@ -1127,7 +1586,7 @@
           75
         ],
         "specialNumber": 60,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115016109",
@@ -1178,466 +1637,7 @@
           70
         ],
         "specialNumber": 70,
-        "source": "official-api"
-      },
-      {
-        "period": "115016108",
-        "drawDate": "2026-03-21 12:55",
-        "redeemableDate": "",
-        "numbers": [
-          2,
-          5,
-          7,
-          8,
-          9,
-          11,
-          14,
-          20,
-          26,
-          27,
-          33,
-          38,
-          41,
-          49,
-          65,
-          67,
-          68,
-          72,
-          76,
-          77
-        ],
-        "orderNumbers": [
-          2,
-          5,
-          7,
-          8,
-          9,
-          11,
-          14,
-          20,
-          26,
-          27,
-          33,
-          38,
-          41,
-          49,
-          65,
-          67,
-          68,
-          72,
-          76,
-          77
-        ],
-        "specialNumber": 77,
-        "source": "official-api"
-      },
-      {
-        "period": "115016107",
-        "drawDate": "2026-03-21 12:50",
-        "redeemableDate": "",
-        "numbers": [
-          9,
-          15,
-          16,
-          18,
-          19,
-          22,
-          24,
-          25,
-          29,
-          32,
-          35,
-          36,
-          39,
-          40,
-          45,
-          48,
-          51,
-          56,
-          66,
-          80
-        ],
-        "orderNumbers": [
-          9,
-          15,
-          16,
-          18,
-          19,
-          22,
-          24,
-          25,
-          29,
-          32,
-          35,
-          36,
-          39,
-          40,
-          45,
-          48,
-          51,
-          56,
-          66,
-          80
-        ],
-        "specialNumber": 16,
-        "source": "official-api"
-      },
-      {
-        "period": "115016106",
-        "drawDate": "2026-03-21 12:45",
-        "redeemableDate": "",
-        "numbers": [
-          5,
-          10,
-          11,
-          16,
-          19,
-          21,
-          24,
-          28,
-          29,
-          31,
-          33,
-          45,
-          47,
-          49,
-          50,
-          58,
-          63,
-          66,
-          72,
-          74
-        ],
-        "orderNumbers": [
-          5,
-          10,
-          11,
-          16,
-          19,
-          21,
-          24,
-          28,
-          29,
-          31,
-          33,
-          45,
-          47,
-          49,
-          50,
-          58,
-          63,
-          66,
-          72,
-          74
-        ],
-        "specialNumber": 16,
-        "source": "official-api"
-      },
-      {
-        "period": "115016105",
-        "drawDate": "2026-03-21 12:40",
-        "redeemableDate": "",
-        "numbers": [
-          4,
-          9,
-          11,
-          13,
-          17,
-          20,
-          30,
-          33,
-          37,
-          42,
-          45,
-          48,
-          52,
-          55,
-          57,
-          58,
-          59,
-          60,
-          66,
-          76
-        ],
-        "orderNumbers": [
-          4,
-          9,
-          11,
-          13,
-          17,
-          20,
-          30,
-          33,
-          37,
-          42,
-          45,
-          48,
-          52,
-          55,
-          57,
-          58,
-          59,
-          60,
-          66,
-          76
-        ],
-        "specialNumber": 45,
-        "source": "official-api"
-      },
-      {
-        "period": "115016104",
-        "drawDate": "2026-03-21 12:35",
-        "redeemableDate": "",
-        "numbers": [
-          2,
-          4,
-          5,
-          6,
-          15,
-          21,
-          24,
-          26,
-          29,
-          32,
-          36,
-          37,
-          38,
-          43,
-          44,
-          45,
-          67,
-          68,
-          75,
-          79
-        ],
-        "orderNumbers": [
-          2,
-          4,
-          5,
-          6,
-          15,
-          21,
-          24,
-          26,
-          29,
-          32,
-          36,
-          37,
-          38,
-          43,
-          44,
-          45,
-          67,
-          68,
-          75,
-          79
-        ],
-        "specialNumber": 43,
-        "source": "official-api"
-      },
-      {
-        "period": "115016103",
-        "drawDate": "2026-03-21 12:30",
-        "redeemableDate": "",
-        "numbers": [
-          4,
-          5,
-          6,
-          10,
-          16,
-          17,
-          20,
-          25,
-          28,
-          29,
-          36,
-          38,
-          39,
-          42,
-          43,
-          50,
-          59,
-          63,
-          70,
-          80
-        ],
-        "orderNumbers": [
-          4,
-          5,
-          6,
-          10,
-          16,
-          17,
-          20,
-          25,
-          28,
-          29,
-          36,
-          38,
-          39,
-          42,
-          43,
-          50,
-          59,
-          63,
-          70,
-          80
-        ],
-        "specialNumber": 5,
-        "source": "official-api"
-      },
-      {
-        "period": "115016102",
-        "drawDate": "2026-03-21 12:25",
-        "redeemableDate": "",
-        "numbers": [
-          4,
-          5,
-          11,
-          19,
-          20,
-          23,
-          31,
-          35,
-          45,
-          46,
-          48,
-          49,
-          57,
-          59,
-          62,
-          63,
-          67,
-          68,
-          74,
-          76
-        ],
-        "orderNumbers": [
-          4,
-          5,
-          11,
-          19,
-          20,
-          23,
-          31,
-          35,
-          45,
-          46,
-          48,
-          49,
-          57,
-          59,
-          62,
-          63,
-          67,
-          68,
-          74,
-          76
-        ],
-        "specialNumber": 4,
-        "source": "official-api"
-      },
-      {
-        "period": "115016101",
-        "drawDate": "2026-03-21 12:20",
-        "redeemableDate": "",
-        "numbers": [
-          2,
-          4,
-          15,
-          16,
-          18,
-          20,
-          22,
-          28,
-          32,
-          35,
-          39,
-          45,
-          46,
-          51,
-          54,
-          55,
-          57,
-          66,
-          69,
-          78
-        ],
-        "orderNumbers": [
-          2,
-          4,
-          15,
-          16,
-          18,
-          20,
-          22,
-          28,
-          32,
-          35,
-          39,
-          45,
-          46,
-          51,
-          54,
-          55,
-          57,
-          66,
-          69,
-          78
-        ],
-        "specialNumber": 66,
-        "source": "official-api"
-      },
-      {
-        "period": "115016100",
-        "drawDate": "2026-03-21 12:15",
-        "redeemableDate": "",
-        "numbers": [
-          2,
-          5,
-          7,
-          9,
-          12,
-          20,
-          21,
-          25,
-          34,
-          36,
-          39,
-          47,
-          53,
-          55,
-          65,
-          71,
-          72,
-          73,
-          74,
-          80
-        ],
-        "orderNumbers": [
-          2,
-          5,
-          7,
-          9,
-          12,
-          20,
-          21,
-          25,
-          34,
-          36,
-          39,
-          47,
-          53,
-          55,
-          65,
-          71,
-          72,
-          73,
-          74,
-          80
-        ],
-        "specialNumber": 5,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ]
   },
@@ -1655,7 +1655,7 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     },
     "latest": {
       "period": "115000071",
@@ -1670,7 +1670,7 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     },
     "recentOfficial": [
       {
@@ -1686,7 +1686,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000070",
@@ -1701,7 +1701,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000069",
@@ -1716,7 +1716,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000068",
@@ -1731,7 +1731,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000067",
@@ -1746,7 +1746,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ],
     "recent": [
@@ -1763,7 +1763,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000070",
@@ -1778,7 +1778,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000069",
@@ -1793,7 +1793,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000068",
@@ -1808,7 +1808,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000067",
@@ -1823,7 +1823,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ],
     "history": [
@@ -1840,7 +1840,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000070",
@@ -1855,7 +1855,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000069",
@@ -1870,7 +1870,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000068",
@@ -1885,7 +1885,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000067",
@@ -1900,7 +1900,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000066",
@@ -1915,7 +1915,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000065",
@@ -1930,7 +1930,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000064",
@@ -1945,7 +1945,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000063",
@@ -1960,7 +1960,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000062",
@@ -1975,7 +1975,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000061",
@@ -1990,7 +1990,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000060",
@@ -2005,7 +2005,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000059",
@@ -2020,7 +2020,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000058",
@@ -2035,7 +2035,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000057",
@@ -2050,7 +2050,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000056",
@@ -2065,7 +2065,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000055",
@@ -2080,7 +2080,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000054",
@@ -2095,7 +2095,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000053",
@@ -2110,7 +2110,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000052",
@@ -2125,7 +2125,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ]
   },
@@ -2144,7 +2144,7 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     },
     "latest": {
       "period": "115000037",
@@ -2160,7 +2160,7 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     },
     "recentOfficial": [
       {
@@ -2177,7 +2177,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000036",
@@ -2193,7 +2193,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000035",
@@ -2209,7 +2209,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000034",
@@ -2225,7 +2225,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000033",
@@ -2241,7 +2241,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ],
     "recent": [
@@ -2259,7 +2259,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000036",
@@ -2275,7 +2275,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000035",
@@ -2291,7 +2291,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000034",
@@ -2307,7 +2307,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000033",
@@ -2323,7 +2323,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ],
     "history": [
@@ -2341,7 +2341,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000036",
@@ -2357,7 +2357,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000035",
@@ -2373,7 +2373,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000034",
@@ -2389,7 +2389,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000033",
@@ -2405,7 +2405,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000032",
@@ -2421,7 +2421,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000031",
@@ -2437,7 +2437,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000030",
@@ -2453,7 +2453,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000029",
@@ -2469,7 +2469,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000028",
@@ -2485,7 +2485,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000027",
@@ -2501,7 +2501,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000026",
@@ -2517,7 +2517,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000025",
@@ -2533,7 +2533,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000024",
@@ -2549,7 +2549,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000023",
@@ -2565,7 +2565,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000022",
@@ -2581,7 +2581,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000021",
@@ -2597,7 +2597,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000020",
@@ -2613,7 +2613,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000019",
@@ -2629,7 +2629,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000018",
@@ -2645,7 +2645,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ]
   },
@@ -2664,7 +2664,7 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     },
     "latest": {
       "period": "115000023",
@@ -2680,7 +2680,7 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     },
     "recentOfficial": [
       {
@@ -2697,7 +2697,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000022",
@@ -2713,7 +2713,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000021",
@@ -2729,7 +2729,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000020",
@@ -2745,7 +2745,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000019",
@@ -2761,7 +2761,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ],
     "recent": [
@@ -2779,7 +2779,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000022",
@@ -2795,7 +2795,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000021",
@@ -2811,7 +2811,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000020",
@@ -2827,7 +2827,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000019",
@@ -2843,7 +2843,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ],
     "history": [
@@ -2861,7 +2861,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000022",
@@ -2877,7 +2877,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000021",
@@ -2893,7 +2893,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000020",
@@ -2909,7 +2909,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000019",
@@ -2925,7 +2925,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000018",
@@ -2941,7 +2941,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000017",
@@ -2957,7 +2957,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000016",
@@ -2973,7 +2973,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000015",
@@ -2989,7 +2989,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000014",
@@ -3005,7 +3005,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000013",
@@ -3021,7 +3021,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000012",
@@ -3037,7 +3037,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000011",
@@ -3053,7 +3053,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000010",
@@ -3069,7 +3069,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000009",
@@ -3085,7 +3085,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000008",
@@ -3101,7 +3101,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000007",
@@ -3117,7 +3117,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000006",
@@ -3133,7 +3133,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000005",
@@ -3149,7 +3149,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000004",
@@ -3165,61 +3165,61 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ]
   },
   "officialLatest": {
     "bingo": {
-      "period": "115016119",
-      "drawDate": "2026-03-21 13:50",
+      "period": "115016128",
+      "drawDate": "2026-03-21 14:35",
       "redeemableDate": "",
       "numbers": [
-        5,
-        11,
-        19,
-        20,
-        23,
-        24,
-        25,
+        4,
+        9,
+        13,
+        16,
+        18,
         26,
-        31,
-        32,
+        27,
+        34,
         37,
-        40,
-        43,
-        46,
+        49,
         52,
         56,
-        59,
+        60,
         61,
+        62,
         67,
-        76
+        70,
+        75,
+        76,
+        77
       ],
       "orderNumbers": [
-        5,
-        11,
-        19,
-        20,
-        23,
-        24,
-        25,
+        4,
+        9,
+        13,
+        16,
+        18,
         26,
-        31,
-        32,
+        27,
+        34,
         37,
-        40,
-        43,
-        46,
+        49,
         52,
         56,
-        59,
+        60,
         61,
+        62,
         67,
-        76
+        70,
+        75,
+        76,
+        77
       ],
-      "specialNumber": 56,
-      "source": "official-api"
+      "specialNumber": 52,
+      "source": "history-csv"
     },
     "daily539": {
       "period": "115000071",
@@ -3234,7 +3234,7 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     },
     "lotto649": {
       "period": "115000037",
@@ -3250,7 +3250,7 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     },
     "superLotto638": {
       "period": "115000023",
@@ -3266,265 +3266,265 @@
       ],
       "orderNumbers": [],
       "specialNumber": null,
-      "source": "official-api"
+      "source": "history-csv"
     }
   },
   "recentOfficial": {
     "bingo": [
       {
-        "period": "115016119",
-        "drawDate": "2026-03-21 13:50",
+        "period": "115016128",
+        "drawDate": "2026-03-21 14:35",
         "redeemableDate": "",
         "numbers": [
-          5,
-          11,
-          19,
-          20,
-          23,
-          24,
-          25,
+          4,
+          9,
+          13,
+          16,
+          18,
           26,
-          31,
-          32,
+          27,
+          34,
           37,
-          40,
-          43,
-          46,
+          49,
           52,
           56,
-          59,
+          60,
           61,
+          62,
           67,
-          76
+          70,
+          75,
+          76,
+          77
         ],
         "orderNumbers": [
-          5,
-          11,
-          19,
-          20,
-          23,
-          24,
-          25,
+          4,
+          9,
+          13,
+          16,
+          18,
           26,
-          31,
-          32,
+          27,
+          34,
           37,
-          40,
-          43,
-          46,
+          49,
           52,
           56,
-          59,
+          60,
           61,
+          62,
           67,
-          76
+          70,
+          75,
+          76,
+          77
         ],
-        "specialNumber": 56,
-        "source": "official-api"
+        "specialNumber": 52,
+        "source": "history-csv"
       },
       {
-        "period": "115016118",
-        "drawDate": "2026-03-21 13:45",
+        "period": "115016127",
+        "drawDate": "2026-03-21 14:30",
         "redeemableDate": "",
         "numbers": [
-          2,
-          6,
-          7,
-          10,
-          14,
-          15,
-          21,
-          26,
-          28,
-          29,
-          30,
-          35,
-          40,
+          8,
+          17,
+          22,
+          32,
+          33,
+          34,
+          36,
+          37,
+          39,
+          41,
+          44,
+          48,
           52,
+          54,
+          55,
+          57,
+          66,
+          75,
+          76,
+          79
+        ],
+        "orderNumbers": [
+          8,
+          17,
+          22,
+          32,
+          33,
+          34,
+          36,
+          37,
+          39,
+          41,
+          44,
+          48,
+          52,
+          54,
+          55,
+          57,
+          66,
+          75,
+          76,
+          79
+        ],
+        "specialNumber": 75,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016126",
+        "drawDate": "2026-03-21 14:25",
+        "redeemableDate": "",
+        "numbers": [
+          9,
+          11,
+          13,
+          14,
+          28,
+          34,
+          39,
+          42,
+          52,
+          55,
+          56,
+          57,
+          58,
           59,
+          60,
           61,
           63,
-          65,
-          66,
+          68,
+          70,
           75
         ],
         "orderNumbers": [
-          2,
-          6,
-          7,
-          10,
+          9,
+          11,
+          13,
           14,
-          15,
-          21,
-          26,
           28,
-          29,
-          30,
-          35,
-          40,
+          34,
+          39,
+          42,
           52,
+          55,
+          56,
+          57,
+          58,
           59,
+          60,
           61,
           63,
-          65,
-          66,
+          68,
+          70,
           75
-        ],
-        "specialNumber": 6,
-        "source": "official-api"
-      },
-      {
-        "period": "115016117",
-        "drawDate": "2026-03-21 13:40",
-        "redeemableDate": "",
-        "numbers": [
-          7,
-          13,
-          17,
-          22,
-          24,
-          27,
-          34,
-          35,
-          37,
-          41,
-          43,
-          44,
-          54,
-          55,
-          61,
-          65,
-          72,
-          77,
-          79,
-          80
-        ],
-        "orderNumbers": [
-          7,
-          13,
-          17,
-          22,
-          24,
-          27,
-          34,
-          35,
-          37,
-          41,
-          43,
-          44,
-          54,
-          55,
-          61,
-          65,
-          72,
-          77,
-          79,
-          80
-        ],
-        "specialNumber": 72,
-        "source": "official-api"
-      },
-      {
-        "period": "115016116",
-        "drawDate": "2026-03-21 13:35",
-        "redeemableDate": "",
-        "numbers": [
-          1,
-          8,
-          10,
-          11,
-          17,
-          19,
-          20,
-          22,
-          26,
-          32,
-          33,
-          35,
-          38,
-          40,
-          55,
-          56,
-          61,
-          70,
-          76,
-          78
-        ],
-        "orderNumbers": [
-          1,
-          8,
-          10,
-          11,
-          17,
-          19,
-          20,
-          22,
-          26,
-          32,
-          33,
-          35,
-          38,
-          40,
-          55,
-          56,
-          61,
-          70,
-          76,
-          78
-        ],
-        "specialNumber": 20,
-        "source": "official-api"
-      },
-      {
-        "period": "115016115",
-        "drawDate": "2026-03-21 13:30",
-        "redeemableDate": "",
-        "numbers": [
-          2,
-          4,
-          10,
-          14,
-          18,
-          19,
-          20,
-          31,
-          42,
-          44,
-          45,
-          48,
-          49,
-          56,
-          61,
-          67,
-          69,
-          73,
-          75,
-          80
-        ],
-        "orderNumbers": [
-          2,
-          4,
-          10,
-          14,
-          18,
-          19,
-          20,
-          31,
-          42,
-          44,
-          45,
-          48,
-          49,
-          56,
-          61,
-          67,
-          69,
-          73,
-          75,
-          80
         ],
         "specialNumber": 42,
-        "source": "official-api"
+        "source": "history-csv"
+      },
+      {
+        "period": "115016125",
+        "drawDate": "2026-03-21 14:20",
+        "redeemableDate": "",
+        "numbers": [
+          4,
+          6,
+          8,
+          12,
+          16,
+          20,
+          29,
+          31,
+          34,
+          35,
+          43,
+          45,
+          50,
+          54,
+          57,
+          63,
+          64,
+          67,
+          68,
+          71
+        ],
+        "orderNumbers": [
+          4,
+          6,
+          8,
+          12,
+          16,
+          20,
+          29,
+          31,
+          34,
+          35,
+          43,
+          45,
+          50,
+          54,
+          57,
+          63,
+          64,
+          67,
+          68,
+          71
+        ],
+        "specialNumber": 20,
+        "source": "history-csv"
+      },
+      {
+        "period": "115016124",
+        "drawDate": "2026-03-21 14:15",
+        "redeemableDate": "",
+        "numbers": [
+          11,
+          12,
+          13,
+          19,
+          23,
+          24,
+          28,
+          29,
+          30,
+          34,
+          35,
+          37,
+          43,
+          45,
+          49,
+          59,
+          60,
+          63,
+          73,
+          79
+        ],
+        "orderNumbers": [
+          11,
+          12,
+          13,
+          19,
+          23,
+          24,
+          28,
+          29,
+          30,
+          34,
+          35,
+          37,
+          43,
+          45,
+          49,
+          59,
+          60,
+          63,
+          73,
+          79
+        ],
+        "specialNumber": 37,
+        "source": "history-csv"
       }
     ],
     "daily539": [
@@ -3541,7 +3541,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000070",
@@ -3556,7 +3556,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000069",
@@ -3571,7 +3571,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000068",
@@ -3586,7 +3586,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000067",
@@ -3601,7 +3601,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ],
     "lotto649": [
@@ -3619,7 +3619,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000036",
@@ -3635,7 +3635,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000035",
@@ -3651,7 +3651,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000034",
@@ -3667,7 +3667,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000033",
@@ -3683,7 +3683,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ],
     "superLotto638": [
@@ -3701,7 +3701,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000022",
@@ -3717,7 +3717,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000021",
@@ -3733,7 +3733,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000020",
@@ -3749,7 +3749,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       },
       {
         "period": "115000019",
@@ -3765,7 +3765,7 @@
         ],
         "orderNumbers": [],
         "specialNumber": null,
-        "source": "official-api"
+        "source": "history-csv"
       }
     ]
   }
