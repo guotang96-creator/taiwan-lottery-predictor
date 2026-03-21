@@ -5,6 +5,7 @@ const ROOT = process.cwd();
 const DOCS_DIR = path.join(ROOT, "docs");
 const RAW_DIR = path.join(DOCS_DIR, "raw_data");
 const OUT_FILE = path.join(DOCS_DIR, "latest.json");
+const OFFICIAL_LATEST_FILE = path.join(ROOT, "official_latest.json");
 
 const FILES = {
   bingo: path.join(RAW_DIR, "bingo.csv"),
@@ -19,10 +20,6 @@ const GAME_CONFIG = {
   lotto649: { min: 1, max: 49, mainCount: 6, specialLabel: "特別號" },
   superLotto638: { min: 1, max: 38, mainCount: 6, specialLabel: "第二區" }
 };
-
-function pad2(n) {
-  return String(n).padStart(2, "0");
-}
 
 function parseCsvLine(line) {
   const out = [];
@@ -156,11 +153,11 @@ function inferPeriod(row) {
 
 function inferDate(row) {
   const direct = firstMatchValue(row, ["date", "drawdate", "lotterydate", "ddate", "開獎日期", "日期"]);
-  if (direct) return String(direct);
+  if (direct) return normalizeDateTime(String(direct));
 
   const raw = row.__raw || [];
   const candidate = raw.find(v => /\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(String(v)));
-  return candidate ? String(candidate) : "";
+  return candidate ? normalizeDateTime(String(candidate)) : "";
 }
 
 function inferSpecial(row, aliases, min, max) {
@@ -168,6 +165,14 @@ function inferSpecial(row, aliases, min, max) {
   const num = Number(raw);
   if (Number.isFinite(num) && num >= min && num <= max) return num;
   return null;
+}
+
+function normalizeDateTime(value) {
+  if (!value) return "";
+  const raw = String(value).trim();
+  const m = raw.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (!m) return raw;
+  return `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")} ${String(m[4] || "00").padStart(2, "0")}:${String(m[5] || "00").padStart(2, "0")}`;
 }
 
 function normalizeHistoryRows(gameKey, rows) {
@@ -194,7 +199,7 @@ function normalizeHistoryRows(gameKey, rows) {
         numbers,
         orderNumbers: numbers.slice(),
         specialNumber,
-        source: "official-api"
+        source: "history-csv"
       };
     }
 
@@ -207,7 +212,7 @@ function normalizeHistoryRows(gameKey, rows) {
         numbers,
         orderNumbers: [],
         specialNumber: null,
-        source: "official-api"
+        source: "history-csv"
       };
     }
 
@@ -239,7 +244,7 @@ function normalizeHistoryRows(gameKey, rows) {
         numbers,
         orderNumbers: [],
         specialNumber,
-        source: "official-api"
+        source: "history-csv"
       };
     }
 
@@ -268,7 +273,7 @@ function normalizeHistoryRows(gameKey, rows) {
         numbers,
         orderNumbers: [],
         specialNumber,
-        source: "official-api"
+        source: "history-csv"
       };
     }
 
@@ -280,34 +285,17 @@ function normalizeHistoryRows(gameKey, rows) {
     .filter(item => item.numbers.length >= Math.min(cfg.mainCount, 3));
 }
 
-function parseStableDate(value) {
-  if (!value) return { time: 0, period: 0 };
-
-  const raw = String(value).trim();
-  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/);
-
-  let time = 0;
-  if (m) {
-    time = Date.UTC(
-      Number(m[1]),
-      Number(m[2]) - 1,
-      Number(m[3]),
-      Number(m[4] || "0"),
-      Number(m[5] || "0"),
-      Number(m[6] || "0")
-    );
-  } else {
-    const t = new Date(raw).getTime();
-    time = Number.isFinite(t) ? t : 0;
-  }
-
-  return { time };
+function parseStableTime(value) {
+  if (!value) return 0;
+  const raw = String(value).trim().replace(" ", "T");
+  const t = new Date(raw).getTime();
+  return Number.isFinite(t) ? t : 0;
 }
 
 function sortDrawsDesc(draws) {
   return [...draws].sort((a, b) => {
-    const ta = parseStableDate(a.drawDate || "").time;
-    const tb = parseStableDate(b.drawDate || "").time;
+    const ta = parseStableTime(a.drawDate || "");
+    const tb = parseStableTime(b.drawDate || "");
     if (tb !== ta) return tb - ta;
     return Number(b.period || 0) - Number(a.period || 0);
   });
@@ -340,14 +328,60 @@ function readGameCsv(filePath, gameKey) {
   return normalizeHistoryRows(gameKey, rows);
 }
 
-function buildGamePayload(gameKey, draws) {
-  const sorted = sortDrawsDesc(dedupeDraws(draws));
+function readOfficialLatest() {
+  if (!fs.existsSync(OFFICIAL_LATEST_FILE)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(OFFICIAL_LATEST_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function normalizeOfficialDraw(gameKey, draw) {
+  if (!draw || typeof draw !== "object") return null;
+
+  const cfg = GAME_CONFIG[gameKey];
+  if (!cfg) return null;
+
+  const normalized = {
+    period: String(draw.period || "").trim(),
+    drawDate: normalizeDateTime(draw.drawDate || draw.lotteryDate || ""),
+    redeemableDate: normalizeDateTime(draw.redeemableDate || ""),
+    numbers: uniqSorted((draw.numbers || []).map(Number).filter(n => Number.isFinite(n) && n >= cfg.min && n <= cfg.max)),
+    orderNumbers: Array.isArray(draw.orderNumbers)
+      ? draw.orderNumbers.map(Number).filter(Number.isFinite)
+      : [],
+    specialNumber: draw.specialNumber == null ? null : Number(draw.specialNumber),
+    source: draw.source || "official-api"
+  };
+
+  if (!normalized.orderNumbers.length) {
+    normalized.orderNumbers = [...normalized.numbers];
+  }
+
+  if (gameKey === "daily539") normalized.specialNumber = null;
+  if (!normalized.period && !normalized.drawDate && !normalized.numbers.length) return null;
+
+  return normalized;
+}
+
+function mergeLatestIntoHistory(historyDraws, latestDraw) {
+  if (!latestDraw) return sortDrawsDesc(dedupeDraws(historyDraws));
+  return sortDrawsDesc(dedupeDraws([latestDraw, ...historyDraws]));
+}
+
+function buildGamePayload(gameKey, historyDraws, officialLatestMap) {
+  const sortedHistory = sortDrawsDesc(dedupeDraws(historyDraws));
+  const officialLatest = normalizeOfficialDraw(gameKey, officialLatestMap?.[gameKey] || null);
+  const merged = mergeLatestIntoHistory(sortedHistory, officialLatest);
+  const latest = officialLatest || merged[0] || null;
+
   return {
-    latestOfficial: sorted[0] || null,
-    latest: sorted[0] || null,
-    recentOfficial: sorted.slice(0, 5),
-    recent: sorted.slice(0, 5),
-    history: sorted.slice(0, 20)
+    latestOfficial: officialLatest || merged[0] || null,
+    latest: latest,
+    recentOfficial: officialLatest ? mergeLatestIntoHistory(sortedHistory.slice(0, 20), officialLatest).slice(0, 5) : merged.slice(0, 5),
+    recent: merged.slice(0, 5),
+    history: merged.slice(0, 20)
   };
 }
 
@@ -360,26 +394,29 @@ function main() {
   const daily539Draws = readGameCsv(FILES.daily539, "daily539");
   const lotto649Draws = readGameCsv(FILES.lotto649, "lotto649");
   const superLotto638Draws = readGameCsv(FILES.superLotto638, "superLotto638");
+  const officialLatest = readOfficialLatest();
 
   const payload = {
     generatedAt: new Date().toISOString(),
     source: "official-api",
-    bingo: buildGamePayload("bingo", bingoDraws),
-    daily539: buildGamePayload("daily539", daily539Draws),
-    lotto649: buildGamePayload("lotto649", lotto649Draws),
-    superLotto638: buildGamePayload("superLotto638", superLotto638Draws),
-    officialLatest: {
-      bingo: sortDrawsDesc(bingoDraws)[0] || null,
-      daily539: sortDrawsDesc(daily539Draws)[0] || null,
-      lotto649: sortDrawsDesc(lotto649Draws)[0] || null,
-      superLotto638: sortDrawsDesc(superLotto638Draws)[0] || null
-    },
-    recentOfficial: {
-      bingo: sortDrawsDesc(bingoDraws).slice(0, 5),
-      daily539: sortDrawsDesc(daily539Draws).slice(0, 5),
-      lotto649: sortDrawsDesc(lotto649Draws).slice(0, 5),
-      superLotto638: sortDrawsDesc(superLotto638Draws).slice(0, 5)
-    }
+    bingo: buildGamePayload("bingo", bingoDraws, officialLatest),
+    daily539: buildGamePayload("daily539", daily539Draws, officialLatest),
+    lotto649: buildGamePayload("lotto649", lotto649Draws, officialLatest),
+    superLotto638: buildGamePayload("superLotto638", superLotto638Draws, officialLatest)
+  };
+
+  payload.officialLatest = {
+    bingo: payload.bingo.latestOfficial,
+    daily539: payload.daily539.latestOfficial,
+    lotto649: payload.lotto649.latestOfficial,
+    superLotto638: payload.superLotto638.latestOfficial
+  };
+
+  payload.recentOfficial = {
+    bingo: payload.bingo.recentOfficial,
+    daily539: payload.daily539.recentOfficial,
+    lotto649: payload.lotto649.recentOfficial,
+    superLotto638: payload.superLotto638.recentOfficial
   };
 
   fs.writeFileSync(OUT_FILE, JSON.stringify(payload, null, 2), "utf8");
