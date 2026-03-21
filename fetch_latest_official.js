@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 const ROOT = process.cwd();
 
@@ -10,7 +10,7 @@ function ensureDir(dirPath) {
 function safeReadJson(filePath, fallback = null) {
   try {
     if (!fs.existsSync(filePath)) return fallback;
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
   } catch (err) {
     console.warn(`⚠️ JSON 讀取失敗: ${filePath}`, err.message);
     return fallback;
@@ -19,13 +19,13 @@ function safeReadJson(filePath, fallback = null) {
 
 function safeWriteJson(filePath, data) {
   ensureDir(path.dirname(filePath));
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
   console.log(`✅ 已寫入 ${filePath}`);
 }
 
 function formatMonth(date) {
   const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
 }
 
@@ -41,7 +41,7 @@ function getMonthRange(monthCount = 3) {
 
 function toNumberArray(value) {
   if (!Array.isArray(value)) return [];
-  return value.map(v => Number(v)).filter(v => Number.isFinite(v));
+  return value.map((v) => Number(v)).filter((v) => Number.isFinite(v));
 }
 
 function pickFirstArray(obj, keys) {
@@ -53,7 +53,7 @@ function pickFirstArray(obj, keys) {
 
 function pickFirstValue(obj, keys) {
   for (const key of keys) {
-    if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== '') {
+    if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== "") {
       return obj[key];
     }
   }
@@ -62,7 +62,7 @@ function pickFirstValue(obj, keys) {
 
 function normalizeDate(value) {
   if (!value) return null;
-  if (typeof value === 'string') return value;
+  if (typeof value === "string") return value;
   try {
     return new Date(value).toISOString();
   } catch {
@@ -77,7 +77,7 @@ function parseStableTime(value) {
 }
 
 function normalizePeriodValue(item) {
-  return String(pickFirstValue(item, ['period', 'drawTerm', 'term', 'issue']) || '');
+  return String(pickFirstValue(item, ["period", "drawTerm", "term", "issue"]) || "");
 }
 
 function sortByPeriodDesc(list) {
@@ -97,18 +97,6 @@ function extractLatestFromList(list) {
   return sortByPeriodDesc(list)[0];
 }
 
-function extractSequentialNumbers(item, keys, start, end) {
-  const nums = [];
-  for (const key of keys) {
-    for (let i = start; i <= end; i++) {
-      const value = item?.[`${key}${i}`];
-      const num = Number(value);
-      if (Number.isFinite(num)) nums.push(num);
-    }
-  }
-  return nums;
-}
-
 function extractMainNumbers(item, options = {}) {
   const {
     directArrayKeys = [],
@@ -118,138 +106,164 @@ function extractMainNumbers(item, options = {}) {
   } = options;
 
   for (const key of directArrayKeys) {
-    const arr = toNumberArray(item?.[key]);
-    if (arr.length) return arr;
+    const value = item?.[key];
+    if (Array.isArray(value)) {
+      const arr = value.map(Number).filter(Number.isFinite);
+      if (arr.length) return arr.slice(0, seqEnd);
+    }
   }
 
-  const seqNums = extractSequentialNumbers(item, sequentialPrefixes, seqStart, seqEnd);
-  if (seqNums.length) return seqNums;
+  for (const prefix of sequentialPrefixes) {
+    const temp = [];
+    for (let i = seqStart; i <= seqEnd; i++) {
+      const raw = item?.[`${prefix}${i}`];
+      const num = Number(raw);
+      if (Number.isFinite(num)) temp.push(num);
+    }
+    if (temp.length) return temp;
+  }
 
   return [];
 }
 
 function extractSpecialNumber(item, keys) {
   const raw = pickFirstValue(item, keys);
+
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === "string" && raw.trim() === "") return null;
+
   const num = Number(raw);
-  return Number.isFinite(num) ? num : null;
+  if (!Number.isFinite(num)) return null;
+  if (num <= 0) return null;
+
+  return num;
 }
 
 function normalize539(item) {
   if (!item) return null;
+
+  const numbers = extractMainNumbers(item, {
+    directArrayKeys: ["drawNumberSize", "numbers", "drawNumbers"],
+    sequentialPrefixes: ["drawNumber", "num", "ball"],
+    seqStart: 1,
+    seqEnd: 5
+  });
+
   return {
-    game: 'daily539',
+    game: "daily539",
     period: normalizePeriodValue(item),
-    drawDate: normalizeDate(pickFirstValue(item, ['lotteryDate', 'drawDate', 'date'])),
-    redeemableDate: normalizeDate(pickFirstValue(item, ['redeemableDate'])),
-    numbers: extractMainNumbers(item, {
-      directArrayKeys: ['drawNumberSize', 'numbers', 'drawNumbers'],
-      sequentialPrefixes: ['drawNumber', 'num', 'ball'],
-      seqStart: 1,
-      seqEnd: 5
-    }),
-    source: 'official-api'
+    drawDate: normalizeDate(pickFirstValue(item, ["lotteryDate", "drawDate", "date"])),
+    redeemableDate: normalizeDate(pickFirstValue(item, ["redeemableDate"])),
+    numbers,
+    source: "official-api"
   };
 }
 
 function normalizeLotto649(item) {
   if (!item) return null;
+
+  const numbers = extractMainNumbers(item, {
+    directArrayKeys: ["drawNumberSize", "numbers", "drawNumbers"],
+    sequentialPrefixes: ["drawNumber", "num", "ball"],
+    seqStart: 1,
+    seqEnd: 6
+  });
+
   return {
-    game: 'lotto649',
+    game: "lotto649",
     period: normalizePeriodValue(item),
-    drawDate: normalizeDate(pickFirstValue(item, ['lotteryDate', 'drawDate', 'date'])),
-    redeemableDate: normalizeDate(pickFirstValue(item, ['redeemableDate'])),
-    numbers: extractMainNumbers(item, {
-      directArrayKeys: ['drawNumberSize', 'numbers', 'drawNumbers'],
-      sequentialPrefixes: ['drawNumber', 'num', 'ball'],
-      seqStart: 1,
-      seqEnd: 6
-    }),
+    drawDate: normalizeDate(pickFirstValue(item, ["lotteryDate", "drawDate", "date"])),
+    redeemableDate: normalizeDate(pickFirstValue(item, ["redeemableDate"])),
+    numbers,
     specialNumber: extractSpecialNumber(item, [
-      'specialNumber',
-      'specialNum',
-      'bonusNumber',
-      'bonusNum',
-      'superNumber'
+      "specialNumber",
+      "specialNum",
+      "bonusNumber",
+      "bonusNum",
+      "superNumber"
     ]),
-    source: 'official-api'
+    source: "official-api"
   };
 }
 
 function normalizeSuperLotto638(item) {
   if (!item) return null;
+
+  const numbers = extractMainNumbers(item, {
+    directArrayKeys: ["drawNumberSize", "numbers", "drawNumbers", "zone1"],
+    sequentialPrefixes: ["drawNumber", "num", "ball"],
+    seqStart: 1,
+    seqEnd: 6
+  });
+
   return {
-    game: 'superLotto638',
+    game: "superLotto638",
     period: normalizePeriodValue(item),
-    drawDate: normalizeDate(pickFirstValue(item, ['lotteryDate', 'drawDate', 'date'])),
-    redeemableDate: normalizeDate(pickFirstValue(item, ['redeemableDate'])),
-    numbers: extractMainNumbers(item, {
-      directArrayKeys: ['drawNumberSize', 'drawNumber1', 'numbers', 'drawNumbers', 'zone1'],
-      sequentialPrefixes: ['drawNumber', 'num', 'ball'],
-      seqStart: 1,
-      seqEnd: 6
-    }),
+    drawDate: normalizeDate(pickFirstValue(item, ["lotteryDate", "drawDate", "date"])),
+    redeemableDate: normalizeDate(pickFirstValue(item, ["redeemableDate"])),
+    numbers,
     specialNumber: extractSpecialNumber(item, [
-      'specialNumber',
-      'secondAreaNumber',
-      'secondNumber',
-      'specialNum',
-      'bonusNumber',
-      'superNumber',
-      'zone2'
+      "specialNumber",
+      "secondAreaNumber",
+      "secondNumber",
+      "specialNum",
+      "bonusNumber",
+      "superNumber",
+      "zone2"
     ]),
-    source: 'official-api'
+    source: "official-api"
   };
 }
 
 function normalizeBingo(content) {
   if (!content) return null;
 
-  const orderNums = extractMainNumbers(content, {
+  const root = content.content && typeof content.content === "object" ? content.content : content;
+
+  const orderNumbers = extractMainNumbers(root, {
     directArrayKeys: [
-      'drawOrderNums',
-      'drawOrderNumbers',
-      'drawNumberAppear',
-      'drawNumbers',
-      'orderNumbers'
+      "drawOrderNums",
+      "drawOrderNumbers",
+      "drawNumberAppear",
+      "drawNumbers",
+      "orderNumbers"
     ],
-    sequentialPrefixes: ['drawOrderNum', 'drawNumber'],
+    sequentialPrefixes: ["drawOrderNum", "drawNumber"],
     seqStart: 1,
     seqEnd: 20
   });
 
-  const sizeNums = extractMainNumbers(content, {
+  const numbers = extractMainNumbers(root, {
     directArrayKeys: [
-      'drawSizeNums',
-      'drawNumberSize',
-      'numbers'
+      "drawSizeNums",
+      "drawNumberSize",
+      "numbers"
     ],
-    sequentialPrefixes: ['drawSizeNum'],
+    sequentialPrefixes: ["drawSizeNum"],
     seqStart: 1,
     seqEnd: 20
   });
-
-  const numbers = sizeNums.length ? sizeNums : orderNums;
 
   return {
-    game: 'bingo',
-    period: normalizePeriodValue(content),
-    drawDate: normalizeDate(pickFirstValue(content, ['lotteryDate', 'drawDate', 'date'])),
-    numbers,
-    orderNumbers: orderNums,
-    specialNumber: extractSpecialNumber(content, [
-      'superNum',
-      'specialNumber',
-      'bonusNumber'
+    game: "bingo",
+    period: normalizePeriodValue(root),
+    drawDate: normalizeDate(pickFirstValue(root, ["lotteryDate", "drawDate", "date"])),
+    numbers: numbers.length ? numbers : orderNumbers,
+    orderNumbers,
+    specialNumber: extractSpecialNumber(root, [
+      "superNum",
+      "specialNumber",
+      "bonusNumber"
     ]),
-    source: 'official-api'
+    source: "official-api"
   };
 }
 
 async function fetchJson(url) {
   const res = await fetch(url, {
     headers: {
-      accept: 'application/json, text/plain, */*',
-      'user-agent': 'Mozilla/5.0'
+      accept: "application/json, text/plain, */*",
+      "user-agent": "Mozilla/5.0"
     }
   });
 
@@ -268,6 +282,7 @@ async function fetchJson(url) {
 
 async function fetchJsonWithRetry(url, retries = 3, waitMs = 4000) {
   let lastErr = null;
+
   for (let i = 0; i < retries; i++) {
     try {
       return await fetchJson(url);
@@ -275,10 +290,11 @@ async function fetchJsonWithRetry(url, retries = 3, waitMs = 4000) {
       lastErr = err;
       console.warn(`⚠️ 抓取失敗 (${i + 1}/${retries}): ${url} - ${err.message}`);
       if (i < retries - 1) {
-        await new Promise(resolve => setTimeout(resolve, waitMs));
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
       }
     }
   }
+
   throw lastErr;
 }
 
@@ -286,13 +302,13 @@ async function getLatestOfficialData() {
   const { month, endMonth } = getMonthRange(3);
 
   const urls = {
-    bingo: 'https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestBingoResult',
+    bingo: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/LatestBingoResult",
     daily539: `https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?period&month=${month}&endMonth=${endMonth}&pageNum=1&pageSize=200`,
     lotto649: `https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result?period&month=${month}&endMonth=${endMonth}&pageNum=1&pageSize=200`,
     superLotto638: `https://api.taiwanlottery.com/TLCAPIWeB/Lottery/SuperLotto638Result?period&month=${month}&endMonth=${endMonth}&pageNum=1&pageSize=200`
   };
 
-  console.log('📡 抓取官方最新 API 中...');
+  console.log("📡 抓取官方最新 API 中...");
   console.log(urls);
 
   const [bingoRes, daily539Res, lotto649Res, superLotto638Res] = await Promise.all([
@@ -303,15 +319,15 @@ async function getLatestOfficialData() {
   ]);
 
   const latest539 = extractLatestFromList(
-    pickFirstArray(daily539Res?.content, ['daily539Res', 'list', 'results'])
+    pickFirstArray(daily539Res?.content, ["daily539Res", "list", "results"])
   );
 
   const latest649 = extractLatestFromList(
-    pickFirstArray(lotto649Res?.content, ['lotto649Res', 'list', 'results'])
+    pickFirstArray(lotto649Res?.content, ["lotto649Res", "list", "results"])
   );
 
   const latest638 = extractLatestFromList(
-    pickFirstArray(superLotto638Res?.content, ['superLotto638Res', 'list', 'results'])
+    pickFirstArray(superLotto638Res?.content, ["superLotto638Res", "list", "results"])
   );
 
   const officialLatest = {
@@ -321,22 +337,22 @@ async function getLatestOfficialData() {
     superLotto638: normalizeSuperLotto638(latest638)
   };
 
-  console.log('===== normalized official latest =====');
+  console.log("===== normalized official latest =====");
   console.log(JSON.stringify(officialLatest, null, 2));
 
   return {
     generatedAt: new Date().toISOString(),
-    source: 'official-api',
+    source: "official-api",
     officialLatest
   };
 }
 
 function mergeIntoLatestJson(latestOfficial) {
   const candidateFiles = [
-    path.join(ROOT, 'latest.json'),
-    path.join(ROOT, 'docs', 'latest.json'),
-    path.join(ROOT, 'public', 'latest.json'),
-    path.join(ROOT, 'data', 'latest.json')
+    path.join(ROOT, "latest.json"),
+    path.join(ROOT, "docs", "latest.json"),
+    path.join(ROOT, "public", "latest.json"),
+    path.join(ROOT, "data", "latest.json")
   ];
 
   let updatedAny = false;
@@ -356,7 +372,7 @@ function mergeIntoLatestJson(latestOfficial) {
   }
 
   if (!updatedAny) {
-    safeWriteJson(path.join(ROOT, 'latest.json'), latestOfficial);
+    safeWriteJson(path.join(ROOT, "latest.json"), latestOfficial);
   }
 }
 
@@ -364,18 +380,18 @@ async function main() {
   try {
     const latestOfficial = await getLatestOfficialData();
 
-    safeWriteJson(path.join(ROOT, 'official_latest.json'), latestOfficial);
-    safeWriteJson(path.join(ROOT, 'data', 'official_latest.json'), latestOfficial);
+    safeWriteJson(path.join(ROOT, "official_latest.json"), latestOfficial);
+    safeWriteJson(path.join(ROOT, "data", "official_latest.json"), latestOfficial);
 
-    if (fs.existsSync(path.join(ROOT, 'docs'))) {
-      safeWriteJson(path.join(ROOT, 'docs', 'official_latest.json'), latestOfficial);
+    if (fs.existsSync(path.join(ROOT, "docs"))) {
+      safeWriteJson(path.join(ROOT, "docs", "official_latest.json"), latestOfficial);
     }
 
     mergeIntoLatestJson(latestOfficial);
 
-    console.log('🎉 fetch_latest_official.js 完成');
+    console.log("🎉 fetch_latest_official.js 完成");
   } catch (err) {
-    console.error('❌ fetch_latest_official.js 失敗:', err);
+    console.error("❌ fetch_latest_official.js 失敗:", err);
     process.exit(1);
   }
 }
