@@ -1,10 +1,10 @@
-const CACHE_NAME = "taiwan-lottery-v93-1-5";
+const CACHE_NAME = "taiwan-lottery-v93-1-6";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./style.css?v=93.1.5",
-  "./app.js?v=93.1.5",
-  "./manifest.json?v=93.1.5",
+  "./style.css?v=93.1.6",
+  "./app.js?v=93.1.6",
+  "./manifest.json?v=93.1.6",
   "./favicon.png",
   "./apple-touch-icon.png",
   "./icon-192.png",
