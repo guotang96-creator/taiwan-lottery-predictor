@@ -55,7 +55,7 @@ body{
   display:none !important;
 }
 
-/* 舊版可能殘留的容器，避免畫面過於擁擠 */
+/* 舊版可能殘留容器 */
 .dashboard-grid,
 .main-grid,
 .home-grid,
@@ -64,7 +64,7 @@ body{
 }
 
 /* 新版根容器 */
-#lottery-ai-root-v9311{
+#lottery-ai-root-v9312{
   width:min(100%,960px);
   margin:0 auto;
   padding:12px;
@@ -178,7 +178,7 @@ button:active{
   word-break:break-word;
 }
 
-/* 主要內容格線 */
+/* 主要內容 */
 .v93-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -250,6 +250,7 @@ button:active{
   background:linear-gradient(135deg,#ea580c,#f97316);
 }
 
+/* 特別號 / 第二區 */
 .num.zone2{
   background:linear-gradient(135deg,#ef4444,#fb7185) !important;
 }
@@ -281,7 +282,7 @@ button:active{
   padding:6px 0 18px;
 }
 
-/* 舊版常見按鈕、面板順手一起優化 */
+/* 舊版常見卡片 */
 .card,
 .panel,
 .section-card,
@@ -317,8 +318,8 @@ button{
 }
 
 /* 平板 */
-@media (max-width: 900px){
-  #lottery-ai-root-v9311{
+@media (max-width:900px){
+  #lottery-ai-root-v9312{
     padding:10px;
   }
 
@@ -332,12 +333,12 @@ button{
 }
 
 /* 手機 */
-@media (max-width: 768px){
+@media (max-width:768px){
   body{
     font-size:14px;
   }
 
-  #lottery-ai-root-v9311{
+  #lottery-ai-root-v9312{
     width:100%;
     padding:10px;
   }
@@ -407,8 +408,8 @@ button{
 }
 
 /* 小手機 */
-@media (max-width: 480px){
-  #lottery-ai-root-v9311{
+@media (max-width:480px){
+  #lottery-ai-root-v9312{
     padding:8px;
   }
 
