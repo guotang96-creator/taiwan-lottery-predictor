@@ -27,35 +27,14 @@ jobs:
       - name: Run parse downloads
         run: node parse_downloads.js
 
-      - name: Debug bingo fallback file
-        run: |
-          ls -la
-          test -f bingo_fallback_raw.txt && echo "===== bingo_fallback_raw.txt =====" && sed -n '1,80p' bingo_fallback_raw.txt || echo "no bingo_fallback_raw.txt"
-          test -f bingo_fallback_text.txt && echo "===== bingo_fallback_text.txt =====" && sed -n '1,120p' bingo_fallback_text.txt || echo "no bingo_fallback_text.txt"
-          echo "===== grep bingo_fallback_text.txt ====="
-          grep -nE '期別|超級獎號|[0-9]{9}|[0-9]{2}:[0-9]{2}' bingo_fallback_text.txt | head -n 120 || true
-
-      - name: Show repo files
-        run: |
-          pwd
-          ls -la
-          ls -la tools || true
-          ls -la docs || true
-          ls -la docs/raw_data || true
-
       - name: Build latest.json
         run: node tools/build_latest_json.js
-
-      - name: Debug latest.json
-        run: |
-          echo "===== docs/latest.json ====="
-          sed -n '1,220p' docs/latest.json
 
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/latest.json docs/raw_data/*.csv tools/build_latest_json.js .github/workflows/update-lottery.yml parse_downloads.js
+          git add docs/latest.json docs/raw_data/*.csv
           git diff --cached --quiet || git commit -m "chore: update lottery data"
 
       - name: Push changes
