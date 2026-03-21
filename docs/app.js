@@ -11,7 +11,6 @@
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
 
-  // GitHub Pages 路徑版：網站與資料都在 docs/ 內
   const JSON_CANDIDATES = [
     "./latest.json"
   ];
@@ -196,6 +195,20 @@
     }, 1500);
   }
 
+  function formatTaiwanTime(input = new Date()) {
+    const d = input instanceof Date ? input : new Date(input);
+    if (Number.isNaN(d.getTime())) return "";
+
+    const taiwan = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+    const y = taiwan.getUTCFullYear();
+    const m = String(taiwan.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(taiwan.getUTCDate()).padStart(2, "0");
+    const hh = String(taiwan.getUTCHours()).padStart(2, "0");
+    const mm = String(taiwan.getUTCMinutes()).padStart(2, "0");
+
+    return `${y}-${m}-${day} ${hh}:${mm}`;
+  }
+
   function formatDate(value) {
     if (!value) return "—";
     const raw = String(value).trim();
@@ -203,7 +216,7 @@
     if (m) return `${m[1]}-${m[2]}-${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return raw;
-    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+    return formatTaiwanTime(d);
   }
 
   function toLocaleDateText(value) {
@@ -213,7 +226,8 @@
     if (m) return `${m[1]}/${m[2]}/${m[3]} ${m[4] || "00"}:${m[5] || "00"}`;
     const d = new Date(raw);
     if (Number.isNaN(d.getTime())) return raw;
-    return d.toLocaleString("zh-TW");
+    const taiwan = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+    return `${taiwan.getUTCFullYear()}/${pad2(taiwan.getUTCMonth() + 1)}/${pad2(taiwan.getUTCDate())} ${pad2(taiwan.getUTCHours())}:${pad2(taiwan.getUTCMinutes())}`;
   }
 
   function getSetCount() {
@@ -928,7 +942,7 @@
       gameCode,
       gameKey: cfg.key,
       gameLabel: cfg.label,
-      createdAt: new Date().toISOString(),
+      createdAt: formatTaiwanTime(),
       referencePeriod: safeLatest?.period || "",
       referenceDrawDate: safeLatest?.drawDate || "",
       learningWeights: getLearningWeights(gameCode),
@@ -1088,7 +1102,7 @@
 
   function pushOp(text) {
     const list = getOps();
-    list.unshift({ text, time: new Date().toISOString() });
+    list.unshift({ text, time: formatTaiwanTime() });
     saveOps(list);
     renderOps();
   }
@@ -1709,7 +1723,7 @@
       const changedGames = Object.keys(after).filter(key => String(before[key] || "") !== String(after[key] || ""));
       const hasNewDraw = changedGames.length > 0;
 
-      state.lastAutoRefreshAt = new Date().toISOString();
+      state.lastAutoRefreshAt = formatTaiwanTime();
       writeAutoState({
         lastAutoRefreshAt: state.lastAutoRefreshAt,
         lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
@@ -1751,7 +1765,7 @@
       await refreshOnlyBingoCsv();
       const afterPeriod = getLatestDraw("bingo")?.period || "";
 
-      state.lastBingoFastRefreshAt = new Date().toISOString();
+      state.lastBingoFastRefreshAt = formatTaiwanTime();
       writeAutoState({
         lastAutoRefreshAt: state.lastAutoRefreshAt,
         lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
@@ -1795,7 +1809,7 @@
       await refreshOnlyBingoCsv();
       const after = getLatestDraw("bingo")?.period || "";
 
-      state.lastBingoFastRefreshAt = new Date().toISOString();
+      state.lastBingoFastRefreshAt = formatTaiwanTime();
       writeAutoState({
         lastAutoRefreshAt: state.lastAutoRefreshAt,
         lastBingoFastRefreshAt: state.lastBingoFastRefreshAt,
