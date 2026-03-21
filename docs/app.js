@@ -1260,15 +1260,21 @@
 
     let numbersHtml = "-";
     if (gameKey === "power" && row) {
-      numbersHtml = `
-        <div class="v93-row">${renderBalls(row.zone1)}</div>
-        <div class="v93-row" style="margin-top:8px;">
-          ${row.zone2 != null ? `<span class="num zone2">${pad2(row.zone2)}</span>` : `<span style="color:#94a3b8;">第二區暫無資料</span>`}
-        </div>
-      `;
-    } else if (row) {
-      numbersHtml = `<div class="v93-row">${renderBalls(row.numbers)}</div>`;
-    }
+  const zone1 = Array.isArray(row.zone1) ? row.zone1.slice(0, 6) : [];
+  const zone2 =
+    row.zone2 != null && Number.isFinite(Number(row.zone2))
+      ? Number(row.zone2)
+      : row.specialNumber != null && Number.isFinite(Number(row.specialNumber))
+      ? Number(row.specialNumber)
+      : null;
+
+  numbersHtml = `
+    <div class="v93-row">${renderBalls(zone1)}</div>
+    <div class="v93-row" style="margin-top:8px;">
+      ${zone2 != null ? `<span class="num zone2">${pad2(zone2)}</span>` : `<span style="color:#94a3b8;">第二區暫無資料</span>`}
+    </div>
+  `;
+}
 
     const pickPreview =
       gameKey === "power"
