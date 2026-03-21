@@ -8,10 +8,6 @@
   --muted: #b8c4e0;
   --primary: linear-gradient(135deg, #63e6ff 0%, #38ef7d 100%);
   --btn-dark: rgba(72, 82, 112, 0.88);
-  --ball-green: #25c75a;
-  --ball-green-shadow: #14a047;
-  --ball-purple: #9b51ff;
-  --ball-purple-shadow: #7c2fe0;
   --danger: #ff6b6b;
   --warning: #ffd166;
   --radius-xl: 28px;
@@ -54,6 +50,11 @@ textarea {
 button {
   cursor: pointer;
   border: 0;
+}
+
+img {
+  max-width: 100%;
+  display: block;
 }
 
 .app-shell {
@@ -211,7 +212,7 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 30px;
   padding: 18px 16px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .field label {
@@ -236,6 +237,10 @@ button {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 36px;
+}
+
+.field select option {
+  color: #111827;
 }
 
 .field select {
@@ -270,7 +275,7 @@ button {
   border-radius: 22px;
   font-size: 16px;
   font-weight: 900;
-  transition: transform .12s ease, opacity .12s ease, box-shadow .12s ease;
+  transition: transform .12s ease, opacity .12s ease, box-shadow .12s ease, background .12s ease;
 }
 
 .primary,
@@ -297,9 +302,22 @@ button {
   transform: scale(0.98);
 }
 
+.primary:disabled,
+.primary-btn:disabled,
+.secondary:disabled,
+.secondary-btn:disabled,
+.toolbar-btn:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
 .v92-primary-btn {
   min-width: 160px;
   font-size: 18px;
+}
+
+#v922BingoRefreshBtn {
+  white-space: nowrap;
 }
 
 .v92-top-mini-status {
