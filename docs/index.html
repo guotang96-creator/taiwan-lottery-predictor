@@ -2,15 +2,22 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
   <title>台灣彩券 AI 預測系統</title>
+  <meta
+    name="description"
+    content="台灣彩券 AI 預測系統｜GitHub Pages 最終版"
+  />
   <meta name="theme-color" content="#081224" />
-  <meta name="description" content="台灣彩券 AI 預測系統｜V92.4.2 Bingo 非置頂上方固定區塊版｜刷新按鈕可點擊修正版" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./style.css?v=92.4.2" />
+  <link rel="stylesheet" href="./style.css?v=93.0.0" />
 </head>
 <body>
   <main class="app-shell v92-shell">
@@ -19,12 +26,14 @@
         <div class="app-logo">AI</div>
         <div>
           <h1 class="hero-title">台灣彩券 AI 預測系統</h1>
-          <p class="hero-subtitle">V92.4.2｜Bingo 非置頂上方固定區塊版｜刷新按鈕可點擊修正版</p>
+          <p class="hero-subtitle">
+            V93.0.0｜GitHub Pages 最終版｜手機操作優化版
+          </p>
         </div>
       </div>
 
       <div class="chip-row">
-        <span class="chip">V92.4.2 手機版</span>
+        <span class="chip">GitHub Pages</span>
         <span class="chip" id="v84SiteStateBadge">系統待命中</span>
         <span class="chip" id="v84CurrentGameBadge">尚未選擇彩種</span>
       </div>
@@ -77,10 +86,18 @@
         </div>
 
         <div class="v92-main-actions">
-          <button class="primary-btn v92-primary-btn" type="button" onclick="runPrediction(document.getElementById('lotterySelect').value)">
+          <button
+            class="primary-btn v92-primary-btn"
+            type="button"
+            onclick="runPrediction(document.getElementById('lotterySelect').value)"
+          >
             開始預測
           </button>
-          <button class="secondary-btn" type="button" onclick="document.getElementById('latestSection').scrollIntoView({behavior:'smooth'})">
+          <button
+            class="secondary-btn"
+            type="button"
+            onclick="document.getElementById('latestSection').scrollIntoView({behavior:'smooth'})"
+          >
             查看最新一期
           </button>
         </div>
@@ -110,7 +127,9 @@
 
     <section class="section-card" id="predictSection">
       <div class="result-head">
-        <h2 class="result-title" id="resultGameName">V92.4.2｜請先選擇彩種並開始預測</h2>
+        <h2 class="result-title" id="resultGameName">
+          V93.0.0｜請先選擇彩種並開始預測
+        </h2>
         <div class="badge" id="v84TrackingStateText">待機中</div>
       </div>
 
@@ -138,10 +157,18 @@
       </div>
 
       <div class="v92-latest-shortcuts">
-        <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-latest')?.scrollIntoView({behavior:'smooth'})">
+        <button
+          class="secondary-btn"
+          type="button"
+          onclick="document.getElementById('anchor-latest')?.scrollIntoView({behavior:'smooth'})"
+        >
           跳到最新五期
         </button>
-        <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-status')?.scrollIntoView({behavior:'smooth'})">
+        <button
+          class="secondary-btn"
+          type="button"
+          onclick="document.getElementById('anchor-status')?.scrollIntoView({behavior:'smooth'})"
+        >
           跳到資料狀態
         </button>
       </div>
@@ -166,7 +193,11 @@
         <summary>號碼分析</summary>
         <div class="v92-collapse-body">
           <p class="section-desc">熱號、冷號、拖號、連號、尾數都會顯示在預測結果區內。</p>
-          <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-analysis')?.scrollIntoView({behavior:'smooth'})">
+          <button
+            class="secondary-btn"
+            type="button"
+            onclick="document.getElementById('anchor-analysis')?.scrollIntoView({behavior:'smooth'})"
+          >
             前往號碼分析
           </button>
         </div>
@@ -176,7 +207,11 @@
         <summary>回測表現</summary>
         <div class="v92-collapse-body">
           <p class="section-desc">近 30 / 50 / 100 期表現。</p>
-          <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-backtest')?.scrollIntoView({behavior:'smooth'})">
+          <button
+            class="secondary-btn"
+            type="button"
+            onclick="document.getElementById('anchor-backtest')?.scrollIntoView({behavior:'smooth'})"
+          >
             前往回測表現
           </button>
         </div>
@@ -186,7 +221,11 @@
         <summary>學習權重</summary>
         <div class="v92-collapse-body">
           <p class="section-desc">目前模型的熱號、遺漏、尾數、特別號權重。</p>
-          <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-learning')?.scrollIntoView({behavior:'smooth'})">
+          <button
+            class="secondary-btn"
+            type="button"
+            onclick="document.getElementById('anchor-learning')?.scrollIntoView({behavior:'smooth'})"
+          >
             前往學習權重
           </button>
         </div>
@@ -196,7 +235,11 @@
         <summary>資料狀態</summary>
         <div class="v92-collapse-body">
           <p class="section-desc">資料來源、自動檢查狀態、Bingo 同步狀態。</p>
-          <button class="secondary-btn" type="button" onclick="document.getElementById('anchor-status')?.scrollIntoView({behavior:'smooth'})">
+          <button
+            class="secondary-btn"
+            type="button"
+            onclick="document.getElementById('anchor-status')?.scrollIntoView({behavior:'smooth'})"
+          >
             前往資料狀態
           </button>
         </div>
@@ -205,27 +248,43 @@
   </main>
 
   <nav class="bottom-nav v92-bottom-nav">
-    <a class="nav-pill active" href="javascript:void(0)" onclick="document.getElementById('homeSection')?.scrollIntoView({behavior:'smooth'})">
+    <a
+      class="nav-pill active"
+      href="javascript:void(0)"
+      onclick="document.getElementById('homeSection')?.scrollIntoView({behavior:'smooth'})"
+    >
       <span class="icon">🏠</span>
       <span class="label">首頁</span>
     </a>
-    <a class="nav-pill" href="javascript:void(0)" onclick="document.getElementById('predictSection')?.scrollIntoView({behavior:'smooth'})">
+    <a
+      class="nav-pill"
+      href="javascript:void(0)"
+      onclick="document.getElementById('predictSection')?.scrollIntoView({behavior:'smooth'})"
+    >
       <span class="icon">🎯</span>
       <span class="label">預測</span>
     </a>
-    <a class="nav-pill" href="javascript:void(0)" onclick="document.getElementById('latestSection')?.scrollIntoView({behavior:'smooth'})">
+    <a
+      class="nav-pill"
+      href="javascript:void(0)"
+      onclick="document.getElementById('latestSection')?.scrollIntoView({behavior:'smooth'})"
+    >
       <span class="icon">🕘</span>
       <span class="label">最新</span>
     </a>
-    <a class="nav-pill" href="javascript:void(0)" onclick="document.getElementById('trackingSection')?.scrollIntoView({behavior:'smooth'})">
+    <a
+      class="nav-pill"
+      href="javascript:void(0)"
+      onclick="document.getElementById('trackingSection')?.scrollIntoView({behavior:'smooth'})"
+    >
       <span class="icon">📌</span>
       <span class="label">追蹤</span>
     </a>
   </nav>
 
   <script>
-    window.__APP_BUILD__ = "92.4.2";
+    window.__APP_BUILD__ = "93.0.0";
   </script>
-  <script src="./app.js?v=92.4.2"></script>
+  <script src="./app.js?v=93.0.0"></script>
 </body>
 </html>
