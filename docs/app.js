@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.1.3";
-  const APP_VERSION = `V93.1.3 | GitHub Pages 強化學習增強版`;
+  const BUILD = window.__APP_BUILD__ || "93.1.4";
+  const APP_VERSION = `V93.1.4 | GitHub Pages 強化學習增強修正版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9313";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9313";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9313";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9313";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9314";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9314";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9314";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9314";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -52,7 +52,6 @@
       pick: 5,
       defaultCount: 5,
       defaultGroup: 1,
-      latestJsonKey: "lotteryBingoLatestPost",
       apiUrl: "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/BingoResult"
     },
     daily539: {
@@ -62,7 +61,6 @@
       pick: 5,
       defaultCount: 5,
       defaultGroup: 1,
-      latestJsonKey: "daily539",
       apiUrl:
         "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1"
     },
@@ -73,7 +71,6 @@
       pick: 6,
       defaultCount: 6,
       defaultGroup: 1,
-      latestJsonKey: "bigLotto",
       apiUrl:
         "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1"
     },
@@ -87,7 +84,6 @@
       secondAreaPick: 1,
       defaultCount: 6,
       defaultGroup: 1,
-      latestJsonKey: "powerLotto",
       apiUrl:
         "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/PowerLottoResult?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1"
     }
@@ -143,12 +139,12 @@
 
   async function init() {
     bindVersion();
+    ensureSelectOptions();
     bindControls();
     syncControlsFromState();
-    ensureSelectOptions();
     showLoadingMessage();
 
-    await refreshAll();
+    await refreshAll({ silent: true });
 
     clearInterval(generalTimer);
     clearInterval(bingoTimer);
@@ -179,7 +175,50 @@
       "#systemVersionInput",
       "[data-role='version-input']"
     ]);
-    if (versionInput) versionInput.value = `${APP_VERSION}`;
+    if (versionInput) versionInput.value = APP_VERSION;
+  }
+
+  function ensureSelectOptions() {
+    const gameSelect = first([
+      "#lotterySelect",
+      "#gameSelect",
+      "#lotteryType",
+      "[data-role='game-select']"
+    ]);
+
+    if (gameSelect && gameSelect.options.length === 0) {
+      const items = [
+        { value: "bingo", label: "BINGO BINGO" },
+        { value: "daily539", label: "今彩539" },
+        { value: "biglotto", label: "大樂透" },
+        { value: "power", label: "威力彩" }
+      ];
+      items.forEach((item) => {
+        const opt = document.createElement("option");
+        opt.value = item.value;
+        opt.textContent = item.label;
+        gameSelect.appendChild(opt);
+      });
+    }
+
+    const countSelect = first([
+      "#bingoCountSelect",
+      "#numberCountSelect",
+      "#pickCountSelect",
+      "[data-role='count-select']"
+    ]);
+    if (countSelect && countSelect.options.length === 0) {
+      refillSelect(countSelect, 1, 10, state.settings.bingoCount || 5, "顆");
+    }
+
+    const groupSelect = first([
+      "#groupCountSelect",
+      "#predictionGroupSelect",
+      "[data-role='group-select']"
+    ]);
+    if (groupSelect && groupSelect.options.length === 0) {
+      refillSelect(groupSelect, 1, 10, state.settings.groupCount || 1, "組");
+    }
   }
 
   function bindControls() {
@@ -208,11 +247,7 @@
 
     if (countSelect) {
       countSelect.addEventListener("change", (e) => {
-        state.settings.bingoCount = clamp(
-          parseInt(e.target.value || "5", 10),
-          1,
-          10
-        );
+        state.settings.bingoCount = clamp(parseInt(e.target.value || "5", 10), 1, 10);
         saveJson(SETTINGS_KEY, state.settings);
       });
     }
@@ -225,39 +260,29 @@
 
     if (groupSelect) {
       groupSelect.addEventListener("change", (e) => {
-        state.settings.groupCount = clamp(
-          parseInt(e.target.value || "1", 10),
-          1,
-          10
-        );
+        state.settings.groupCount = clamp(parseInt(e.target.value || "1", 10), 1, 10);
         saveJson(SETTINGS_KEY, state.settings);
       });
     }
 
-    const generateButtons = all([
+    all([
       "#generateBtn",
       "#predictBtn",
       "#startPredictBtn",
       "[data-role='generate-btn']"
-    ]);
+    ]).forEach((btn) => {
+      btn.addEventListener("click", generatePredictions);
+    });
 
-    generateButtons.forEach((btn) =>
-      btn.addEventListener("click", () => {
-        generatePredictions();
-      })
-    );
-
-    const relearnButtons = all([
+    all([
       "#relearnBtn",
       "#learnBtn",
       "#enhanceLearnBtn",
       "[data-role='relearn-btn']"
-    ]);
-
-    relearnButtons.forEach((btn) =>
+    ]).forEach((btn) => {
       btn.addEventListener("click", async () => {
-        btn.disabled = true;
         const oldText = btn.textContent;
+        btn.disabled = true;
         btn.textContent = "學習中...";
         try {
           await strengthenLearning();
@@ -265,16 +290,14 @@
           btn.disabled = false;
           btn.textContent = oldText || "強化再學習";
         }
-      })
-    );
+      });
+    });
 
-    const resetButtons = all([
+    all([
       "#resetModelBtn",
       "#resetWeightsBtn",
       "[data-role='reset-model-btn']"
-    ]);
-
-    resetButtons.forEach((btn) =>
+    ]).forEach((btn) => {
       btn.addEventListener("click", () => {
         state.weights = { ...DEFAULT_WEIGHTS };
         state.autoState.learnCount = 0;
@@ -282,36 +305,33 @@
         saveJson(AUTO_STATE_KEY, state.autoState);
         toast("AI 權重已重置");
         renderStatus();
-      })
-    );
+      });
+    });
 
-    const immediateTopButtons = all([
+    all([
       "#topPredictBtn",
       "[data-role='top-predict-btn']"
-    ]);
-    immediateTopButtons.forEach((btn) =>
-      btn.addEventListener("click", () => generatePredictions())
-    );
+    ]).forEach((btn) => {
+      btn.addEventListener("click", generatePredictions);
+    });
 
-    const immediateRelearnTopButtons = all([
+    all([
       "#topRelearnBtn",
       "[data-role='top-relearn-btn']"
-    ]);
-    immediateRelearnTopButtons.forEach((btn) =>
-      btn.addEventListener("click", () => strengthenLearning())
-    );
+    ]).forEach((btn) => {
+      btn.addEventListener("click", strengthenLearning);
+    });
 
-    const topResetButtons = all([
+    all([
       "#topResetBtn",
       "[data-role='top-reset-btn']"
-    ]);
-    topResetButtons.forEach((btn) =>
+    ]).forEach((btn) => {
       btn.addEventListener("click", () => {
         state.weights = { ...DEFAULT_WEIGHTS };
         saveJson(WEIGHTS_KEY, state.weights);
         toast("權重已重置");
-      })
-    );
+      });
+    });
   }
 
   function syncControlsFromState() {
@@ -356,50 +376,13 @@
 
     if (countSelect) {
       const max = game === "bingo" ? 10 : config.pick;
-      const current = parseInt(countSelect.value || String(config.defaultCount), 10);
-      refillSelect(countSelect, 1, max, current);
-    }
-  }
-
-  function ensureSelectOptions() {
-    const gameSelect = first([
-      "#lotterySelect",
-      "#gameSelect",
-      "#lotteryType",
-      "[data-role='game-select']"
-    ]);
-    if (gameSelect && gameSelect.options.length === 0) {
-      const items = [
-        { value: "bingo", label: "BINGO BINGO" },
-        { value: "daily539", label: "今彩539" },
-        { value: "biglotto", label: "大樂透" },
-        { value: "power", label: "威力彩" }
-      ];
-      items.forEach((item) => {
-        const opt = document.createElement("option");
-        opt.value = item.value;
-        opt.textContent = item.label;
-        gameSelect.appendChild(opt);
-      });
-    }
-
-    const countSelect = first([
-      "#bingoCountSelect",
-      "#numberCountSelect",
-      "#pickCountSelect",
-      "[data-role='count-select']"
-    ]);
-    if (countSelect && countSelect.options.length === 0) {
-      refillSelect(countSelect, 1, 10, state.settings.bingoCount || 5);
-    }
-
-    const groupSelect = first([
-      "#groupCountSelect",
-      "#predictionGroupSelect",
-      "[data-role='group-select']"
-    ]);
-    if (groupSelect && groupSelect.options.length === 0) {
-      refillSelect(groupSelect, 1, 10, state.settings.groupCount || 1, "組");
+      refillSelect(
+        countSelect,
+        1,
+        max,
+        game === "bingo" ? state.settings.bingoCount || 5 : config.pick,
+        "顆"
+      );
     }
   }
 
@@ -429,6 +412,8 @@
 
   async function refreshBingoFastOnly(options = {}) {
     await loadLatestBingo();
+    state.autoState.lastUpdateAt = formatDateTime(new Date());
+    saveJson(AUTO_STATE_KEY, state.autoState);
     renderStatus();
     renderLatestResults();
 
@@ -474,40 +459,43 @@
       fetchTextWithFallback(CSV_CANDIDATES.power)
     ]);
 
-    state.history.bingo = normalizeHistoryRows("bingo", parseCSV(bingoText));
-    state.history.daily539 = normalizeHistoryRows("daily539", parseCSV(daily539Text));
-    state.history.biglotto = normalizeHistoryRows("biglotto", parseCSV(biglottoText));
-    state.history.power = normalizeHistoryRows("power", parseCSV(powerText));
+    console.log("=== CSV 原始長度 ===");
+    console.log("bingoText:", bingoText ? bingoText.length : 0);
+    console.log("daily539Text:", daily539Text ? daily539Text.length : 0);
+    console.log("biglottoText:", biglottoText ? biglottoText.length : 0);
+    console.log("powerText:", powerText ? powerText.length : 0);
 
-    state.dataStatus.bingo = getDataStatusText(
-      "bingo",
-      state.history.bingo,
-      state.latest.bingo
-    );
-    state.dataStatus.daily539 = getDataStatusText(
-      "daily539",
-      state.history.daily539,
-      state.latest.daily539
-    );
-    state.dataStatus.biglotto = getDataStatusText(
-      "biglotto",
-      state.history.biglotto,
-      state.latest.biglotto
-    );
-    state.dataStatus.power = getDataStatusText(
-      "power",
-      state.history.power,
-      state.latest.power
-    );
+    const bingoRowsRaw = parseCSV(bingoText);
+    const daily539RowsRaw = parseCSV(daily539Text);
+    const biglottoRowsRaw = parseCSV(biglottoText);
+    const powerRowsRaw = parseCSV(powerText);
+
+    console.log("=== CSV 解析後筆數 ===");
+    console.log("bingoRowsRaw:", bingoRowsRaw.length, bingoRowsRaw[0]);
+    console.log("daily539RowsRaw:", daily539RowsRaw.length, daily539RowsRaw[0]);
+    console.log("biglottoRowsRaw:", biglottoRowsRaw.length, biglottoRowsRaw[0]);
+    console.log("powerRowsRaw:", powerRowsRaw.length, powerRowsRaw[0]);
+
+    state.history.bingo = normalizeHistoryRows("bingo", bingoRowsRaw);
+    state.history.daily539 = normalizeHistoryRows("daily539", daily539RowsRaw);
+    state.history.biglotto = normalizeHistoryRows("biglotto", biglottoRowsRaw);
+    state.history.power = normalizeHistoryRows("power", powerRowsRaw);
+
+    console.log("=== normalize 後筆數 ===");
+    console.log("bingo:", state.history.bingo.length, state.history.bingo[0]);
+    console.log("daily539:", state.history.daily539.length, state.history.daily539[0]);
+    console.log("biglotto:", state.history.biglotto.length, state.history.biglotto[0]);
+    console.log("power:", state.history.power.length, state.history.power[0]);
+
+    state.dataStatus.bingo = getDataStatusText("bingo", state.history.bingo, state.latest.bingo);
+    state.dataStatus.daily539 = getDataStatusText("daily539", state.history.daily539, state.latest.daily539);
+    state.dataStatus.biglotto = getDataStatusText("biglotto", state.history.biglotto, state.latest.biglotto);
+    state.dataStatus.power = getDataStatusText("power", state.history.power, state.latest.power);
   }
 
   async function loadLatestBingo() {
     if (state.latest.bingo) {
-      state.dataStatus.bingo = getDataStatusText(
-        "bingo",
-        state.history.bingo,
-        state.latest.bingo
-      );
+      state.dataStatus.bingo = getDataStatusText("bingo", state.history.bingo, state.latest.bingo);
       return;
     }
 
@@ -520,20 +508,12 @@
       console.warn("BINGO 最新資料讀取失敗", err);
     }
 
-    state.dataStatus.bingo = getDataStatusText(
-      "bingo",
-      state.history.bingo,
-      state.latest.bingo
-    );
+    state.dataStatus.bingo = getDataStatusText("bingo", state.history.bingo, state.latest.bingo);
   }
 
   async function loadLatestDaily539() {
     if (state.latest.daily539) {
-      state.dataStatus.daily539 = getDataStatusText(
-        "daily539",
-        state.history.daily539,
-        state.latest.daily539
-      );
+      state.dataStatus.daily539 = getDataStatusText("daily539", state.history.daily539, state.latest.daily539);
       return;
     }
 
@@ -546,20 +526,12 @@
       console.warn("今彩539 最新資料讀取失敗", err);
     }
 
-    state.dataStatus.daily539 = getDataStatusText(
-      "daily539",
-      state.history.daily539,
-      state.latest.daily539
-    );
+    state.dataStatus.daily539 = getDataStatusText("daily539", state.history.daily539, state.latest.daily539);
   }
 
   async function loadLatestBigLotto() {
     if (state.latest.biglotto) {
-      state.dataStatus.biglotto = getDataStatusText(
-        "biglotto",
-        state.history.biglotto,
-        state.latest.biglotto
-      );
+      state.dataStatus.biglotto = getDataStatusText("biglotto", state.history.biglotto, state.latest.biglotto);
       return;
     }
 
@@ -572,20 +544,12 @@
       console.warn("大樂透 最新資料讀取失敗", err);
     }
 
-    state.dataStatus.biglotto = getDataStatusText(
-      "biglotto",
-      state.history.biglotto,
-      state.latest.biglotto
-    );
+    state.dataStatus.biglotto = getDataStatusText("biglotto", state.history.biglotto, state.latest.biglotto);
   }
 
   async function loadLatestPower() {
     if (state.latest.power) {
-      state.dataStatus.power = getDataStatusText(
-        "power",
-        state.history.power,
-        state.latest.power
-      );
+      state.dataStatus.power = getDataStatusText("power", state.history.power, state.latest.power);
       return;
     }
 
@@ -598,34 +562,25 @@
       console.warn("威力彩 最新資料讀取失敗", err);
     }
 
-    state.dataStatus.power = getDataStatusText(
-      "power",
-      state.history.power,
-      state.latest.power
-    );
+    state.dataStatus.power = getDataStatusText("power", state.history.power, state.latest.power);
   }
 
   function renderStatus() {
-    const bingoCount = state.history.bingo.length;
-    const daily539Count = state.history.daily539.length;
-    const biglottoCount = state.history.biglotto.length;
-    const powerCount = state.history.power.length;
-
     setTextMulti(
       ["#bingoDataCount", "[data-role='bingo-count']", "[data-key='bingo-count']"],
-      String(bingoCount)
+      String(state.history.bingo.length)
     );
     setTextMulti(
       ["#daily539DataCount", "[data-role='539-count']", "[data-key='daily539-count']"],
-      String(daily539Count)
+      String(state.history.daily539.length)
     );
     setTextMulti(
       ["#biglottoDataCount", "[data-role='biglotto-count']", "[data-key='biglotto-count']"],
-      String(biglottoCount)
+      String(state.history.biglotto.length)
     );
     setTextMulti(
       ["#powerDataCount", "[data-role='power-count']", "[data-key='power-count']"],
-      String(powerCount)
+      String(state.history.power.length)
     );
 
     setTextMulti(
@@ -664,14 +619,12 @@
       return;
     }
 
-    const html = [
+    container.innerHTML = [
       renderLatestCard("bingo", state.latest.bingo),
       renderLatestCard("daily539", state.latest.daily539),
       renderLatestCard("biglotto", state.latest.biglotto),
       renderLatestCard("power", state.latest.power)
     ].join("");
-
-    container.innerHTML = html;
   }
 
   function renderIntoExistingCards() {
@@ -691,15 +644,9 @@
 
     if (!root) return;
 
-    const titleEl = root.querySelector(
-      ".latest-title, [data-role='title'], [data-key='title']"
-    );
-    const metaEl = root.querySelector(
-      ".latest-meta, [data-role='meta'], [data-key='meta']"
-    );
-    const ballsEl = root.querySelector(
-      ".latest-balls, [data-role='balls'], [data-key='balls']"
-    );
+    const titleEl = root.querySelector(".latest-title, [data-role='title'], [data-key='title']");
+    const metaEl = root.querySelector(".latest-meta, [data-role='meta'], [data-key='meta']");
+    const ballsEl = root.querySelector(".latest-balls, [data-role='balls'], [data-key='balls']");
 
     if (!latest) {
       if (titleEl) titleEl.textContent = GAME_CONFIG[gameKey].label;
@@ -709,9 +656,7 @@
     }
 
     if (titleEl) titleEl.textContent = GAME_CONFIG[gameKey].label;
-    if (metaEl) {
-      metaEl.textContent = `期別：${latest.term || "-"}｜時間：${latest.time || "-"}`;
-    }
+    if (metaEl) metaEl.textContent = `期別：${latest.term || "-"}｜時間：${latest.time || "-"}`;
     if (ballsEl) {
       ballsEl.innerHTML = renderBallHtml(latest.numbers || []);
       if (latest.secondArea?.length) {
@@ -780,10 +725,7 @@
           offsetSeed: i
         });
         const area2 = predictSecondArea(history, i);
-        groups.push({
-          area1,
-          area2
-        });
+        groups.push({ area1, area2 });
       } else {
         const nums = predictNumbers({
           rows: history,
@@ -791,9 +733,7 @@
           count: pickCount,
           offsetSeed: i
         });
-        groups.push({
-          numbers: nums
-        });
+        groups.push({ numbers: nums });
       }
     }
 
@@ -821,18 +761,13 @@
     let trained = 0;
 
     keys.forEach((key) => {
-      const rows = state.history[key] || [];
-      if (rows.length > 0) {
-        trained += 1;
-      }
+      if ((state.history[key] || []).length > 0) trained += 1;
     });
 
     state.weights.hot = round4(state.weights.hot + 0.02 * trained);
     state.weights.recent = round4(state.weights.recent + 0.015 * trained);
     state.weights.pair = round4(state.weights.pair + 0.012 * trained);
-    state.weights.repeatPenalty = round4(
-      Math.max(0.18, state.weights.repeatPenalty - 0.008 * trained)
-    );
+    state.weights.repeatPenalty = round4(Math.max(0.18, state.weights.repeatPenalty - 0.008 * trained));
     state.weights.bonusLearning = round4(state.weights.bonusLearning + 0.01);
 
     state.autoState.learnCount = (state.autoState.learnCount || 0) + 1;
@@ -860,44 +795,32 @@
     }
 
     if (!payload.groups?.length) {
-      container.innerHTML = `
-        <div class="prediction-empty">
-          ${escapeHtml(payload.message || "目前無推薦結果")}
-        </div>
-      `;
+      container.innerHTML = `<div class="prediction-empty">${escapeHtml(payload.message || "目前無推薦結果")}</div>`;
       return;
     }
 
     if (payload.game === "power") {
       container.innerHTML = `
         <div class="prediction-head">${escapeHtml(payload.message)}</div>
-        ${payload.groups
-          .map(
-            (g, idx) => `
+        ${payload.groups.map((g, idx) => `
           <div class="prediction-group">
             <div class="prediction-group-title">第 ${idx + 1} 組</div>
             <div class="prediction-row">第一區：${renderBallHtml(g.area1)}</div>
             <div class="prediction-row" style="margin-top:8px;">第二區：${renderBallHtml(g.area2)}</div>
           </div>
-        `
-          )
-          .join("")}
+        `).join("")}
       `;
       return;
     }
 
     container.innerHTML = `
       <div class="prediction-head">${escapeHtml(payload.message)}</div>
-      ${payload.groups
-        .map(
-          (g, idx) => `
+      ${payload.groups.map((g, idx) => `
         <div class="prediction-group">
           <div class="prediction-group-title">第 ${idx + 1} 組</div>
           <div class="prediction-row">${renderBallHtml(g.numbers)}</div>
         </div>
-      `
-        )
-        .join("")}
+      `).join("")}
     `;
   }
 
@@ -944,13 +867,7 @@
       const recentScore = recent[n] * state.weights.recent;
       const tailScore = tailBonus * state.weights.tail * 0.08;
 
-      const total =
-        hot +
-        recentScore +
-        tailScore +
-        Math.random() * 0.2 +
-        offsetSeed * 0.0001;
-
+      const total = hot + recentScore + tailScore + Math.random() * 0.2 + offsetSeed * 0.0001;
       scored.push({ n, score: total });
     }
 
@@ -967,12 +884,8 @@
         const key = `${a}-${b}`;
         penalty += (pairMap.get(key) || 0) * state.weights.pair * 0.08;
 
-        if (Math.abs(item.n - picked) <= 1) {
-          penalty += state.weights.gapPenalty;
-        }
-        if (Math.abs(item.n - picked) === 0) {
-          penalty += state.weights.repeatPenalty;
-        }
+        if (Math.abs(item.n - picked) <= 1) penalty += state.weights.gapPenalty;
+        if (Math.abs(item.n - picked) === 0) penalty += state.weights.repeatPenalty;
       });
 
       const adjusted = item.score - penalty;
@@ -1020,25 +933,25 @@
 
     if (name === "bingo") {
       if (hasLatest && count > 0) return "正常";
-      if (hasLatest && count === 0) return "最新期正常，歷史資料不足";
+      if (hasLatest && count === 0) return "最新一期正常，歷史資料不足";
       return "載入異常";
     }
 
     if (name === "biglotto") {
       if (count > 0) return "正常";
-      if (hasLatest) return "最新期正常，歷史資料不足";
+      if (hasLatest) return "最新一期正常，歷史資料不足";
       return "載入異常";
     }
 
     if (name === "daily539") {
       if (count > 0) return "正常";
-      if (hasLatest) return "最新期正常，歷史資料不足";
+      if (hasLatest) return "最新一期正常，歷史資料不足";
       return "載入異常";
     }
 
     if (name === "power") {
       if (count > 0) return "正常";
-      if (hasLatest) return "最新期正常，歷史資料不足";
+      if (hasLatest) return "最新一期正常，歷史資料不足";
       return "載入異常";
     }
 
@@ -1048,44 +961,26 @@
   function normalizeHistoryRows(game, rows) {
     return rows
       .map((row) => {
-        if (game === "bingo") {
-          return normalizeBingoHistoryRow(row);
-        }
-        if (game === "daily539") {
-          return normalize539HistoryRow(row);
-        }
-        if (game === "biglotto") {
-          return normalizeBigLottoHistoryRow(row);
-        }
-        if (game === "power") {
-          return normalizePowerHistoryRow(row);
-        }
+        if (game === "bingo") return normalizeBingoHistoryRow(row);
+        if (game === "daily539") return normalize539HistoryRow(row);
+        if (game === "biglotto") return normalizeBigLottoHistoryRow(row);
+        if (game === "power") return normalizePowerHistoryRow(row);
         return null;
       })
       .filter(Boolean);
   }
 
   function normalizeBingoHistoryRow(row) {
-    const term = pickFirst(row, [
-      "drawTerm",
-      "period",
-      "term",
-      "期別"
-    ]);
-
-    const time = pickFirst(row, [
-      "dDate",
-      "drawDate",
-      "date",
-      "時間"
-    ]);
+    const term = pickFirst(row, ["drawTerm", "period", "term", "期別"]);
+    const time = pickFirst(row, ["dDate", "drawDate", "lotteryDate", "date", "時間"]);
 
     let numbers = [];
-
     if (row.drawNumberAppear) {
       numbers = parseNumberList(row.drawNumberAppear);
     } else if (row.drawNumberSize) {
       numbers = parseNumberList(row.drawNumberSize);
+    } else if (row.numbers) {
+      numbers = parseNumberList(row.numbers);
     } else {
       numbers = collectSequentialNumbers(row, 1, 20);
     }
@@ -1100,23 +995,16 @@
   }
 
   function normalize539HistoryRow(row) {
-    const term = pickFirst(row, [
-      "period",
-      "drawTerm",
-      "term",
-      "期別"
-    ]);
-
-    const time = pickFirst(row, [
-      "lotteryDate",
-      "dDate",
-      "date",
-      "時間"
-    ]);
+    const term = pickFirst(row, ["period", "drawTerm", "term", "期別"]);
+    const time = pickFirst(row, ["lotteryDate", "dDate", "drawDate", "date", "時間"]);
 
     let numbers = [];
     if (row.drawNumberSize) {
       numbers = parseNumberList(row.drawNumberSize);
+    } else if (row.drawNumberAppear) {
+      numbers = parseNumberList(row.drawNumberAppear);
+    } else if (row.numbers) {
+      numbers = parseNumberList(row.numbers);
     } else {
       numbers = collectSequentialNumbers(row, 1, 5);
     }
@@ -1131,36 +1019,32 @@
   }
 
   function normalizeBigLottoHistoryRow(row) {
-    const term = pickFirst(row, [
-      "period",
-      "drawTerm",
-      "term",
-      "期別"
-    ]);
-
-    const time = pickFirst(row, [
-      "lotteryDate",
-      "dDate",
-      "date",
-      "時間"
-    ]);
+    const term = pickFirst(row, ["period", "drawTerm", "term", "期別"]);
+    const time = pickFirst(row, ["lotteryDate", "dDate", "drawDate", "date", "時間"]);
 
     let numbers = [];
+
     if (row.drawNumberSize) {
       numbers = parseNumberList(row.drawNumberSize);
     } else if (row.drawNumberAppear) {
       numbers = parseNumberList(row.drawNumberAppear);
+    } else if (row.numbers) {
+      numbers = parseNumberList(row.numbers);
     } else {
       numbers = collectSequentialNumbers(row, 1, 6);
     }
 
-    if (!numbers.length) return null;
+    if (!numbers.length) {
+      console.warn("大樂透單筆資料無法解析:", row);
+      return null;
+    }
 
     const secondArea = parseNumberList(
       pickFirst(row, [
         "specialNum",
         "bonusNumber",
         "secondArea",
+        "specialNumber",
         "特別號"
       ])
     );
@@ -1174,23 +1058,16 @@
   }
 
   function normalizePowerHistoryRow(row) {
-    const term = pickFirst(row, [
-      "period",
-      "drawTerm",
-      "term",
-      "期別"
-    ]);
-
-    const time = pickFirst(row, [
-      "lotteryDate",
-      "dDate",
-      "date",
-      "時間"
-    ]);
+    const term = pickFirst(row, ["period", "drawTerm", "term", "期別"]);
+    const time = pickFirst(row, ["lotteryDate", "dDate", "drawDate", "date", "時間"]);
 
     let numbers = [];
     if (row.drawNumberSize) {
       numbers = parseNumberList(row.drawNumberSize);
+    } else if (row.drawNumberAppear) {
+      numbers = parseNumberList(row.drawNumberAppear);
+    } else if (row.numbers) {
+      numbers = parseNumberList(row.numbers);
     } else {
       numbers = collectSequentialNumbers(row, 1, 6);
     }
@@ -1202,6 +1079,7 @@
         "specialNum",
         "secondArea",
         "powerball",
+        "specialNumber",
         "特別號",
         "第二區"
       ])
@@ -1226,7 +1104,7 @@
 
   function normalizeLatestBingo(row) {
     if (!row) return null;
-    const numbers = parseNumberList(row.drawNumberAppear || row.drawNumberSize);
+    const numbers = parseNumberList(row.drawNumberAppear || row.drawNumberSize || row.numbers);
     if (!numbers.length) return null;
     return {
       term: row.drawTerm || row.period || "-",
@@ -1237,7 +1115,7 @@
 
   function normalizeLatest539(row) {
     if (!row) return null;
-    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear);
+    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear || row.numbers);
     if (!numbers.length) return null;
     return {
       term: row.period || row.drawTerm || "-",
@@ -1248,10 +1126,10 @@
 
   function normalizeLatestBigLotto(row) {
     if (!row) return null;
-    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear);
+    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear || row.numbers);
     if (!numbers.length) return null;
     const secondArea = parseNumberList(
-      row.specialNum || row.bonusNumber || row.secondArea
+      row.specialNum || row.bonusNumber || row.secondArea || row.specialNumber
     );
     return {
       term: row.period || row.drawTerm || "-",
@@ -1263,10 +1141,10 @@
 
   function normalizeLatestPower(row) {
     if (!row) return null;
-    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear);
+    const numbers = parseNumberList(row.drawNumberSize || row.drawNumberAppear || row.numbers);
     if (!numbers.length) return null;
     const secondArea = parseNumberList(
-      row.specialNum || row.secondArea || row.powerball
+      row.specialNum || row.secondArea || row.powerball || row.specialNumber
     );
     return {
       term: row.period || row.drawTerm || "-",
@@ -1318,7 +1196,7 @@
 
       const row = {};
       headers.forEach((h, idx) => {
-        row[String(h || "").trim()] = (cols[idx] ?? "").trim();
+        row[String(h || "").trim()] = String(cols[idx] ?? "").trim();
       });
       rows.push(row);
     }
@@ -1378,14 +1256,7 @@
   function collectSequentialNumbers(row, from, to) {
     const values = [];
     for (let i = from; i <= to; i++) {
-      const candidates = [
-        `num${i}`,
-        `number${i}`,
-        `n${i}`,
-        `ball${i}`,
-        `${i}`
-      ];
-
+      const candidates = [`num${i}`, `number${i}`, `n${i}`, `ball${i}`, `${i}`];
       for (const key of candidates) {
         if (row[key] !== undefined && row[key] !== "") {
           const n = parseInt(row[key], 10);
@@ -1419,9 +1290,7 @@
 
   function renderBallHtml(numbers) {
     if (!numbers?.length) return `<span class="ball-empty">-</span>`;
-    return numbers
-      .map((n) => `<span class="lottery-ball">${pad2(n)}</span>`)
-      .join("");
+    return numbers.map((n) => `<span class="lottery-ball">${pad2(n)}</span>`).join("");
   }
 
   function showLoadingMessage() {
@@ -1433,9 +1302,7 @@
     ]);
 
     if (container) {
-      container.innerHTML = `
-        <div class="prediction-empty">資料載入中...</div>
-      `;
+      container.innerHTML = `<div class="prediction-empty">資料載入中...</div>`;
     }
   }
 
@@ -1505,14 +1372,10 @@
 
   function formatDateTime(input) {
     if (!input) return "-";
-    if (input instanceof Date) {
-      return formatDateObject(input);
-    }
+    if (input instanceof Date) return formatDateObject(input);
 
     const dt = new Date(input);
-    if (!Number.isNaN(dt.getTime())) {
-      return formatDateObject(dt);
-    }
+    if (!Number.isNaN(dt.getTime())) return formatDateObject(dt);
 
     return String(input).replace("T", " ");
   }
