@@ -39,18 +39,6 @@ function getMonthRange(monthCount = 3) {
   };
 }
 
-function toNumberArray(value) {
-  if (!Array.isArray(value)) return [];
-  return value.map((v) => Number(v)).filter((v) => Number.isFinite(v));
-}
-
-function pickFirstArray(obj, keys) {
-  for (const key of keys) {
-    if (Array.isArray(obj?.[key])) return obj[key];
-  }
-  return [];
-}
-
 function pickFirstValue(obj, keys) {
   for (const key of keys) {
     if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== "") {
@@ -58,6 +46,13 @@ function pickFirstValue(obj, keys) {
     }
   }
   return null;
+}
+
+function pickFirstArray(obj, keys) {
+  for (const key of keys) {
+    if (Array.isArray(obj?.[key])) return obj[key];
+  }
+  return [];
 }
 
 function normalizeDate(value) {
@@ -77,13 +72,23 @@ function parseStableTime(value) {
 }
 
 function normalizePeriodValue(item) {
-  return String(pickFirstValue(item, ["period", "drawTerm", "term", "issue"]) || "");
+  return String(
+    pickFirstValue(item, [
+      "period",
+      "drawTerm",
+      "term",
+      "issue",
+      "draw",
+      "drawNo",
+      "periodNo"
+    ]) || ""
+  );
 }
 
 function sortByPeriodDesc(list) {
   return [...list].sort((a, b) => {
-    const pa = Number(a.period || a.drawTerm || a.term || 0);
-    const pb = Number(b.period || b.drawTerm || b.term || 0);
+    const pa = Number(a.period || a.drawTerm || a.term || a.issue || 0);
+    const pb = Number(b.period || b.drawTerm || b.term || b.issue || 0);
     if (pb !== pa) return pb - pa;
 
     const ta = parseStableTime(a.drawDate || a.lotteryDate || a.date || 0);
@@ -93,7 +98,7 @@ function sortByPeriodDesc(list) {
 }
 
 function extractLatestFromList(list) {
-  if (!Array.isArray(list) || list.length === 0) return null;
+  if (!Array.isArray(list) || !list.length) return null;
   return sortByPeriodDesc(list)[0];
 }
 
@@ -180,7 +185,9 @@ function normalizeLotto649(item) {
       "specialNum",
       "bonusNumber",
       "bonusNum",
-      "superNumber"
+      "superNumber",
+      "special",
+      "bonus"
     ]),
     source: "official-api"
   };
@@ -209,16 +216,39 @@ function normalizeSuperLotto638(item) {
       "specialNum",
       "bonusNumber",
       "superNumber",
-      "zone2"
+      "zone2",
+      "second",
+      "special"
     ]),
     source: "official-api"
   };
 }
 
-function normalizeBingo(content) {
-  if (!content) return null;
+function normalizeBingo(input) {
+  if (!input) return null;
 
-  const root = content.content && typeof content.content === "object" ? content.content : content;
+  const candidates = [
+    input,
+    input.content,
+    input.result,
+    input.data,
+    input.bingo,
+    input.bingoRes,
+    input.latest
+  ].filter((v) => v && typeof v === "object");
+
+  let root = candidates[0] || input;
+
+  for (const c of candidates) {
+    const p = normalizePeriodValue(c);
+    const arr1 = Array.isArray(c.drawNumberAppear) ? c.drawNumberAppear : [];
+    const arr2 = Array.isArray(c.drawNumberSize) ? c.drawNumberSize : [];
+    const arr3 = Array.isArray(c.orderNumbers) ? c.orderNumbers : [];
+    if (p || arr1.length || arr2.length || arr3.length) {
+      root = c;
+      break;
+    }
+  }
 
   const orderNumbers = extractMainNumbers(root, {
     directArrayKeys: [
@@ -234,11 +264,7 @@ function normalizeBingo(content) {
   });
 
   const numbers = extractMainNumbers(root, {
-    directArrayKeys: [
-      "drawSizeNums",
-      "drawNumberSize",
-      "numbers"
-    ],
+    directArrayKeys: ["drawSizeNums", "drawNumberSize", "numbers"],
     sequentialPrefixes: ["drawSizeNum"],
     seqStart: 1,
     seqEnd: 20
@@ -253,7 +279,8 @@ function normalizeBingo(content) {
     specialNumber: extractSpecialNumber(root, [
       "superNum",
       "specialNumber",
-      "bonusNumber"
+      "bonusNumber",
+      "specialNum"
     ]),
     source: "official-api"
   };
@@ -330,8 +357,17 @@ async function getLatestOfficialData() {
     pickFirstArray(superLotto638Res?.content, ["superLotto638Res", "list", "results"])
   );
 
+  console.log("===== raw bingo response =====");
+  console.log(JSON.stringify(bingoRes, null, 2));
+
+  console.log("===== raw lotto649 latest item =====");
+  console.log(JSON.stringify(latest649, null, 2));
+
+  console.log("===== raw superLotto638 latest item =====");
+  console.log(JSON.stringify(latest638, null, 2));
+
   const officialLatest = {
-    bingo: normalizeBingo(bingoRes?.content),
+    bingo: normalizeBingo(bingoRes),
     daily539: normalize539(latest539),
     lotto649: normalizeLotto649(latest649),
     superLotto638: normalizeSuperLotto638(latest638)
