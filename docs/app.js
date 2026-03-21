@@ -1,17 +1,17 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.1.1";
-  const APP_VERSION = `V93.1.1｜GitHub Pages 最終版｜手機操作優化版`;
+  const BUILD = window.__APP_BUILD__ || "93.1.2";
+  const APP_VERSION = `V93.1.2｜GitHub Pages 最終版｜手機操作優化版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9311";
-  const OPS_KEY = "taiwan_lottery_recent_ops_v9311";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9311";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9311";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9311";
-  const UI_MODE_KEY = "taiwan_lottery_ui_mode_v9311";
-  const LEARNING_KEY = "taiwan_lottery_learning_v9311";
-  const LAST_FETCH_KEY = "taiwan_lottery_last_fetch_v9311";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9312";
+  const OPS_KEY = "taiwan_lottery_recent_ops_v9312";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9312";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9312";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9312";
+  const UI_MODE_KEY = "taiwan_lottery_ui_mode_v9312";
+  const LEARNING_KEY = "taiwan_lottery_learning_v9312";
+  const LAST_FETCH_KEY = "taiwan_lottery_last_fetch_v9312";
 
   const GENERAL_REFRESH_MS = 5 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 60 * 1000;
@@ -19,11 +19,11 @@
   const JSON_CANDIDATES = ["./latest.json"];
 
   const CSV_CANDIDATES = {
-  bingo: ["./raw_data/bingo.csv"],
-  daily539: ["./raw_data/539.csv"],
-  lotto649: ["./raw_data/lotto.csv", "./raw_data/649.csv", "./raw_data/lotto649.csv"],
-  power: ["./raw_data/power.csv", "./raw_data/superlotto638.csv", "./raw_data/638.csv"]
-};
+    bingo: ["./raw_data/bingo.csv"],
+    daily539: ["./raw_data/539.csv"],
+    lotto649: ["./raw_data/lotto.csv", "./raw_data/649.csv", "./raw_data/lotto649.csv"],
+    power: ["./raw_data/power.csv", "./raw_data/superlotto638.csv", "./raw_data/638.csv"]
+  };
 
   const GAME_META = {
     bingo: { label: "BINGO BINGO", max: 80, pick: 10, colorClass: "g-bingo" },
@@ -161,10 +161,34 @@
 
   function formatOnlyDate(value) {
     if (!value) return "-";
-    if (typeof value === "string" && value.includes(" ")) return value;
+    if (typeof value === "string" && value.includes(" ")) return value.slice(0, 10);
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return String(value);
     return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  }
+
+  function formatDrawDate(value) {
+    if (!value) return "-";
+
+    const text = String(value).trim();
+
+    if (text.includes("T")) {
+      const d = new Date(text);
+      if (!Number.isNaN(d.getTime())) {
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+      }
+    }
+
+    if (text.includes(" ")) {
+      return text.slice(0, 16);
+    }
+
+    const d = new Date(text);
+    if (!Number.isNaN(d.getTime())) {
+      return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    }
+
+    return text;
   }
 
   function formatPeriod(period) {
@@ -308,12 +332,28 @@
   function normalizeBingoRows(rows) {
     return (rows || [])
       .map((row) => ({
-        period: row.period || row.draw || row.issue || null,
-        drawDate: row.drawDate || row.lotteryDate || row.date || null,
-        redeemableDate: row.redeemableDate || "",
-        numbers: uniqSorted(row.numbers || row.drawNumberAppear || row.drawNumberSize || detectNumberArrayFromObject(row, 20)),
-        orderNumbers: uniqSorted(row.orderNumbers || []),
-        specialNumber: row.specialNumber != null ? Number(row.specialNumber) : null,
+        period: row.period || row.drawTerm || row.draw || row.issue || null,
+        drawDate: row.drawDate || row.dDate || row.lotteryDate || row.date || null,
+        redeemableDate: row.redeemableDate || row.eDate || "",
+        numbers: uniqSorted(
+          row.numbers ||
+          row.drawNumberSize ||
+          row.bigShowOrder ||
+          row.drawNumberAppear ||
+          detectNumberArrayFromObject(row, 20)
+        ),
+        orderNumbers: uniqSorted(
+          row.orderNumbers ||
+          row.openShowOrder ||
+          row.drawNumberAppear ||
+          []
+        ),
+        specialNumber:
+          row.specialNumber != null && row.specialNumber !== ""
+            ? Number(row.specialNumber)
+            : row.bullEye != null && row.bullEye !== ""
+            ? Number(row.bullEye)
+            : null,
         source: row.source || ""
       }))
       .filter((row) => row.period && row.numbers.length)
@@ -328,7 +368,7 @@
         redeemableDate: row.redeemableDate || "",
         numbers: uniqSorted(row.numbers || row.drawNumberSize || detectNumberArrayFromObject(row, 5)),
         orderNumbers: uniqSorted(row.orderNumbers || []),
-        specialNumber: row.specialNumber != null ? Number(row.specialNumber) : null,
+        specialNumber: row.specialNumber != null && row.specialNumber !== "" ? Number(row.specialNumber) : null,
         source: row.source || ""
       }))
       .filter((row) => row.period && row.numbers.length)
@@ -337,15 +377,30 @@
 
   function normalize649Rows(rows) {
     return (rows || [])
-      .map((row) => ({
-        period: row.period || row.draw || row.issue || null,
-        drawDate: row.drawDate || row.lotteryDate || row.date || null,
-        redeemableDate: row.redeemableDate || "",
-        numbers: uniqSorted(row.numbers || row.drawNumberSize || detectNumberArrayFromObject(row, 6)),
-        orderNumbers: uniqSorted(row.orderNumbers || []),
-        specialNumber: row.specialNumber != null ? Number(row.specialNumber) : null,
-        source: row.source || ""
-      }))
+      .map((row) => {
+        const sourceNumbers = uniqSorted(
+          row.numbers ||
+          row.drawNumberSize ||
+          detectNumberArrayFromObject(row, 7)
+        );
+        const numbers = sourceNumbers.slice(0, 6);
+        const special =
+          row.specialNumber != null && row.specialNumber !== ""
+            ? Number(row.specialNumber)
+            : sourceNumbers.length >= 7
+            ? Number(sourceNumbers[6])
+            : null;
+
+        return {
+          period: row.period || row.draw || row.issue || null,
+          drawDate: row.drawDate || row.lotteryDate || row.date || null,
+          redeemableDate: row.redeemableDate || "",
+          numbers,
+          orderNumbers: uniqSorted(row.orderNumbers || row.drawNumberAppear || []),
+          specialNumber: Number.isFinite(special) && special > 0 ? special : null,
+          source: row.source || ""
+        };
+      })
       .filter((row) => row.period && row.numbers.length)
       .sort((a, b) => Number(b.period) - Number(a.period));
   }
@@ -353,22 +408,20 @@
   function normalizePowerRows(rows) {
     return (rows || [])
       .map((row) => {
-        const zone1 = uniqSorted(
+        const sourceNumbers = uniqSorted(
           row.zone1 ||
           row.numbers ||
           row.drawNumberSize ||
-          detectNumberArrayFromObject(row, 6)
+          detectNumberArrayFromObject(row, 7)
         );
-
+        const zone1 = sourceNumbers.slice(0, 6);
         const zone2 =
-          row.specialNumber != null
-            ? Number(row.specialNumber)
-            : row.superNumber != null
-            ? Number(row.superNumber)
-            : row.zone2 != null
+          row.zone2 != null && row.zone2 !== ""
             ? Number(row.zone2)
-            : row.specialNum != null
-            ? Number(row.specialNum)
+            : row.specialNumber != null && row.specialNumber !== ""
+            ? Number(row.specialNumber)
+            : sourceNumbers.length >= 7
+            ? Number(sourceNumbers[6])
             : null;
 
         return {
@@ -376,8 +429,9 @@
           drawDate: row.drawDate || row.lotteryDate || row.date || null,
           redeemableDate: row.redeemableDate || "",
           zone1,
-          zone2: Number.isFinite(zone2) ? zone2 : null,
-          orderNumbers: uniqSorted(row.orderNumbers || []),
+          zone2: Number.isFinite(zone2) && zone2 > 0 ? zone2 : null,
+          specialNumber: Number.isFinite(zone2) && zone2 > 0 ? zone2 : null,
+          orderNumbers: uniqSorted(row.orderNumbers || row.drawNumberAppear || []),
           source: row.source || ""
         };
       })
@@ -412,7 +466,6 @@
         pickArray(block.history).length ? pickArray(block.history) :
         pickArray(block.recentOfficial).length ? pickArray(block.recentOfficial) :
         pickArray(block.recent).length ? pickArray(block.recent) :
-        pickArray(block.latestOfficial).length ? pickArray(block.latestOfficial) :
         [];
 
       const merged = [];
@@ -459,13 +512,19 @@
             if (v !== undefined && v !== "") nums.push(Number(v));
           }
           if (!nums.length && row.numbers) row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
+
           return {
             period: row.period || row.issue || row.draw || null,
-            drawDate: row.drawDate || row.date || row.lotteryDate || null,
-            redeemableDate: row.redeemableDate || "",
+            drawDate: row.drawDate || row.dDate || row.date || row.lotteryDate || null,
+            redeemableDate: row.redeemableDate || row.eDate || "",
             numbers: uniqSorted(nums),
             orderNumbers: [],
-            specialNumber: row.specialNumber != null && row.specialNumber !== "" ? Number(row.specialNumber) : null,
+            specialNumber:
+              row.specialNumber != null && row.specialNumber !== ""
+                ? Number(row.specialNumber)
+                : row.bullEye != null && row.bullEye !== ""
+                ? Number(row.bullEye)
+                : null,
             source: "csv"
           };
         })
@@ -482,6 +541,7 @@
             if (v !== undefined && v !== "") nums.push(Number(v));
           }
           if (!nums.length && row.numbers) row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
+
           return {
             period: row.period || row.issue || row.draw || null,
             drawDate: row.drawDate || row.date || row.lotteryDate || null,
@@ -505,13 +565,23 @@
             if (v !== undefined && v !== "") nums.push(Number(v));
           }
           if (!nums.length && row.numbers) row.numbers.split(/[,、\s]+/).forEach((v) => nums.push(Number(v)));
+
+          const special =
+            row.specialNumber != null && row.specialNumber !== ""
+              ? Number(row.specialNumber)
+              : row.specialNum != null && row.specialNum !== ""
+              ? Number(row.specialNum)
+              : row.bonusNumber != null && row.bonusNumber !== ""
+              ? Number(row.bonusNumber)
+              : null;
+
           return {
             period: row.period || row.issue || row.draw || null,
             drawDate: row.drawDate || row.date || row.lotteryDate || null,
             redeemableDate: row.redeemableDate || "",
-            numbers: uniqSorted(nums),
+            numbers: uniqSorted(nums).slice(0, 6),
             orderNumbers: [],
-            specialNumber: row.specialNumber != null && row.specialNumber !== "" ? Number(row.specialNumber) : null,
+            specialNumber: Number.isFinite(special) && special > 0 ? special : null,
             source: "csv"
           };
         })
@@ -531,20 +601,21 @@
           if (!zone1.length && row.numbers) row.numbers.split(/[,、\s]+/).forEach((v) => zone1.push(Number(v)));
 
           const zone2 =
-            row.specialNumber != null && row.specialNumber !== ""
+            row.zone2 != null && row.zone2 !== ""
+              ? Number(row.zone2)
+              : row.specialNumber != null && row.specialNumber !== ""
               ? Number(row.specialNumber)
               : row.superNumber != null && row.superNumber !== ""
               ? Number(row.superNumber)
-              : row.zone2 != null && row.zone2 !== ""
-              ? Number(row.zone2)
               : null;
 
           return {
             period: row.period || row.issue || row.draw || null,
             drawDate: row.drawDate || row.date || row.lotteryDate || null,
             redeemableDate: row.redeemableDate || "",
-            zone1: uniqSorted(zone1),
-            zone2: Number.isFinite(zone2) ? zone2 : null,
+            zone1: uniqSorted(zone1).slice(0, 6),
+            zone2: Number.isFinite(zone2) && zone2 > 0 ? zone2 : null,
+            specialNumber: Number.isFinite(zone2) && zone2 > 0 ? zone2 : null,
             orderNumbers: [],
             source: "csv"
           };
@@ -1017,10 +1088,10 @@
   }
 
   function createBaseStyle() {
-    if (document.getElementById("v9311-style")) return;
+    if (document.getElementById("v9312-style")) return;
 
     const style = document.createElement("style");
-    style.id = "v9311-style";
+    style.id = "v9312-style";
     style.textContent = `
       :root{
         --bg:#0b1220;
@@ -1049,7 +1120,7 @@
       body.simple-ui .welcome-guide{
         display:none !important;
       }
-      #lottery-ai-root-v9311{
+      #lottery-ai-root-v9312{
         width:min(100%,960px);
         margin:0 auto;
         padding:12px;
@@ -1124,6 +1195,7 @@
       .v93-metric-value{
         font-weight:800;
         font-size:18px;
+        word-break:break-word;
       }
       .v93-section-title{
         font-size:15px;
@@ -1223,14 +1295,14 @@
 
   function ensureRoot() {
     let root =
-      document.getElementById("lottery-ai-root-v9311") ||
+      document.getElementById("lottery-ai-root-v9312") ||
       document.getElementById("app") ||
       document.getElementById("root") ||
       document.querySelector("[data-lottery-root]");
 
-    if (!root || root.id !== "lottery-ai-root-v9311") {
+    if (!root || root.id !== "lottery-ai-root-v9312") {
       const shell = document.createElement("div");
-      shell.id = "lottery-ai-root-v9311";
+      shell.id = "lottery-ai-root-v9312";
 
       if (root) {
         root.innerHTML = "";
@@ -1253,83 +1325,83 @@
   }
 
   function renderLatestCard(gameKey) {
-  const row = state.latest[gameKey];
-  const meta = GAME_META[gameKey];
-  const stats = computeStats(gameKey);
-  const learning = getLearningState()[gameKey];
+    const row = state.latest[gameKey];
+    const meta = GAME_META[gameKey];
+    const stats = computeStats(gameKey);
+    const learning = getLearningState()[gameKey];
 
-  let numbersHtml = "-";
+    let numbersHtml = "-";
 
-  if (gameKey === "power" && row) {
-    const zone1 = Array.isArray(row.zone1) ? row.zone1.slice(0, 6) : [];
-    const zone2 =
-      row.zone2 != null && Number.isFinite(Number(row.zone2))
-        ? Number(row.zone2)
-        : row.specialNumber != null && Number.isFinite(Number(row.specialNumber))
-        ? Number(row.specialNumber)
-        : null;
+    if (gameKey === "power" && row) {
+      const zone1 = Array.isArray(row.zone1) ? row.zone1.slice(0, 6) : [];
+      const zone2 =
+        row.zone2 != null && Number.isFinite(Number(row.zone2))
+          ? Number(row.zone2)
+          : row.specialNumber != null && Number.isFinite(Number(row.specialNumber))
+          ? Number(row.specialNumber)
+          : null;
 
-    numbersHtml = `
-      <div class="v93-row">${renderBalls(zone1)}</div>
-      <div class="v93-row" style="margin-top:8px;">
-        ${
-          zone2 != null
-            ? `<span class="num zone2">${pad2(zone2)}</span>`
-            : `<span style="color:#94a3b8;">第二區暫無資料</span>`
-        }
-      </div>
-    `;
-  } else if (gameKey === "lotto649" && row) {
-    const mainNumbers = Array.isArray(row.numbers) ? row.numbers.slice(0, 6) : [];
-    const special =
-      row.specialNumber != null && Number.isFinite(Number(row.specialNumber))
-        ? Number(row.specialNumber)
-        : null;
-
-    numbersHtml = `
-      <div class="v93-row">${renderBalls(mainNumbers)}</div>
-      <div class="v93-row" style="margin-top:8px;">
-        ${
-          special != null
-            ? `<span class="num zone2">${pad2(special)}</span>`
-            : `<span style="color:#94a3b8;">特別號暫無資料</span>`
-        }
-      </div>
-    `;
-  } else if (row) {
-    numbersHtml = `<div class="v93-row">${renderBalls(row.numbers || [])}</div>`;
-  }
-
-  const pickPreview =
-    gameKey === "power"
-      ? `
-        <div class="v93-row">${renderBalls(state.predictions.power.zone1 || [], "small")}</div>
+      numbersHtml = `
+        <div class="v93-row">${renderBalls(zone1)}</div>
         <div class="v93-row" style="margin-top:8px;">
           ${
-            state.predictions.power.zone2 != null
-              ? `<span class="num zone2 small">${pad2(state.predictions.power.zone2)}</span>`
-              : `<span style="color:#94a3b8;">第二區暫無建議</span>`
+            zone2 != null
+              ? `<span class="num zone2">${pad2(zone2)}</span>`
+              : `<span style="color:#94a3b8;">第二區暫無資料</span>`
           }
         </div>
-      `
-      : gameKey === "lotto649"
-      ? `
-        <div class="v93-row">${renderBalls((state.predictions.lotto649 || []).slice(0, 6), "small")}</div>
-      `
-      : `<div class="v93-row">${renderBalls(state.predictions[gameKey] || [], "small")}</div>`;
+      `;
+    } else if (gameKey === "lotto649" && row) {
+      const mainNumbers = Array.isArray(row.numbers) ? row.numbers.slice(0, 6) : [];
+      const special =
+        row.specialNumber != null && Number.isFinite(Number(row.specialNumber))
+          ? Number(row.specialNumber)
+          : null;
 
-  return `
-    <section class="v93-card ${meta.colorClass}">
-      <h3 class="v93-section-title">${meta.label}</h3>
-      <div class="v93-kv"><div class="k">最新期數</div><div>${formatPeriod(row?.period)}</div></div>
-      <div class="v93-kv"><div class="k">開獎時間</div><div>${formatDrawDate(row?.drawDate)}</div></div>
-      <div class="v93-kv"><div class="k">最新號碼</div><div>${numbersHtml}</div></div>
-      <div class="v93-kv"><div class="k">AI推薦</div><div>${pickPreview}</div></div>
-      <div class="v93-kv"><div class="k">熱門尾數</div><div>${stats.hotTails.map((n) => `${n}尾`).join("、") || "-"}</div></div>
-      <div class="v93-kv"><div class="k">學習期數</div><div>${learning?.drawsLearned || 0}</div></div>
-    </section>
-  `;
-}
+      numbersHtml = `
+        <div class="v93-row">${renderBalls(mainNumbers)}</div>
+        <div class="v93-row" style="margin-top:8px;">
+          ${
+            special != null
+              ? `<span class="num zone2">${pad2(special)}</span>`
+              : `<span style="color:#94a3b8;">特別號暫無資料</span>`
+          }
+        </div>
+      `;
+    } else if (row) {
+      numbersHtml = `<div class="v93-row">${renderBalls(row.numbers || [])}</div>`;
+    }
+
+    const pickPreview =
+      gameKey === "power"
+        ? `
+          <div class="v93-row">${renderBalls(state.predictions.power.zone1 || [], "small")}</div>
+          <div class="v93-row" style="margin-top:8px;">
+            ${
+              state.predictions.power.zone2 != null
+                ? `<span class="num zone2 small">${pad2(state.predictions.power.zone2)}</span>`
+                : `<span style="color:#94a3b8;">第二區暫無建議</span>`
+            }
+          </div>
+        `
+        : gameKey === "lotto649"
+        ? `
+          <div class="v93-row">${renderBalls((state.predictions.lotto649 || []).slice(0, 6), "small")}</div>
+        `
+        : `<div class="v93-row">${renderBalls(state.predictions[gameKey] || [], "small")}</div>`;
+
+    return `
+      <section class="v93-card ${meta.colorClass}">
+        <h3 class="v93-section-title">${meta.label}</h3>
+        <div class="v93-kv"><div class="k">最新期數</div><div>${formatPeriod(row?.period)}</div></div>
+        <div class="v93-kv"><div class="k">開獎時間</div><div>${formatDrawDate(row?.drawDate)}</div></div>
+        <div class="v93-kv"><div class="k">最新號碼</div><div>${numbersHtml}</div></div>
+        <div class="v93-kv"><div class="k">AI推薦</div><div>${pickPreview}</div></div>
+        <div class="v93-kv"><div class="k">熱門尾數</div><div>${stats.hotTails.map((n) => `${n}尾`).join("、") || "-"}</div></div>
+        <div class="v93-kv"><div class="k">學習期數</div><div>${learning?.drawsLearned || 0}</div></div>
+      </section>
+    `;
+  }
 
   function renderOpsList() {
     const ops = readJsonStorage(OPS_KEY, []);
