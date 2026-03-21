@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-21T14:46:53.610Z",
+  "generatedAt": "2026-03-21T14:48:59.451Z",
   "source": "build_latest_json",
   "officialLatest": {
     "bingo": {
@@ -257,6 +257,36 @@
         "source": "official-api"
       },
       {
+        "period": "115016226",
+        "drawDate": "2026-03-21 22:45",
+        "redeemableDate": "",
+        "numbers": [
+          1,
+          5,
+          7,
+          9,
+          10,
+          20,
+          21,
+          25,
+          26,
+          30,
+          38,
+          46,
+          48,
+          59,
+          63,
+          67,
+          70,
+          71,
+          76,
+          80
+        ],
+        "orderNumbers": [],
+        "specialNumber": 59,
+        "source": "csv"
+      },
+      {
         "period": "115016225",
         "drawDate": "2026-03-21 22:40",
         "redeemableDate": "",
@@ -344,36 +374,6 @@
         ],
         "orderNumbers": [],
         "specialNumber": 44,
-        "source": "csv"
-      },
-      {
-        "period": "115016222",
-        "drawDate": "2026-03-21 22:25",
-        "redeemableDate": "",
-        "numbers": [
-          4,
-          7,
-          9,
-          12,
-          14,
-          22,
-          24,
-          26,
-          27,
-          33,
-          36,
-          40,
-          45,
-          52,
-          54,
-          57,
-          58,
-          63,
-          70,
-          77
-        ],
-        "orderNumbers": [],
-        "specialNumber": 33,
         "source": "csv"
       }
     ],
@@ -430,6 +430,36 @@
         "source": "official-api"
       },
       {
+        "period": "115016226",
+        "drawDate": "2026-03-21 22:45",
+        "redeemableDate": "",
+        "numbers": [
+          1,
+          5,
+          7,
+          9,
+          10,
+          20,
+          21,
+          25,
+          26,
+          30,
+          38,
+          46,
+          48,
+          59,
+          63,
+          67,
+          70,
+          71,
+          76,
+          80
+        ],
+        "orderNumbers": [],
+        "specialNumber": 59,
+        "source": "csv"
+      },
+      {
         "period": "115016225",
         "drawDate": "2026-03-21 22:40",
         "redeemableDate": "",
@@ -518,36 +548,6 @@
         "orderNumbers": [],
         "specialNumber": 44,
         "source": "csv"
-      },
-      {
-        "period": "115016222",
-        "drawDate": "2026-03-21 22:25",
-        "redeemableDate": "",
-        "numbers": [
-          4,
-          7,
-          9,
-          12,
-          14,
-          22,
-          24,
-          26,
-          27,
-          33,
-          36,
-          40,
-          45,
-          52,
-          54,
-          57,
-          58,
-          63,
-          70,
-          77
-        ],
-        "orderNumbers": [],
-        "specialNumber": 33,
-        "source": "csv"
       }
     ],
     "history": [
@@ -601,6 +601,36 @@
         ],
         "specialNumber": 59,
         "source": "official-api"
+      },
+      {
+        "period": "115016226",
+        "drawDate": "2026-03-21 22:45",
+        "redeemableDate": "",
+        "numbers": [
+          1,
+          5,
+          7,
+          9,
+          10,
+          20,
+          21,
+          25,
+          26,
+          30,
+          38,
+          46,
+          48,
+          59,
+          63,
+          67,
+          70,
+          71,
+          76,
+          80
+        ],
+        "orderNumbers": [],
+        "specialNumber": 59,
+        "source": "csv"
       },
       {
         "period": "115016225",
@@ -1140,36 +1170,6 @@
         ],
         "orderNumbers": [],
         "specialNumber": 59,
-        "source": "csv"
-      },
-      {
-        "period": "115016207",
-        "drawDate": "2026-03-21 21:10",
-        "redeemableDate": "",
-        "numbers": [
-          10,
-          15,
-          16,
-          17,
-          25,
-          30,
-          34,
-          37,
-          38,
-          42,
-          43,
-          44,
-          45,
-          49,
-          61,
-          67,
-          68,
-          69,
-          71,
-          75
-        ],
-        "orderNumbers": [],
-        "specialNumber": 61,
         "source": "csv"
       }
     ]
