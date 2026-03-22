@@ -1,6 +1,32 @@
 {
-  "updatedAt": "2026-03-22T06:57:44.641Z",
+  "updatedAt": "2026-03-22T07:05:07.154Z",
   "content": {
+    "lotteryBingoLatestPost": {
+      "drawTerm": "115016327",
+      "dDate": "2026-03-22 14:15",
+      "drawNumberSize": [
+        3,
+        4,
+        10,
+        13,
+        14,
+        15,
+        16,
+        24,
+        26,
+        30,
+        31,
+        34,
+        40,
+        54,
+        60,
+        63,
+        71,
+        75,
+        76,
+        80
+      ]
+    },
     "daily539": {
       "period": 115000072,
       "lotteryDate": "2026-03-21T00:00:00",
@@ -110,6 +136,18 @@
         "winnerCount": 33728,
         "perPrize": 400
       }
+    },
+    "powerLotto": {
+      "period": "115000023",
+      "lotteryDate": "2026-03-19 00:00",
+      "drawNumberSize": [
+        1,
+        9,
+        13,
+        14,
+        18,
+        31
+      ]
     }
   }
 }
