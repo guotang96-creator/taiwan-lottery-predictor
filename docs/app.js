@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.2.0";
-  const APP_VERSION = `V93.2.0 | GitHub Pages 推薦分組修正版`;
+  const BUILD = window.__APP_BUILD__ || "93.2.1";
+  const APP_VERSION = `V93.2.1 | GitHub Pages 推薦分散強化版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9320";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9320";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9320";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9320";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9321";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9321";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9321";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9321";
 
   const GENERAL_REFRESH_MS = 2 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 30 * 1000;
@@ -673,7 +673,7 @@
           }
         </div>
       </section>
-    `;
+      `;
   }
 
   function generatePredictions() {
@@ -700,53 +700,77 @@
     const usedSignatures = new Set();
 
     for (let i = 0; i < groupCount; i++) {
-      let tries = 0;
       let built = null;
 
-      while (tries < 12) {
+      for (let tries = 0; tries < 30; tries++) {
         if (game === "power") {
+          const previousArea1 = groups.flatMap((g) => g.area1 || []);
           const area1 = predictNumbers({
             rows: history,
             range: config.range,
             count: config.pick,
-            offsetSeed: i,
-            variantSeed: tries,
-            excludedNumbers: []
+            groupIndex: i,
+            tryIndex: tries,
+            excludedNumbers: previousArea1
           });
 
           const area2 = predictSecondArea(history, i + tries);
           const signature = `${area1.join("-")}|${area2.join("-")}`;
 
-          if (!usedSignatures.has(signature) || tries === 11) {
+          if (!usedSignatures.has(signature)) {
             usedSignatures.add(signature);
             built = { area1, area2 };
             break;
           }
         } else {
-          const excludedNumbers = groups.flatMap((g) => g.numbers || []).slice(-8);
-
+          const previousNumbers = groups.flatMap((g) => g.numbers || []);
           const numbers = predictNumbers({
             rows: history,
             range: config.range,
             count: pickCount,
-            offsetSeed: i,
-            variantSeed: tries,
-            excludedNumbers
+            groupIndex: i,
+            tryIndex: tries,
+            excludedNumbers: previousNumbers
           });
 
           const signature = numbers.join("-");
 
-          if (!usedSignatures.has(signature) || tries === 11) {
+          if (!usedSignatures.has(signature)) {
             usedSignatures.add(signature);
             built = { numbers };
             break;
           }
         }
-
-        tries += 1;
       }
 
-      if (built) groups.push(built);
+      if (!built) {
+        if (game === "power") {
+          built = {
+            area1: predictNumbers({
+              rows: history,
+              range: config.range,
+              count: config.pick,
+              groupIndex: i,
+              tryIndex: 99,
+              excludedNumbers: []
+            }),
+            area2: predictSecondArea(history, i + 99)
+          };
+        } else {
+          built = {
+            numbers: predictNumbers({
+              rows: history,
+              range: config.range,
+              count: pickCount,
+              groupIndex: i,
+              tryIndex: 99,
+              excludedNumbers: []
+            })
+          };
+        }
+      }
+
+      groups.push(built);
     }
 
     state.autoState.lastPredictAt = formatDateTime(new Date());
@@ -840,17 +864,16 @@
     rows,
     range,
     count,
-    offsetSeed = 0,
-    variantSeed = 0,
+    groupIndex = 0,
+    tryIndex = 0,
     excludedNumbers = []
   }) {
     const freq = Array(range + 1).fill(0);
     const recent = Array(range + 1).fill(0);
     const tails = Array(10).fill(0);
-    const pairMap = new Map();
 
-    const recentWindow = rows.slice(0, Math.min(rows.length, 30));
-    const allWindow = rows.slice(0, Math.min(rows.length, 200));
+    const recentWindow = rows.slice(0, Math.min(rows.length, 36));
+    const allWindow = rows.slice(0, Math.min(rows.length, 220));
 
     allWindow.forEach((row) => {
       row.numbers.forEach((n) => {
@@ -859,15 +882,6 @@
           tails[n % 10] += 1;
         }
       });
-
-      for (let i = 0; i < row.numbers.length; i++) {
-        for (let j = i + 1; j < row.numbers.length; j++) {
-          const a = Math.min(row.numbers[i], row.numbers[j]);
-          const b = Math.max(row.numbers[i], row.numbers[j]);
-          const key = `${a}-${b}`;
-          pairMap.set(key, (pairMap.get(key) || 0) + 1);
-        }
-      }
     });
 
     recentWindow.forEach((row, idx) => {
@@ -881,52 +895,61 @@
 
     const scored = [];
     for (let n = 1; n <= range; n++) {
-      const tailBonus = tails[n % 10];
       const hot = freq[n] * state.weights.hot;
       const recentScore = recent[n] * state.weights.recent;
-      const tailScore = tailBonus * state.weights.tail * 0.08;
+      const tailScore = tails[n % 10] * state.weights.tail * 0.08;
 
-      let excludePenalty = 0;
-      if (excludedNumbers.includes(n)) {
-        excludePenalty += 0.8 + variantSeed * 0.12;
+      let penalty = 0;
+
+      const repeatedCount = excludedNumbers.filter((x) => x === n).length;
+      if (repeatedCount > 0) {
+        penalty += repeatedCount * 1.35;
       }
 
-      const variantNoise =
-        Math.random() * (0.25 + variantSeed * 0.1) +
-        ((n * 13 + offsetSeed * 17 + variantSeed * 23) % 11) * 0.015;
+      const pseudoRandom =
+        (((n * 97) + (groupIndex * 131) + (tryIndex * 173)) % 1000) / 1000;
 
-      const total = hot + recentScore + tailScore + variantNoise - excludePenalty;
+      const randomNoise =
+        Math.random() * (0.6 + groupIndex * 0.08 + tryIndex * 0.05);
+
+      const total = hot + recentScore + tailScore + pseudoRandom + randomNoise - penalty;
+
       scored.push({ n, score: total });
     }
 
     scored.sort((a, b) => b.score - a.score);
 
+    const poolSize = Math.min(
+      scored.length,
+      Math.max(count + 8, count + 14 + groupIndex * 2 + Math.min(tryIndex, 6))
+    );
+
+    const pool = scored.slice(0, poolSize);
+
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
     const selected = [];
-    for (const item of scored) {
+    for (const item of pool) {
       if (selected.length >= count) break;
 
-      let penalty = 0;
-      selected.forEach((picked) => {
-        const a = Math.min(item.n, picked);
-        const b = Math.max(item.n, picked);
-        const key = `${a}-${b}`;
-        penalty += (pairMap.get(key) || 0) * state.weights.pair * 0.08;
+      const nearCount = selected.filter((picked) => Math.abs(item.n - picked) <= 1).length;
+      const sameTailCount = selected.filter((picked) => picked % 10 === item.n % 10).length;
 
-        if (Math.abs(item.n - picked) <= 1) penalty += state.weights.gapPenalty;
-        if (Math.abs(item.n - picked) === 0) penalty += state.weights.repeatPenalty;
-      });
+      if (nearCount >= 1 && Math.random() < 0.7) continue;
+      if (sameTailCount >= 2 && Math.random() < 0.65) continue;
 
-      const adjusted = item.score - penalty;
-
-      if (adjusted >= 0.1 || selected.length < Math.max(2, count - 2)) {
-        selected.push(item.n);
-      }
+      selected.push(item.n);
     }
 
     if (selected.length < count) {
       for (const item of scored) {
         if (selected.length >= count) break;
-        if (!selected.includes(item.n)) selected.push(item.n);
+        if (!selected.includes(item.n)) {
+          selected.push(item.n);
+        }
       }
     }
 
