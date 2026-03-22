@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.1.9";
-  const APP_VERSION = `V93.1.9 | GitHub Pages 最終穩定版`;
+  const BUILD = window.__APP_BUILD__ || "93.2.0";
+  const APP_VERSION = `V93.2.0 | GitHub Pages 推薦分組修正版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9319";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9319";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9319";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9319";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9320";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9320";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9320";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9320";
 
   const GENERAL_REFRESH_MS = 2 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 30 * 1000;
@@ -691,31 +691,62 @@
     }
 
     const groupCount = clamp(parseInt(state.settings.groupCount || "1", 10), 1, 10);
-    const pickCount = game === "bingo"
-      ? clamp(parseInt(state.settings.bingoCount || "5", 10), 1, 10)
-      : config.pick;
+    const pickCount =
+      game === "bingo"
+        ? clamp(parseInt(state.settings.bingoCount || "5", 10), 1, 10)
+        : config.pick;
 
     const groups = [];
+    const usedSignatures = new Set();
 
     for (let i = 0; i < groupCount; i++) {
-      if (game === "power") {
-        const area1 = predictNumbers({
-          rows: history,
-          range: config.range,
-          count: config.pick,
-          offsetSeed: i
-        });
-        const area2 = predictSecondArea(history, i);
-        groups.push({ area1, area2 });
-      } else {
-        const nums = predictNumbers({
-          rows: history,
-          range: config.range,
-          count: pickCount,
-          offsetSeed: i
-        });
-        groups.push({ numbers: nums });
+      let tries = 0;
+      let built = null;
+
+      while (tries < 12) {
+        if (game === "power") {
+          const area1 = predictNumbers({
+            rows: history,
+            range: config.range,
+            count: config.pick,
+            offsetSeed: i,
+            variantSeed: tries,
+            excludedNumbers: []
+          });
+
+          const area2 = predictSecondArea(history, i + tries);
+          const signature = `${area1.join("-")}|${area2.join("-")}`;
+
+          if (!usedSignatures.has(signature) || tries === 11) {
+            usedSignatures.add(signature);
+            built = { area1, area2 };
+            break;
+          }
+        } else {
+          const excludedNumbers = groups.flatMap((g) => g.numbers || []).slice(-8);
+
+          const numbers = predictNumbers({
+            rows: history,
+            range: config.range,
+            count: pickCount,
+            offsetSeed: i,
+            variantSeed: tries,
+            excludedNumbers
+          });
+
+          const signature = numbers.join("-");
+
+          if (!usedSignatures.has(signature) || tries === 11) {
+            usedSignatures.add(signature);
+            built = { numbers };
+            break;
+          }
+        }
+
+        tries += 1;
       }
+
+      if (built) groups.push(built);
     }
 
     state.autoState.lastPredictAt = formatDateTime(new Date());
@@ -733,7 +764,7 @@
     renderPredictionResult({
       game,
       groups,
-      message: `${config.label} 已產生 ${groupCount} 組推薦號碼`
+      message: `${config.label} 已產生 ${groups.length} 組推薦號碼`
     });
   }
 
@@ -805,7 +836,14 @@
     `;
   }
 
-  function predictNumbers({ rows, range, count, offsetSeed = 0 }) {
+  function predictNumbers({
+    rows,
+    range,
+    count,
+    offsetSeed = 0,
+    variantSeed = 0,
+    excludedNumbers = []
+  }) {
     const freq = Array(range + 1).fill(0);
     const recent = Array(range + 1).fill(0);
     const tails = Array(10).fill(0);
@@ -835,7 +873,9 @@
     recentWindow.forEach((row, idx) => {
       const score = Math.max(1, recentWindow.length - idx);
       row.numbers.forEach((n) => {
-        if (n >= 1 && n <= range) recent[n] += score;
+        if (n >= 1 && n <= range) {
+          recent[n] += score;
+        }
       });
     });
 
@@ -845,7 +885,17 @@
       const hot = freq[n] * state.weights.hot;
       const recentScore = recent[n] * state.weights.recent;
       const tailScore = tailBonus * state.weights.tail * 0.08;
-      const total = hot + recentScore + tailScore + Math.random() * 0.2 + offsetSeed * 0.0001;
+
+      let excludePenalty = 0;
+      if (excludedNumbers.includes(n)) {
+        excludePenalty += 0.8 + variantSeed * 0.12;
+      }
+
+      const variantNoise =
+        Math.random() * (0.25 + variantSeed * 0.1) +
+        ((n * 13 + offsetSeed * 17 + variantSeed * 23) % 11) * 0.015;
+
+      const total = hot + recentScore + tailScore + variantNoise - excludePenalty;
       scored.push({ n, score: total });
     }
 
@@ -861,11 +911,13 @@
         const b = Math.max(item.n, picked);
         const key = `${a}-${b}`;
         penalty += (pairMap.get(key) || 0) * state.weights.pair * 0.08;
+
         if (Math.abs(item.n - picked) <= 1) penalty += state.weights.gapPenalty;
         if (Math.abs(item.n - picked) === 0) penalty += state.weights.repeatPenalty;
       });
 
       const adjusted = item.score - penalty;
+
       if (adjusted >= 0.1 || selected.length < Math.max(2, count - 2)) {
         selected.push(item.n);
       }
@@ -894,7 +946,10 @@
 
     const scored = [];
     for (let n = 1; n <= range; n++) {
-      scored.push({ n, score: freq[n] + Math.random() * 0.1 + offsetSeed * 0.0001 });
+      scored.push({
+        n,
+        score: freq[n] + Math.random() * 0.25 + offsetSeed * 0.03
+      });
     }
 
     scored.sort((a, b) => b.score - a.score);
