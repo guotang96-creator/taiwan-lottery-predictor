@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.1.8";
-  const APP_VERSION = `V93.1.8 | GitHub Pages BINGO 加速修正版`;
+  const BUILD = window.__APP_BUILD__ || "93.1.9";
+  const APP_VERSION = `V93.1.9 | GitHub Pages 最終穩定版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9318";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9318";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9318";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9318";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9319";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9319";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9319";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9319";
 
   const GENERAL_REFRESH_MS = 2 * 60 * 1000;
   const BINGO_FAST_REFRESH_MS = 30 * 1000;
@@ -451,15 +451,10 @@
       fetchTextWithFallback(CSV_CANDIDATES.power)
     ]);
 
-    const bingoRowsRaw = parseCSV(bingoText);
-    const daily539RowsRaw = parseCSV(daily539Text);
-    const biglottoRowsRaw = parseCSV(biglottoText);
-    const powerRowsRaw = parseCSV(powerText);
-
-    state.history.bingo = normalizeHistoryRows("bingo", bingoRowsRaw);
-    state.history.daily539 = normalizeHistoryRows("daily539", daily539RowsRaw);
-    state.history.biglotto = normalizeHistoryRows("biglotto", biglottoRowsRaw);
-    state.history.power = normalizeHistoryRows("power", powerRowsRaw);
+    state.history.bingo = normalizeHistoryRows("bingo", parseCSV(bingoText));
+    state.history.daily539 = normalizeHistoryRows("daily539", parseCSV(daily539Text));
+    state.history.biglotto = normalizeHistoryRows("biglotto", parseCSV(biglottoText));
+    state.history.power = normalizeHistoryRows("power", parseCSV(powerText));
 
     state.dataStatus.bingo = getDataStatusText("bingo", state.history.bingo, state.latest.bingo);
     state.dataStatus.daily539 = getDataStatusText("daily539", state.history.daily539, state.latest.daily539);
