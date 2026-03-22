@@ -1,16 +1,16 @@
 (() => {
   "use strict";
 
-  const BUILD = window.__APP_BUILD__ || "93.1.7";
-  const APP_VERSION = `V93.1.7 | GitHub Pages BINGO/威力彩修正版`;
+  const BUILD = window.__APP_BUILD__ || "93.1.8";
+  const APP_VERSION = `V93.1.8 | GitHub Pages BINGO 加速修正版`;
 
-  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9317";
-  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9317";
-  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9317";
-  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9317";
+  const STORAGE_KEY = "taiwan_lottery_prediction_history_v9318";
+  const SETTINGS_KEY = "taiwan_lottery_dashboard_settings_v9318";
+  const WEIGHTS_KEY = "taiwan_lottery_learning_weights_v9318";
+  const AUTO_STATE_KEY = "taiwan_lottery_auto_state_v9318";
 
-  const GENERAL_REFRESH_MS = 5 * 60 * 1000;
-  const BINGO_FAST_REFRESH_MS = 60 * 1000;
+  const GENERAL_REFRESH_MS = 2 * 60 * 1000;
+  const BINGO_FAST_REFRESH_MS = 30 * 1000;
 
   const JSON_CANDIDATES = [
     "./latest.json",
@@ -401,9 +401,13 @@
   }
 
   async function refreshBingoFastOnly(options = {}) {
+    await loadLatestJson();
+    await loadAllHistoryData();
     await loadLatestBingo();
+
     state.autoState.lastUpdateAt = formatDateTime(new Date());
     saveJson(AUTO_STATE_KEY, state.autoState);
+
     renderStatus();
     renderLatestResults();
 
@@ -467,7 +471,6 @@
     if (!state.latest.bingo && state.history.bingo.length) {
       state.latest.bingo = pickLatestFromHistory("bingo", state.history.bingo);
     }
-
     state.dataStatus.bingo = getDataStatusText("bingo", state.history.bingo, state.latest.bingo);
   }
 
@@ -487,7 +490,7 @@
       } else if (!state.latest.daily539 && state.history.daily539.length) {
         state.latest.daily539 = pickLatestFromHistory("daily539", state.history.daily539);
       }
-    } catch (err) {
+    } catch (_) {
       if (!state.latest.daily539 && state.history.daily539.length) {
         state.latest.daily539 = pickLatestFromHistory("daily539", state.history.daily539);
       }
@@ -512,7 +515,7 @@
       } else if (!state.latest.biglotto && state.history.biglotto.length) {
         state.latest.biglotto = pickLatestFromHistory("biglotto", state.history.biglotto);
       }
-    } catch (err) {
+    } catch (_) {
       if (!state.latest.biglotto && state.history.biglotto.length) {
         state.latest.biglotto = pickLatestFromHistory("biglotto", state.history.biglotto);
       }
@@ -539,7 +542,7 @@
       } else if (!state.latest.power && state.history.power.length) {
         state.latest.power = pickLatestFromHistory("power", state.history.power);
       }
-    } catch (err) {
+    } catch (_) {
       if (!state.latest.power && state.history.power.length) {
         state.latest.power = pickLatestFromHistory("power", state.history.power);
       }
@@ -951,15 +954,10 @@
     const time = pickFirst(row, ["dDate", "drawDate", "lotteryDate", "date", "時間"]);
 
     let numbers = [];
-    if (row.drawNumberAppear) {
-      numbers = parseNumberList(row.drawNumberAppear);
-    } else if (row.drawNumberSize) {
-      numbers = parseNumberList(row.drawNumberSize);
-    } else if (row.numbers) {
-      numbers = parseNumberList(row.numbers);
-    } else {
-      numbers = collectSequentialNumbers(row, 1, 20);
-    }
+    if (row.drawNumberAppear) numbers = parseNumberList(row.drawNumberAppear);
+    else if (row.drawNumberSize) numbers = parseNumberList(row.drawNumberSize);
+    else if (row.numbers) numbers = parseNumberList(row.numbers);
+    else numbers = collectSequentialNumbers(row, 1, 20);
 
     if (!numbers.length) return null;
 
@@ -1192,10 +1190,7 @@
       return value.map((n) => parseInt(n, 10)).filter((n) => Number.isFinite(n));
     }
 
-    if (typeof value === "number") {
-      return [value];
-    }
-
+    if (typeof value === "number") return [value];
     if (!value) return [];
 
     if (typeof value === "string") {
@@ -1255,8 +1250,9 @@
       ".prediction-results",
       "[data-role='prediction-results']"
     ]);
+
     if (container) {
-      container.innerHTML = `<div class="prediction-empty">資料載入中...</div>`;
+      container.innerHTML = `<div class="prediction-empty">尚未產生推薦號碼</div>`;
     }
   }
 
