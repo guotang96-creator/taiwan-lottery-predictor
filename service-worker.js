@@ -1,4 +1,4 @@
-const CACHE_NAME = "taiwan-lottery-v93-1-7";
+const CACHE_NAME = "taiwan-lottery-v93-1-8";
 const APP_SHELL = [
   "./",
   "./index.html",
