@@ -30,34 +30,7 @@ jobs:
           mkdir -p docs/raw_data
           mkdir -p raw_data
 
-      - name: Fetch latest lottery APIs
-        run: |
-          curl -L "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/BingoResult" -o docs/bingo_api.json || true
-          curl -L "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1" -o docs/daily539_api.json || true
-          curl -L "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1" -o docs/biglotto_api.json || true
-          curl -L "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/PowerLottoResult?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1" -o docs/power_api.json || true
-
-      - name: Debug fetched files
-        run: |
-          ls -lah docs || true
-          echo "=== bingo_api.json ==="
-          wc -c docs/bingo_api.json || true
-          head -c 500 docs/bingo_api.json || true
-          echo ""
-          echo "=== daily539_api.json ==="
-          wc -c docs/daily539_api.json || true
-          head -c 500 docs/daily539_api.json || true
-          echo ""
-          echo "=== biglotto_api.json ==="
-          wc -c docs/biglotto_api.json || true
-          head -c 500 docs/biglotto_api.json || true
-          echo ""
-          echo "=== power_api.json ==="
-          wc -c docs/power_api.json || true
-          head -c 500 docs/power_api.json || true
-          echo ""
-
-      - name: Build docs/latest.json
+      - name: Build docs/latest.json from CSV first, API second
         run: |
           node - <<'NODE'
           const fs = require('fs');
@@ -71,76 +44,182 @@ jobs:
             }
           }
 
-          function firstNonEmpty(...values) {
-            for (const v of values) {
-              if (v === null || v === undefined) continue;
-              if (Array.isArray(v) && v.length === 0) continue;
-              if (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) continue;
-              return v;
+          function readText(path) {
+            try {
+              if (!fs.existsSync(path)) return '';
+              return fs.readFileSync(path, 'utf8');
+            } catch (_) {
+              return '';
             }
-            return null;
+          }
+
+          function parseCSV(text) {
+            if (!text || !text.trim()) return [];
+            const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(Boolean);
+            if (lines.length < 2) return [];
+
+            const headers = parseCSVLine(lines[0]);
+            const rows = [];
+
+            for (let i = 1; i < lines.length; i++) {
+              const cols = parseCSVLine(lines[i]);
+              const row = {};
+              headers.forEach((h, idx) => {
+                row[String(h || '').trim()] = String(cols[idx] ?? '').trim();
+              });
+              rows.push(row);
+            }
+            return rows;
+          }
+
+          function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+              const ch = line[i];
+              const next = line[i + 1];
+
+              if (ch === '"') {
+                if (inQuotes && next === '"') {
+                  current += '"';
+                  i++;
+                } else {
+                  inQuotes = !inQuotes;
+                }
+              } else if (ch === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+              } else {
+                current += ch;
+              }
+            }
+
+            result.push(current);
+            return result;
+          }
+
+          function parseNumberList(value) {
+            if (Array.isArray(value)) {
+              return value.map(n => parseInt(n, 10)).filter(Number.isFinite);
+            }
+            if (typeof value === 'number') return [value];
+            if (!value) return [];
+            return String(value)
+              .split(/[^0-9]+/g)
+              .map(n => parseInt(n, 10))
+              .filter(Number.isFinite);
+          }
+
+          function pickFirst(obj, keys) {
+            for (const key of keys) {
+              if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') {
+                return obj[key];
+              }
+            }
+            return '';
+          }
+
+          function collectSequentialNumbers(row, from, to) {
+            const values = [];
+            for (let i = from; i <= to; i++) {
+              const candidates = [`num${i}`, `number${i}`, `n${i}`, `ball${i}`, `${i}`];
+              for (const key of candidates) {
+                if (row[key] !== undefined && row[key] !== '') {
+                  const n = parseInt(row[key], 10);
+                  if (Number.isFinite(n)) {
+                    values.push(n);
+                    break;
+                  }
+                }
+              }
+            }
+            return values;
+          }
+
+          function normalizeBingoHistoryRow(row) {
+            const term = pickFirst(row, ['drawTerm', 'period', 'term', '期別']);
+            const time = pickFirst(row, ['dDate', 'drawDate', 'lotteryDate', 'date', '時間']);
+            let numbers = [];
+            if (row.drawNumberAppear) numbers = parseNumberList(row.drawNumberAppear);
+            else if (row.drawNumberSize) numbers = parseNumberList(row.drawNumberSize);
+            else if (row.numbers) numbers = parseNumberList(row.numbers);
+            else numbers = collectSequentialNumbers(row, 1, 20);
+            if (!numbers.length) return null;
+            return {
+              drawTerm: term,
+              dDate: time,
+              drawNumberSize: numbers.slice(0, 20)
+            };
+          }
+
+          function normalizePowerHistoryRow(row) {
+            const term = pickFirst(row, ['period', 'drawTerm', 'term', '期別']);
+            const time = pickFirst(row, ['lotteryDate', 'dDate', 'drawDate', 'date', '時間']);
+
+            let numbers = [];
+            if (row.drawNumberSize) numbers = parseNumberList(row.drawNumberSize);
+            else if (row.drawNumberAppear) numbers = parseNumberList(row.drawNumberAppear);
+            else if (row.numbers) numbers = parseNumberList(row.numbers);
+            else numbers = collectSequentialNumbers(row, 1, 6);
+
+            let secondArea = parseNumberList(
+              pickFirst(row, ['specialNum', 'secondArea', 'powerball', 'specialNumber', '特別號', '第二區'])
+            );
+
+            if (!numbers.length) return null;
+
+            return {
+              period: term,
+              lotteryDate: time,
+              drawNumberSize: [...numbers.slice(0, 6), ...(secondArea.slice(0, 1))]
+            };
+          }
+
+          function latestFromCSV(path, normalizer) {
+            const text = readText(path);
+            const rows = parseCSV(text).map(normalizer).filter(Boolean);
+            if (!rows.length) return null;
+            rows.sort((a, b) => String(b.drawTerm || b.period || '').localeCompare(String(a.drawTerm || a.period || ''), 'zh-Hant-u-kn-true'));
+            return rows[0];
           }
 
           const prevLatest = readJson('docs/latest.json', { content: {} });
-
-          const bingoApi = readJson('docs/bingo_api.json');
           const daily539Api = readJson('docs/daily539_api.json');
           const biglottoApi = readJson('docs/biglotto_api.json');
-          const powerApi = readJson('docs/power_api.json');
+
+          const latestBingo = latestFromCSV('docs/raw_data/bingo.csv', normalizeBingoHistoryRow)
+            || prevLatest?.content?.lotteryBingoLatestPost
+            || null;
+
+          const latestPower = latestFromCSV('docs/raw_data/power.csv', normalizePowerHistoryRow)
+            || prevLatest?.content?.powerLotto
+            || null;
+
+          const latest539 =
+            daily539Api?.content?.daily539Res?.[0]
+            || daily539Api?.content?.daily539
+            || prevLatest?.content?.daily539
+            || null;
+
+          const latestBigLotto =
+            biglottoApi?.content?.lotto649Res?.[0]
+            || biglottoApi?.content?.bigLotto
+            || prevLatest?.content?.bigLotto
+            || null;
 
           const output = {
             updatedAt: new Date().toISOString(),
-            content: { ...(prevLatest.content || {}) }
+            content: {}
           };
 
-          const bingoLatest = firstNonEmpty(
-            bingoApi?.content?.lotteryBingoLatestPost,
-            bingoApi?.content?.bingoLatestPost,
-            bingoApi?.content?.bingo,
-            bingoApi?.content?.bingoQueryResult?.[0],
-            prevLatest?.content?.lotteryBingoLatestPost
-          );
-
-          const daily539Latest = firstNonEmpty(
-            daily539Api?.content?.daily539Res?.[0],
-            daily539Api?.content?.daily539LatestPost,
-            daily539Api?.content?.daily539,
-            prevLatest?.content?.daily539
-          );
-
-          const bigLottoLatest = firstNonEmpty(
-            biglottoApi?.content?.lotto649Res?.[0],
-            biglottoApi?.content?.lotto649LatestPost,
-            biglottoApi?.content?.bigLotto,
-            prevLatest?.content?.bigLotto
-          );
-
-          const powerLatest = firstNonEmpty(
-            powerApi?.content?.powerLotto638Res?.[0],
-            powerApi?.content?.powerLottoRes?.[0],
-            powerApi?.content?.powerLottoLatestPost,
-            powerApi?.content?.powerLotto,
-            prevLatest?.content?.powerLotto
-          );
-
-          if (bingoLatest) {
-            output.content.lotteryBingoLatestPost = bingoLatest;
-          }
-
-          if (daily539Latest) {
-            output.content.daily539 = daily539Latest;
-          }
-
-          if (bigLottoLatest) {
-            output.content.bigLotto = bigLottoLatest;
-          }
-
-          if (powerLatest) {
-            output.content.powerLotto = powerLatest;
-          }
+          if (latestBingo) output.content.lotteryBingoLatestPost = latestBingo;
+          if (latest539) output.content.daily539 = latest539;
+          if (latestBigLotto) output.content.bigLotto = latestBigLotto;
+          if (latestPower) output.content.powerLotto = latestPower;
 
           fs.writeFileSync('docs/latest.json', JSON.stringify(output, null, 2), 'utf8');
-          console.log('docs/latest.json generated');
           console.log(JSON.stringify(output, null, 2));
           NODE
 
