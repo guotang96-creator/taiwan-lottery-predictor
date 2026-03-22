@@ -62,14 +62,26 @@ jobs:
           node - <<'NODE'
           const fs = require('fs');
 
-          function readJson(path) {
+          function readJson(path, fallback = {}) {
             try {
-              if (!fs.existsSync(path)) return {};
+              if (!fs.existsSync(path)) return fallback;
               return JSON.parse(fs.readFileSync(path, 'utf8'));
             } catch (_) {
-              return {};
+              return fallback;
             }
           }
+
+          function firstNonEmpty(...values) {
+            for (const v of values) {
+              if (v === null || v === undefined) continue;
+              if (Array.isArray(v) && v.length === 0) continue;
+              if (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) continue;
+              return v;
+            }
+            return null;
+          }
+
+          const prevLatest = readJson('docs/latest.json', { content: {} });
 
           const bingoApi = readJson('docs/bingo_api.json');
           const daily539Api = readJson('docs/daily539_api.json');
@@ -78,27 +90,58 @@ jobs:
 
           const output = {
             updatedAt: new Date().toISOString(),
-            content: {}
+            content: { ...(prevLatest.content || {}) }
           };
 
-          if (bingoApi?.content?.lotteryBingoLatestPost) {
-            output.content.lotteryBingoLatestPost = bingoApi.content.lotteryBingoLatestPost;
+          const bingoLatest = firstNonEmpty(
+            bingoApi?.content?.lotteryBingoLatestPost,
+            bingoApi?.content?.bingoLatestPost,
+            bingoApi?.content?.bingo,
+            bingoApi?.content?.bingoQueryResult?.[0],
+            prevLatest?.content?.lotteryBingoLatestPost
+          );
+
+          const daily539Latest = firstNonEmpty(
+            daily539Api?.content?.daily539Res?.[0],
+            daily539Api?.content?.daily539LatestPost,
+            daily539Api?.content?.daily539,
+            prevLatest?.content?.daily539
+          );
+
+          const bigLottoLatest = firstNonEmpty(
+            biglottoApi?.content?.lotto649Res?.[0],
+            biglottoApi?.content?.lotto649LatestPost,
+            biglottoApi?.content?.bigLotto,
+            prevLatest?.content?.bigLotto
+          );
+
+          const powerLatest = firstNonEmpty(
+            powerApi?.content?.powerLotto638Res?.[0],
+            powerApi?.content?.powerLottoRes?.[0],
+            powerApi?.content?.powerLottoLatestPost,
+            powerApi?.content?.powerLotto,
+            prevLatest?.content?.powerLotto
+          );
+
+          if (bingoLatest) {
+            output.content.lotteryBingoLatestPost = bingoLatest;
           }
 
-          if (daily539Api?.content?.daily539Res?.[0]) {
-            output.content.daily539 = daily539Api.content.daily539Res[0];
+          if (daily539Latest) {
+            output.content.daily539 = daily539Latest;
           }
 
-          if (biglottoApi?.content?.lotto649Res?.[0]) {
-            output.content.bigLotto = biglottoApi.content.lotto649Res[0];
+          if (bigLottoLatest) {
+            output.content.bigLotto = bigLottoLatest;
           }
 
-          if (powerApi?.content?.powerLotto638Res?.[0]) {
-            output.content.powerLotto = powerApi.content.powerLotto638Res[0];
+          if (powerLatest) {
+            output.content.powerLotto = powerLatest;
           }
 
           fs.writeFileSync('docs/latest.json', JSON.stringify(output, null, 2), 'utf8');
           console.log('docs/latest.json generated');
+          console.log(JSON.stringify(output, null, 2));
           NODE
 
       - name: Mirror latest.json to root if needed
