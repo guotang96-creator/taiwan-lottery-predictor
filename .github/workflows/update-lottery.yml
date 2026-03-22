@@ -3,77 +3,123 @@ name: Update Lottery Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/3 * * * *"
+    - cron: "*/10 * * * *"
 
 permissions:
   contents: write
 
-concurrency:
-  group: update-lottery-data
-  cancel-in-progress: false
-
 jobs:
-  update-data:
+  update-lottery-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Show current time
+        run: date
 
-      - name: Ensure folders exist
+      - name: Ensure folders
         run: |
+          mkdir -p docs
           mkdir -p docs/raw_data
-          mkdir -p .github/workflows
-          mkdir -p tools
+          mkdir -p raw_data
 
-      - name: Fetch latest official
-        run: node fetch_latest_official.js
-
-      - name: Debug official_latest.json
+      - name: Fetch latest lottery APIs
         run: |
-           echo "===== official_latest.json ====="
-           test -f official_latest.json && sed -n '1,320p' official_latest.json || echo "official_latest.json not found"
+          curl -L "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/BingoResult" -o docs/bingo_api.json || true
+          curl -L "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Daily539Result?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1" -o docs/daily539_api.json || true
+          curl -L "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1" -o docs/biglotto_api.json || true
+          curl -L "https://api.taiwanlottery.com/TLCAPIWeB/Lottery/PowerLottoResult?period&month=2026-01&endMonth=2026-12&pageNum=1&pageSize=1" -o docs/power_api.json || true
 
-      - name: Run parse downloads
-        run: node parse_downloads.js
-
-      - name: Debug bingo csv latest
+      - name: Debug fetched files
         run: |
-          echo "===== docs/raw_data/bingo.csv tail ====="
-          test -f docs/raw_data/bingo.csv && tail -n 8 docs/raw_data/bingo.csv || echo "docs/raw_data/bingo.csv not found"
+          ls -lah docs || true
+          echo "=== bingo_api.json ==="
+          wc -c docs/bingo_api.json || true
+          head -c 500 docs/bingo_api.json || true
+          echo ""
+          echo "=== daily539_api.json ==="
+          wc -c docs/daily539_api.json || true
+          head -c 500 docs/daily539_api.json || true
+          echo ""
+          echo "=== biglotto_api.json ==="
+          wc -c docs/biglotto_api.json || true
+          head -c 500 docs/biglotto_api.json || true
+          echo ""
+          echo "=== power_api.json ==="
+          wc -c docs/power_api.json || true
+          head -c 500 docs/power_api.json || true
+          echo ""
 
-      - name: Build latest.json
-        run: node tools/build_latest_json.js
-
-      - name: Debug docs/latest.json
+      - name: Build docs/latest.json
         run: |
-          echo "===== docs/latest.json ====="
-          test -f docs/latest.json && sed -n '1,260p' docs/latest.json || echo "docs/latest.json not found"
+          node - <<'NODE'
+          const fs = require('fs');
 
-      - name: Commit changes
+          function readJson(path) {
+            try {
+              if (!fs.existsSync(path)) return {};
+              return JSON.parse(fs.readFileSync(path, 'utf8'));
+            } catch (e) {
+              return {};
+            }
+          }
+
+          const bingoApi = readJson('docs/bingo_api.json');
+          const daily539Api = readJson('docs/daily539_api.json');
+          const biglottoApi = readJson('docs/biglotto_api.json');
+          const powerApi = readJson('docs/power_api.json');
+
+          const output = {
+            updatedAt: new Date().toISOString(),
+            content: {}
+          };
+
+          if (bingoApi?.content?.lotteryBingoLatestPost) {
+            output.content.lotteryBingoLatestPost = bingoApi.content.lotteryBingoLatestPost;
+          }
+
+          if (daily539Api?.content?.daily539Res?.[0]) {
+            output.content.daily539 = daily539Api.content.daily539Res[0];
+          }
+
+          if (biglottoApi?.content?.lotto649Res?.[0]) {
+            output.content.bigLotto = biglottoApi.content.lotto649Res[0];
+          }
+
+          if (powerApi?.content?.powerLotto638Res?.[0]) {
+            output.content.powerLotto = powerApi.content.powerLotto638Res[0];
+          }
+
+          fs.writeFileSync('docs/latest.json', JSON.stringify(output, null, 2), 'utf8');
+          console.log('docs/latest.json generated');
+          NODE
+
+      - name: Mirror latest.json to root if needed
+        run: |
+          cp docs/latest.json latest.json || true
+
+      - name: Ensure raw_data mirror files exist
+        run: |
+          cp -f docs/raw_data/bingo.csv raw_data/bingo.csv 2>/dev/null || true
+          cp -f docs/raw_data/539.csv raw_data/539.csv 2>/dev/null || true
+          cp -f docs/raw_data/biglotto.csv raw_data/biglotto.csv 2>/dev/null || true
+          cp -f docs/raw_data/power.csv raw_data/power.csv 2>/dev/null || true
+
+      - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add official_latest.json docs/latest.json docs/raw_data/*.csv fetch_latest_official.js parse_downloads.js tools/build_latest_json.js .github/workflows/update-lottery.yml
-
+          git add .
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: update lottery data"
+            git commit -m "auto: update lottery data"
+            git push
           fi
-
-      - name: Push changes
-        run: git push
