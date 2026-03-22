@@ -1,0 +1,724 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<HTML xmlns="http://www.w3.org/1999/xhtml">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Bingo Bingo賓果賓果開獎號碼 - 奧索樂透網</title>
+<meta name="description" content="Bingo Bingo賓果賓果開獎號碼及Bingo Bingo賓果賓果中獎號碼記錄查詢與BingoBingo賓果賓果球號分析!">
+<meta name="keywords" content="Bingo Bingo賓果賓果,Bingo Bingo賓果賓果開獎號碼,Bingo Bingo賓果賓果中獎號碼">
+<link rel="stylesheet" href="https://lotto.auzonet.com/libs/css/style.css?d=" type="text/css">
+<link rel="shortcut icon" href="favicon.ico">
+<script src="//sg-cdn-lotto.auzo.tw/libs/js/swfobject_modified.js" type="text/javascript"></script>
+<script src="https://lotto.auzonet.com/libs/js/common.js?d=20210210-4" type="text/javascript"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7483721156411677" crossorigin="anonymous"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-527039-2"></script>
+<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'UA-527039-2');</script><script src="https://lotto.auzonet.com//libs/js/sweetalert2@11.js"></script><script type="text/javascript" src="https://lotto.auzonet.com//themes/default/analyes/js/jquery.js"></script><link rel="stylesheet" type="text/css" href="https://lotto.auzonet.com/libs/css/common_style.css?v="><script src="https://lotto.auzonet.com/libs/js/general.js?d=" type="text/javascript"></script>
+</head>
+
+<body leftmargin="3" topmargin="0" onLoad="scroll1.scroll();scroll2.scroll();">
+
+<div align="center">
+    <table width="995" border="0" cellspacing="0" cellpadding="0" background="//sg-cdn-lotto.auzo.tw/images/header_top_bg.gif">
+        <tr>
+            <td width="50%" align="left" class="top_text"><img src="//sg-cdn-lotto.auzo.tw/images/icon_blue.gif">&nbsp;<a
+                        href="/biglotto">大樂透</a>、<a href="/power">威力彩</a>、<a href="/bingobingo.php">賓果賓果</a>、<a
+                        href="/daily539">今彩539</a>、<a href="/lotto_historylist_three-star.html">三星彩</a>、<a
+                        href="/lotto_historylist_four-star.html">四星彩</a> 最新開獎號碼！
+            </td>
+            <td width="50%" align="right">
+                <a href="/" class="top_textlink">樂透首頁</a>　<a href="https://member.auzonet.com/join.php"
+                                                             class="top_textlink" style="color:blue">加入會員</a>　<a
+                        href="https://member.auzonet.com/login.php?reffer=lotto.auzonet.com" class="top_textlink"
+                        style="color:blue">會員登入</a>　<a href="javascript:void(0)"
+                                                       onClick="addtofavorites('http://lotto.auzonet.com/','奧索樂透網')"
+                                                       class="top_textlink">我的最愛</a>　<a href="/faq"
+                                                                                        class="top_textlink">常見問題</a>　<a
+                        href="/charity.php" class="top_textlink" style="color:#08af43">公益團體</a>　&nbsp;
+            </td>
+        </tr>
+    </table>
+    <table width="992" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td width="812" valign="top">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td>
+                            <!--[if IE]>
+                            <iframe src="https://sg.cdn.lotto.auzonet.com/images/header_2026/index.html?v=2023" height="101" width="812"></iframe>
+                            <![endif]-->
+                            <!--[if !IE]>-->
+                            <iframe src="https://sg.cdn.lotto.auzonet.com/images/header_2026/index.html?v=2023"
+                                    height="101" width="812"></iframe>
+                            <!--<![endif]-->
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" valign="bottom" class="nav_bg">
+                            <table width="810" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center" class="nav_text">
+                                        &nbsp;<a href="/" class="nav_text2">樂透首頁</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a
+                                                href="https://member.auzonet.com" target="_blank"
+                                                class="nav_text2">會員中心</a>　<a href="/forum.php"
+                                                                              class="nav_text2">樂透論壇</a>　<a
+                                                href="/buy.php" class="nav_text2">虛擬樂透</a>　&nbsp;&nbsp;|&nbsp;&nbsp;<a
+                                                href="/bingobingo.php" class="nav_text2">賓果賓果</a>　<a href="/biglotto"
+                                                                                                     class="nav_text2">大樂透</a>　<a
+                                                href="/power" class="nav_text2">威力彩</a>　<a href="/daily539"
+                                                                                           class="nav_text2">今彩539</a>　<a
+                                                href="/lotto_historylist_three-star.html" class="nav_text2">三星彩</a>　<a
+                                                href="/lotto_historylist_four-star.html" class="nav_text2">四星彩</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td width="180" height="134" align="center" class="news">
+                <table width="100%" height="28" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                </table>
+                <table width="88%" height="90" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td align="left" valign="top" style="overflow:hidden">
+                            <div id="scr2"></div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <table width="992" border="0" cellspacing="0" cellpadding="0" align="center">
+        <tr>
+            <td height="6"><img src="//sg-cdn-lotto.auzo.tw/images/header_12.gif" width="992" height="6"/></td>
+        </tr>
+    </table>
+    <table style="width: 992px">
+        <tr>
+            <td style="width: 882px;">
+                <table width="" border="0" cellpadding="0" cellspacing="0" class="white_bg" align="center">
+                    <tr>
+                        <td height="23" align="center">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td width="710" align="left">
+                                        <div id="scr1"></div>
+                                    </td>
+                                    <td width="172" align="left"></td>
+                                    <td id="online_user" width="110">
+                                        <script type="text/javascript">
+                                            <!--
+                                            Lotto_MemberID = "G17741643041184";
+                                            Lotto_Path = "/bingobingoV1.php";
+                                            //
+                                            //-->
+                                        </script>
+</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<table width="" border="0" cellpadding="0" cellspacing="0" class="white_bg" align="center">
+    <tr height="25">
+        <!--<td width="242" height="25" align="left" style="font-weight:bold;color:#800000"><div class="fb-like" data-href="https://www.facebook.com/auzotw" data-send="false" data-width="240" data-show-faces="false"></div></td>-->
+        <td width="250" align="center" style="font-weight:bold;color:#800000"><a href="/forums/detail_1310105.html"
+                                                                                 style="color:blue"><b>[手機APP]
+                    奧索樂透助手</b></a><img src='//sg-cdn-lotto.auzo.tw/images/hot06.gif' border=0 align="absmiddle"></td>
+        <td width="250" align="center" style="font-weight:bold;color:#800000"><a href="/tv/bingo" target="_blank"
+                                                                                 style="color:blue"><b>[店家專用] Bingo
+                    TV播放系統</b></a><img src='//sg-cdn-lotto.auzo.tw/images/hot06.gif' border=0 align="absmiddle"></td>
+        <td width="260" align="center" style="font-weight:bold;color:#800000"><a href="/tv/combo" target="_blank"
+                                                                                 style="color:blue"><b>[店家專用]
+                    綜合彩券TV播放系統</b></a><img src='//sg-cdn-lotto.auzo.tw/images/hot06.gif' border=0 align="absmiddle"></td>
+        <td width="210" align="center" style="font-weight:bold;color:#800000">&nbsp;</td>
+    </tr>
+</table>
+</td>
+<td>
+    <a href="/event/20181222/index.html"><img src="/images/sponsor_auzo.png"></a>
+</td>
+</tr>
+</table>
+
+
+<div class="auzo-adv-module">
+    <div class="adv-position">
+        <div class="adv">
+
+        </div>
+    </div>
+</div><!--auzo-adv-module-->
+
+<style>
+    .auzo-adv-module {
+        width: 995px;
+        height: 0;
+        position: relative;
+    }
+
+    .auzo-adv-module div:after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    .adv-position {
+        position: absolute;
+        left: 0;
+        z-index: 99;
+    }
+
+    .adv {
+        width: 995px;
+        position: relative;
+        display: none;
+    }
+</style>
+<script>
+    (function (global, $, doc) {
+        'use strict';
+        var AUZOADV = function (options) {
+            this.timer = null;
+            this.options = options || {
+                advWidth: 995,      //宽度
+                duration: 8,        //广告播放时长
+                rootNode: "adv",    //根节点，需要手动指定
+                parentNode: "auzo-adv",
+                ballNode: "last-bingo",
+                timerNode: "count-down-timer",
+                videoNode: "video",
+                closeBtn: "to-close",
+                videoPath: "auzo_adv/",     //广告视频路径
+                videoName: "auzo_adv.mp4", //广告视频名称
+                bingoDataUrl: "cache/app/latest_bingobingo.cah" //json数据url
+            };
+            this.domTreeCache = {
+                rootDom: "",
+                parentDom: "",
+                ballDom: "",
+                timerDom: "",
+                videoDom: "",
+                closeDom: "",
+                videoUri: "",
+                loadTip: ""
+            };
+            //创建DOM树
+            this.createDomTree();
+            this.stopAdv();
+        };
+        AUZOADV.prototype = {
+            constructor: AUZOADV,
+            createDomTree: function () {
+                this.domTreeCache.rootDom = $("." + this.options.rootNode).css({
+                    "position": "relative",
+                    "z-index": 1,
+                    "width": this.options.advWidth + "px"
+                });
+                this.domTreeCache.loadTip = $("<div/>").css({
+                    "width": "100%",
+                    "height": "100%",
+                    "box-sizing": "border-box",
+                    "text-align": "center",
+                    "line-height": "92px",
+                    "background-color": "#FAF8E1",
+                    "border": "1px solid #aaa"
+                });
+
+                this.domTreeCache.parentDom = $("<div/>", {
+                    "class": this.options.parentNode
+                }).css({
+                    "width": "100%"
+                });
+                this.domTreeCache.ballDom = $("<div/>", {
+                    "class": this.options.ballNode
+                }).css({
+                    "height": "92px"
+                }).appendTo(this.domTreeCache.parentDom);
+                this.domTreeCache.timerDom = $("<div/>", {
+                    "class": this.options.timerNode
+                }).css({
+                    "position": "absolute",
+                    "width": "40px",
+                    "height": "40px",
+                    "z-index": "99",
+                    "color": "white",
+                    "font-size": "34px",
+                    "line-height": "40px",
+                    "text-align": "center",
+                    "font-family": "Arial",
+                    "font-weight": "bolder",
+                    "left": "15px",
+                    "top": "100px"
+                }).appendTo(this.domTreeCache.parentDom);
+                this.domTreeCache.videoDom = $("<div/>", {
+                    "class": this.options.videoNode
+                }).appendTo(this.domTreeCache.parentDom);
+                this.domTreeCache.closeDom = $("<div/>", {
+                    "class": this.options.closeBtn
+                }).css({
+                    "position": "absolute",
+                    "width": "70px",
+                    "height": "36px",
+                    "z-index": "99",
+                    "bottom": "10px",
+                    "right": "2px",
+                    "box-sizing": "border-box",
+                    "background": "#FFF",
+                    "line-height": "34px",
+                    "text-align": "center",
+                    "border": "1px solid #aaa",
+                    "color": "#666",
+                    "cursor": "pointer"
+                }).text("關 閉").appendTo(this.domTreeCache.parentDom);
+                this.domTreeCache.rootDom.append(this.domTreeCache.parentDom);
+            },
+            initDomTree: function () {
+                var that = this;
+                clearInterval(that.timer);
+                var _isLoad = that.domTreeCache.loadTip.text("加载中，请稍候……");
+                that.domTreeCache.videoUri = $('<video />', {
+                    id: 'video',
+                    src: this.options.videoPath + this.options.videoName,
+                    type: 'video/mp4',
+                    controls: false,
+                    loop: true,
+                    autoPlay: true
+                }).css({
+                    "width": "100%",
+                    "height": "auto"
+                });
+                var _video = that.domTreeCache.videoUri;
+                var _timerTip = that.domTreeCache.timerDom.text("--");
+                that.domTreeCache.ballDom.html(_isLoad);
+                that.domTreeCache.videoDom.html(_video);
+                $("." + that.options.closeBtn).on("click", function () {
+                    that.stopAdv();
+                });
+            },
+            util: function () {
+                var that = this;
+                return {
+                    renderDOM: function (_specialball, _ball, _name, _id) {
+                        that.domTreeCache.ballDom.empty();
+                        var _header = $("<div/>", {
+                            "class": "bingo-header"
+                        }).css({
+                            "height": "32px",
+                            "line-height": "32px",
+                            "width": "100%",
+                            "background-color": "#C2636E",
+                            "text-align": "center",
+                            "color": "#FFF",
+                            "font-size": "1em",
+                            "font-weight": "600",
+                            "letter-spacing": "1px"
+                        });
+                        var _tempball = $("<div/>", {
+                            "class": "bingo-ball"
+                        }).css({
+                            "height": "60px",
+                            "width": "100%",
+                            "line-height": "60px",
+                            "text-align": "center",
+                            "background-color": "#4D4D4D"
+                        });
+                        var _renderList = $.map(_ball, function (val, key) {
+                            if (_specialball.indexOf(val) != -1) {
+                                return $("<span>", {
+                                    "class": "redBall"
+                                }).text(val).css({
+                                    "width": "40px",
+                                    "height": "40px",
+                                    "border-radius": "40px",
+                                    "text-align": "center",
+                                    "line-height": "40px",
+                                    "color": "#FFF",
+                                    "font-weight": "bolder",
+                                    "display": "inline-block",
+                                    "vertical-align": "middle",
+                                    "background-color": "#B60606",
+                                    "font-size": "20px",
+                                    "margin": "10px 4px"
+                                });
+                                ;
+                            } else {
+                                return $("<span>", {
+                                    "class": "blueBall"
+                                }).text(val).css({
+                                    "width": "40px",
+                                    "height": "40px",
+                                    "border-radius": "40px",
+                                    "text-align": "center",
+                                    "line-height": "40px",
+                                    "color": "#FFF",
+                                    "font-weight": "bolder",
+                                    "display": "inline-block",
+                                    "vertical-align": "middle",
+                                    "background-color": "#0607CF",
+                                    "font-size": "20px",
+                                    "margin": "10px 4px"
+                                });
+                                ;
+                            }
+                        });
+                        _header.append(_name + " 第" + _id + " 期開獎球號");
+                        $.each(_renderList, function (key, val) {
+                            _tempball.append(val);
+                        });
+                        that.domTreeCache.ballDom.append(_header, _tempball);
+                    },
+                    countDown: function () {
+                        var m = that.options.duration;
+                        that.timer = setInterval(function () {
+                            if (m < 0) {
+                                clearInterval(that.timer);
+                                //that.util().hideAdv();
+                                that.stopAdv();
+                                return;
+                            }
+                            if (m > 9) {
+                                that.domTreeCache.timerDom.text(m);
+                            } else {
+                                that.domTreeCache.timerDom.text('0' + m);
+                            }
+                            --m;
+                        }, 1000);
+                    },
+                    showAdv: function () {
+                        that.domTreeCache.rootDom.show();
+                        $('video').trigger('play');
+                    },
+                    hideAdv: function () {
+                        that.domTreeCache.rootDom.hide();
+                        that.domTreeCache.videoUri.trigger('pause');
+                        // 使用html5 video的的原生方式设置 currentTime=0，才有效
+                        // that.domTreeCache.videoUri.attr("currentTime",0); jquery方式无效
+//                            that.domTreeCache.videoUri.get(0).currentTime = 0;
+                    }
+                }
+            },
+            initJsonData: function () {
+                var that = this;
+                $.ajax({
+                    type: "get",
+                    async: true,
+                    url: this.options.bingoDataUrl,
+                    dataType: "jsonp",
+                    jsonp: "callback",
+                    jsonpCallback: "jsonp"
+                }).done(function (data) {
+                    var _jsonData = data;
+                    var _Specialball = _jsonData.DrawSpecialball.split(',');
+                    var _drawball = _jsonData.Drawball.split(',');
+                    var _lottoName = _jsonData.LottoName;
+                    var _period = _jsonData.Period;
+                    that.currentPeriod = _period;
+                    that.util().renderDOM(_Specialball, _drawball, _lottoName, _period);
+                    that.util().countDown();
+                }).fail(function (msg) {
+//                        console.log(msg);
+                });
+            },
+            playAdv: function () {
+                this.util().showAdv();
+                this.initDomTree();
+                this.initJsonData();
+            },
+            stopAdv: function () {
+                this.initDomTree();
+                this.util().hideAdv();
+            }
+        };
+
+
+        $(function () {
+            var lottoAdv = new AUZOADV();
+            var refreshtimer = $("#RefreshTimer");
+            var BingoTimer = null;
+            var PageRefresh = function (times) {
+                if (refreshtimer) {
+                    times -= 1;
+                    refreshtimer.html("<b>" + times + "</b> 秒後自動重新整理頁面&nbsp;&nbsp;<input class='refreshBtn' type='button' value='立即更新頁面'>");
+                    if (times <= 0) {
+                        clearTimeout(BingoTimer);
+                        if ($("#BingoVersion").html() == "1") {
+                            UpdateBingoContentV1(0, "G17741643041184", "/bingobingoV1.php");
+                        } else {
+                            UpdateBingoJSON(0, "G17741643041184", "/bingobingoV1.php", lottoAdv);
+                        }
+                        times = 30;
+                    }
+                    BingoTimer = setTimeout(function () {
+                        PageRefresh(times);
+                    }, 1000);
+                }
+
+            };
+            PageRefresh(5);
+            $(document).on("click", ".refreshBtn", function () {
+                PageRefresh(0);
+            })
+        });
+
+    })(this, this.jQuery, this, jQuery(document));
+</script>
+
+<table WIDTH="995" BORDER="0" CELLSPACING="0" cellpadding="0"><tr><td></td></tr></table>
+
+<table WIDTH="995" BORDER="0" CELLSPACING="0" cellpadding="0">
+    <tr height="3">
+        <td></td>
+    </tr>
+    <tr>
+        <td valign="top"></td>
+<td width='100%' valign="top">
+<div align="center">
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+<tr>
+ <td colspan="2">
+	<TABLE cellSpacing=0 cellPadding=0 width="100%" align=center border="0">
+	  <TBODY>
+	  <tr>
+	    <td width="100%">
+	      <TABLE cellSpacing=0 cellPadding=0 width="100%" align=center border=0>
+		<TBODY>
+		<TR>
+		  <TD align="center">
+		  <div id="PageContent"><!--賓果文字-->
+<div align="center" id="BingoContent">
+<table width="920" border="0">
+<tr>
+<td width=200 align=center><img src="/images/bingobingo.gif" alt="BingoBingo賓果賓果" border=0></td>
+<td width=720>
+<table width="720" border="0" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="8"><img src="/images/bingobingo/nav_left.gif" width="8" height="36" /></td>
+    <td class="B_nav_bg">
+      <table width="720" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+
+          <!--      <td width="110" align="center"><a href="/bingobingoV1.php"><font color=yellow>開獎號碼[文字]</font></a></td>-->
+          <td width="110" align="center"><a href="/bingobingo.php"><font color=yellow>開獎號碼[圖形]</font></a></td>
+          <td width="100" align="center"><a href="/RI.php"><font color=yellow>開出次數</font></a></td>
+          <td width="100" align="center"><a href="/RJ.php"><font color=yellow>拖號跳期</font></a></td>
+          <td width="100" align="center"><a href="/RK.php"><font color=yellow>球號分佈</font></a></td>
+          <td width="100" align="center"><a href="/RL.php"><font color=yellow>大小分佈</font></a></td>
+          <td width="100" align="center"><a href="/bingobingo_analysis.php" target="_blank"><font color=yellow>綜合分析</font></a></td>
+          <!-- <td width="110" align="center"><a href="/analyes.php"><font color=yellow>資料分析</font></a></td>-->
+      </tr>
+    </table>
+    </td>
+    <td width="8" align="right"><img src="/images/bingobingo/nav_right.gif" width="8" height="36" /></td>
+  </tr>
+</table>
+</td>
+</tr>
+<tr><td><td colspan="2" align="center"><font color="#886600">(週一至週日、每日07:05 ~ 23:55、每隔5分鐘開獎一次)</font>&nbsp;&nbsp;<a href="/help_winrule"><font color="#009900">獎金分配方式說明</font></a></td></tr>
+</table>
+<div id="RefreshTimer"></div>
+<div id="BingoVersion" style="display:none">1</div>
+<div id="LastPeriod" style="display:none">115016340</div>
+<div align="center">
+
+&nbsp;<a href="/bingobingo/list_20260322.html">03/22</a>
+
+&nbsp;<a href="/bingobingo/list_20260321.html">03/21</a>
+
+&nbsp;<a href="/bingobingo/list_20260320.html">03/20</a>
+
+&nbsp;<a href="/bingobingo/list_20260319.html">03/19</a>
+
+&nbsp;<a href="/bingobingo/list_20260318.html">03/18</a>
+
+&nbsp;<a href="/bingobingo/list_20260317.html">03/17</a>
+
+&nbsp;<a href="/bingobingo/list_20260316.html">03/16</a>
+
+&nbsp;<a href="/bingobingo/list_20260315.html">03/15</a>
+
+&nbsp;<a href="/bingobingo/list_20260314.html">03/14</a>
+
+&nbsp;<a href="/bingobingo/list_20260313.html">03/13</a>
+
+&nbsp;<a href="/bingobingo/list_20260312.html">03/12</a>
+
+&nbsp;<a href="/bingobingo/list_20260311.html">03/11</a>
+
+&nbsp;<a href="/bingobingo/list_20260310.html">03/10</a>
+
+&nbsp;<a href="/bingobingo/list_20260309.html">03/09</a>
+
+</div>
+<div align="center">
+<table border="1" width="99%" cellspacing="0" cellpadding="0" style="border-collapse: collapse" bordercolor="#000000" id="table1">
+<tr height="30">
+<td align="center" background="/images/ui/blue_shadow.gif"><font color="#FFFFFF"><b>Bingo Bingo賓果賓果最新一期開獎號碼　第<font style="font-size:19px">115016340</font>期 (2026-03-22 15:20)</b></font></td>
+</tr>
+<tr>
+<td>
+<div align="center">
+<table border="0" width="100%" cellspacing="0" cellpadding="0" id="table2">
+<tr height="5"><td></td></tr>
+<tr height="45">
+	<td class="BingoLB">04</td><td class="BingoLB">11</td><td class="BingoLB">12</td><td class="BingoLB">13</td><td class="BingoLB">18</td><td class="BingoLB">19</td><td class="BingoLB">20</td><td class="BingoLB">27</td><td class="BingoLB">30</td><td class="BingoLB">34</td><td class="BingoLB">38</td><td class="BingoLB">40</td><td class="BingoLB">46</td><td class="BingoLB">61</td><td class="BingoLB">63</td><td class="BingoLB">73</td><td class="BingoLB">74</td><td class="BingoLB">75</td><td class="BingoLB">77</td><td class="BingoLB">80</td>
+</tr>
+<tr height="5"><td></td></tr>
+</table>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div align="right">
+<span class='fbc'>　　</span>: 連號&nbsp;&nbsp;|&nbsp;&nbsp;<font color="#FF0000">紅字</font>: 連莊&nbsp;&nbsp;
+</div>
+<table border="1" width="995" cellspacing="0" cellpadding="0" style="border-collapse: collapse" bordercolor="#C0C0C0" bgcolor="#FFFFFF">
+ <tr height="30">
+  <td background="/images/wrap_shadow.gif" colspan="6" align="center" style="color:#FFFFFF"><b>Bingo Bingo賓果賓果開獎號碼查詢&nbsp;&nbsp;(2026-03-22)</b></td>
+ </tr>
+ <tr height="25" bgcolor="#FFFFEA">
+  <td width="75" align="center"><b>期　　數<br>開獎時間</b></td>
+  <td width="815" align="center"><b>開獎號碼</b></td>
+  <td width="35" align="center"><b>超級<br>獎號</b></td>
+  <td width="35" align="center"><b>連莊<br>球數</b></td>
+  <td width="35" align="center"><b>大小</b></td>
+  <td width="35" align="center"><b>單雙</b></td>
+ </tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016340</b><br>15:20</td><td class="BBALL">04 <span class='fbc'>11</span> <span class='fbc'>12</span> <span class='fbc'>13</span> <span class='fbc'><span class='fbcred'><span class='fred'>18</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>19</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>20</span></span></span> 27 30 34 <span class='fred'>38</span> 40 46 61 63 <span class='fbc'>73</span> <span class='fbc'><span class='fbcred'><span class='fred'>74</span></span></span> <span class='fbc'>75</span> 77 80 </td><td class="bingof17">30</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016339</b><br>15:15</td><td class="BBALL"><span class='fbc'>02</span> <span class='fbc'><span class='fbcred'><span class='fred'>03</span></span></span> 06 <span class='fbc'><span class='fbcred'><span class='fred'>18</span></span></span> <span class='fbc'>19</span> <span class='fbc'><span class='fbcred'><span class='fred'>20</span></span></span> 29 31 <span class='fbc'>36</span> <span class='fbc'>37</span> <span class='fbc'>38</span> 42 <span class='fbc'>55</span> <span class='fbc'>56</span> <span class='fbc'>57</span> 60 <span class='fred'>67</span> 74 <span class='fbc'>78</span> <span class='fbc'>79</span> </td><td class="bingof17">06</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016338</b><br>15:10</td><td class="BBALL"><span class='fred'>01</span> 03 05 <span class='fred'>10</span> <span class='fbc'>14</span> <span class='fbc'>15</span> 18 20 24 34 43 47 <span class='fbc'>51</span> <span class='fbc'>52</span> 65 67 <span class='fbc'><span class='fbcred'><span class='fred'>69</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>70</span></span></span> <span class='fbc'>75</span> <span class='fbc'>76</span> </td><td class="bingof17">43</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016337</b><br>15:05</td><td class="BBALL">01 <span class='fred'>06</span> <span class='fbc'><span class='fbcred'><span class='fred'>10</span></span></span> <span class='fbc'>11</span> 23 <span class='fbc'><span class='fbcred'><span class='fred'>28</span></span></span> <span class='fbc'>29</span> 31 33 <span class='fbc'><span class='fbcred'><span class='fred'>35</span></span></span> <span class='fbc'>36</span> <span class='fbc'>40</span> <span class='fbc'>41</span> <span class='fred'>55</span> 62 <span class='fred'>64</span> 66 <span class='fbc'>69</span> <span class='fbc'>70</span> <span class='fred'>72</span> </td><td class="bingof17">23</td><td class="bingof17">7</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016336</b><br>15:00</td><td class="BBALL"><span class='fbc'>05</span> <span class='fbc'>06</span> <span class='fbc'>07</span> <span class='fbc'>08</span> 10 12 24 28 <span class='fred'>30</span> 35 <span class='fred'>42</span> <span class='fred'>45</span> 53 55 58 60 64 72 <span class='fred'>76</span> <span class='fred'>79</span> </td><td class="bingof17">76</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016335</b><br>14:55</td><td class="BBALL"><span class='fred'>01</span> 04 13 17 <span class='fbc'><span class='fbcred'><span class='fred'>21</span></span></span> <span class='fbc'>22</span> <span class='fbc'>23</span> <span class='fred'>25</span> 30 40 <span class='fbc'>42</span> <span class='fbc'>43</span> <span class='fbc'>44</span> <span class='fbc'>45</span> 49 <span class='fred'>62</span> <span class='fred'>66</span> 71 76 79 </td><td class="bingof17">30</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016334</b><br>14:50</td><td class="BBALL">01 05 <span class='fred'>09</span> <span class='fred'>11</span> 16 21 25 27 32 <span class='fred'>34</span> <span class='fbc'>55</span> <span class='fbc'><span class='fbcred'><span class='fred'>56</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>57</span></span></span> <span class='fbc'>58</span> <span class='fbc'>60</span> <span class='fbc'>61</span> <span class='fbc'>62</span> <span class='fbc'>66</span> <span class='fbc'>67</span> 75 </td><td class="bingof17">09</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016333</b><br>14:45</td><td class="BBALL">09 <span class='fbc'><span class='fbcred'><span class='fred'>11</span></span></span> <span class='fbc'>12</span> 14 17 <span class='fred'>22</span> 31 34 38 <span class='fred'>44</span> <span class='fred'>46</span> <span class='fbc'>48</span> <span class='fbc'><span class='fbcred'><span class='fred'>49</span></span></span> <span class='fbc'>56</span> <span class='fbc'>57</span> 63 <span class='fred'>69</span> 71 <span class='fbc'>73</span> <span class='fbc'>74</span> </td><td class="bingof17">11</td><td class="bingof17">6</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016332</b><br>14:40</td><td class="BBALL"><span class='fbc'>03</span> <span class='fbc'><span class='fbcred'><span class='fred'>04</span></span></span> <span class='fbc'>10</span> <span class='fbc'>11</span> 16 22 33 36 <span class='fbc'><span class='fbcred'><span class='fred'>39</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>40</span></span></span> 42 44 46 49 62 <span class='fbc'>64</span> <span class='fbc'>65</span> <span class='fred'>67</span> <span class='fbc'><span class='fbcred'><span class='fred'>69</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>70</span></span></span> </td><td class="bingof17">49</td><td class="bingof17">6</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016331</b><br>14:35</td><td class="BBALL">01 <span class='fred'>04</span> 07 <span class='fbc'>20</span> <span class='fbc'><span class='fbcred'><span class='fred'>21</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>39</span></span></span> <span class='fbc'>40</span> 47 50 52 56 <span class='fbc'>60</span> <span class='fbc'>61</span> 67 <span class='fbc'><span class='fbcred'><span class='fred'>69</span></span></span> <span class='fbc'>70</span> <span class='fbc'>71</span> <span class='fbc'>72</span> <span class='fbc'>75</span> <span class='fbc'>76</span> </td><td class="bingof17">75</td><td class="bingof17">4</td><td class="bingof17">大</td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016330</b><br>14:30</td><td class="BBALL">04 <span class='fbc'>10</span> <span class='fbc'>11</span> <span class='fbc'>12</span> <span class='fbc'><span class='fbcred'><span class='fred'>13</span></span></span> <span class='fbc'>14</span> 21 <span class='fbc'>24</span> <span class='fbc'>25</span> 31 <span class='fbc'>37</span> <span class='fbc'>38</span> <span class='fbc'>39</span> <span class='fred'>48</span> 54 62 65 69 <span class='fred'>74</span> 80 </td><td class="bingof17">13</td><td class="bingof17">3</td><td class="bingof17">小</td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016329</b><br>14:25</td><td class="BBALL">05 13 <span class='fred'>20</span> <span class='fred'>30</span> 36 40 44 <span class='fbc'>46</span> <span class='fbc'>47</span> <span class='fbc'>48</span> 53 <span class='fred'>55</span> <span class='fbc'>57</span> <span class='fbc'>58</span> <span class='fred'>61</span> 64 <span class='fred'>70</span> 72 <span class='fred'>74</span> 76 </td><td class="bingof17">53</td><td class="bingof17">6</td><td class="bingof17">大</td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016328</b><br>14:20</td><td class="BBALL"><span class='fred'>04</span> 06 09 <span class='fred'>16</span> <span class='fbc'>20</span> <span class='fbc'>21</span> <span class='fbc'><span class='fbcred'><span class='fred'>26</span></span></span> <span class='fbc'>27</span> <span class='fred'>30</span> 41 43 50 52 <span class='fbc'>55</span> <span class='fbc'>56</span> 61 <span class='fbc'>65</span> <span class='fbc'>66</span> 70 74 </td><td class="bingof17">55</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016327</b><br>14:15</td><td class="BBALL"><span class='fbc'><span class='fbcred'><span class='fred'>03</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>04</span></span></span> 10 <span class='fbc'><span class='fbcred'><span class='fred'>13</span></span></span> <span class='fbc'>14</span> <span class='fbc'>15</span> <span class='fbc'>16</span> 24 26 <span class='fbc'><span class='fbcred'><span class='fred'>30</span></span></span> <span class='fbc'>31</span> 34 <span class='fred'>40</span> 54 <span class='fred'>60</span> 63 71 <span class='fbc'>75</span> <span class='fbc'>76</span> 80 </td><td class="bingof17">24</td><td class="bingof17">6</td><td class="bingof17">小</td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016326</b><br>14:10</td><td class="BBALL"><span class='fbc'>02</span> <span class='fbc'><span class='fbcred'><span class='fred'>03</span></span></span> <span class='fbc'>04</span> <span class='fred'>11</span> 13 17 19 21 30 38 40 42 50 52 55 <span class='fbc'>60</span> <span class='fbc'>61</span> 64 66 73 </td><td class="bingof17">03</td><td class="bingof17">2</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016325</b><br>14:05</td><td class="BBALL">01 03 09 <span class='fbc'>11</span> <span class='fbc'><span class='fbcred'><span class='fred'>12</span></span></span> 18 20 22 <span class='fred'>25</span> 31 <span class='fred'>33</span> 36 41 49 53 57 63 <span class='fred'>75</span> 77 80 </td><td class="bingof17">63</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">單</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016324</b><br>14:00</td><td class="BBALL"><span class='fred'>02</span> 10 <span class='fbc'>12</span> <span class='fbc'><span class='fbcred'><span class='fred'>13</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>24</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>25</span></span></span> <span class='fred'>30</span> <span class='fbc'>32</span> <span class='fbc'>33</span> 35 <span class='fbc'>46</span> <span class='fbc'><span class='fbcred'><span class='fred'>47</span></span></span> <span class='fbc'>48</span> 54 59 61 65 <span class='fbc'><span class='fbcred'><span class='fred'>70</span></span></span> <span class='fbc'>71</span> 75 </td><td class="bingof17">59</td><td class="bingof17">7</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016323</b><br>13:55</td><td class="BBALL"><span class='fbc'><span class='fbcred'><span class='fred'>01</span></span></span> <span class='fbc'>02</span> 06 13 16 <span class='fbc'>24</span> <span class='fbc'><span class='fbcred'><span class='fred'>25</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>27</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>28</span></span></span> 30 44 47 <span class='fbc'>52</span> <span class='fbc'>53</span> 55 60 <span class='fbc'>69</span> <span class='fbc'>70</span> 72 78 </td><td class="bingof17">60</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016322</b><br>13:50</td><td class="BBALL">01 03 <span class='fbc'><span class='fbcred'><span class='fred'>07</span></span></span> <span class='fbc'>08</span> <span class='fbc'>09</span> 12 23 25 <span class='fbc'>27</span> <span class='fbc'>28</span> <span class='fbc'>29</span> <span class='fbc'>33</span> <span class='fbc'>34</span> 37 <span class='fred'>45</span> <span class='fbc'><span class='fbcred'><span class='fred'>50</span></span></span> <span class='fbc'>51</span> <span class='fred'>56</span> 62 79 </td><td class="bingof17">37</td><td class="bingof17">4</td><td class="bingof17">小</td><td class="bingof17">單</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016321</b><br>13:45</td><td class="BBALL">07 <span class='fbc'>17</span> <span class='fbc'>18</span> 32 <span class='fbc'>35</span> <span class='fbc'><span class='fbcred'><span class='fred'>36</span></span></span> <span class='fbc'>38</span> <span class='fbc'>39</span> <span class='fbc'>40</span> 42 <span class='fred'>45</span> <span class='fbc'><span class='fbcred'><span class='fred'>47</span></span></span> <span class='fbc'>48</span> 50 56 58 63 66 68 76 </td><td class="bingof17">58</td><td class="bingof17">3</td><td class="bingof17"></td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016320</b><br>13:40</td><td class="BBALL">05 <span class='fbc'><span class='fbcred'><span class='fred'>13</span></span></span> <span class='fbc'>14</span> <span class='fbc'>15</span> <span class='fbc'>16</span> 19 26 34 <span class='fbc'><span class='fbcred'><span class='fred'>36</span></span></span> <span class='fbc'>37</span> 41 45 47 49 54 59 61 69 <span class='fred'>71</span> 79 </td><td class="bingof17">36</td><td class="bingof17">3</td><td class="bingof17"></td><td class="bingof17">單</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016319</b><br>13:35</td><td class="BBALL">03 <span class='fred'>07</span> <span class='fbc'>12</span> <span class='fbc'>13</span> <span class='fbc'>20</span> <span class='fbc'><span class='fbcred'><span class='fred'>21</span></span></span> <span class='fbc'>22</span> <span class='fbc'>23</span> 27 <span class='fred'>33</span> 36 46 50 57 63 <span class='fbc'><span class='fbcred'><span class='fred'>66</span></span></span> <span class='fbc'>67</span> <span class='fred'>71</span> 74 80 </td><td class="bingof17">27</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016318</b><br>13:30</td><td class="BBALL">07 <span class='fbc'><span class='fbcred'><span class='fred'>09</span></span></span> <span class='fbc'>10</span> <span class='fbc'>14</span> <span class='fbc'><span class='fbcred'><span class='fred'>15</span></span></span> 21 <span class='fbc'>30</span> <span class='fbc'>31</span> 33 <span class='fred'>41</span> <span class='fred'>47</span> 51 53 55 <span class='fbc'>64</span> <span class='fbc'>65</span> <span class='fbc'>66</span> 68 <span class='fred'>71</span> 73 </td><td class="bingof17">15</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">單</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016317</b><br>13:25</td><td class="BBALL">02 04 06 <span class='fbc'>08</span> <span class='fbc'><span class='fbcred'><span class='fred'>09</span></span></span> <span class='fred'>12</span> 15 19 22 24 27 38 <span class='fbc'><span class='fbcred'><span class='fred'>41</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>42</span></span></span> 47 49 <span class='fred'>56</span> 71 <span class='fred'>75</span> 77 </td><td class="bingof17">56</td><td class="bingof17">6</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016316</b><br>13:20</td><td class="BBALL">09 12 <span class='fred'>16</span> 20 29 <span class='fbc'>33</span> <span class='fbc'>34</span> 37 <span class='fbc'>41</span> <span class='fbc'>42</span> <span class='fbc'>43</span> <span class='fred'>45</span> <span class='fred'>56</span> <span class='fred'>59</span> 63 65 <span class='fbc'><span class='fbcred'><span class='fred'>68</span></span></span> <span class='fbc'>69</span> 72 <span class='fred'>75</span> </td><td class="bingof17">56</td><td class="bingof17">6</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016315</b><br>13:15</td><td class="BBALL">01 <span class='fred'>06</span> <span class='fbc'><span class='fbcred'><span class='fred'>14</span></span></span> <span class='fbc'>15</span> <span class='fbc'>16</span> <span class='fred'>26</span> 31 40 <span class='fbc'>45</span> <span class='fbc'>46</span> <span class='fred'>54</span> 56 59 <span class='fbc'><span class='fbcred'><span class='fred'>61</span></span></span> <span class='fbc'>62</span> 64 <span class='fred'>68</span> <span class='fbc'><span class='fbcred'><span class='fred'>74</span></span></span> <span class='fbc'>75</span> 80 </td><td class="bingof17">68</td><td class="bingof17">7</td><td class="bingof17"></td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016314</b><br>13:10</td><td class="BBALL"><span class='fbc'>06</span> <span class='fbc'>07</span> 14 <span class='fbc'>21</span> <span class='fbc'>22</span> <span class='fbc'>26</span> <span class='fbc'>27</span> 30 34 38 <span class='fred'>43</span> <span class='fbc'><span class='fbcred'><span class='fred'>48</span></span></span> <span class='fbc'>49</span> <span class='fbc'>54</span> <span class='fbc'><span class='fbcred'><span class='fred'>55</span></span></span> 61 <span class='fbc'><span class='fbcred'><span class='fred'>65</span></span></span> <span class='fbc'>66</span> <span class='fred'>68</span> 74 </td><td class="bingof17">26</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016313</b><br>13:05</td><td class="BBALL">02 <span class='fred'>19</span> 28 36 <span class='fbc'><span class='fbcred'><span class='fred'>41</span></span></span> <span class='fbc'>42</span> <span class='fbc'><span class='fbcred'><span class='fred'>43</span></span></span> <span class='fbc'>46</span> <span class='fbc'>47</span> <span class='fbc'><span class='fbcred'><span class='fred'>48</span></span></span> 55 <span class='fbc'>57</span> <span class='fbc'>58</span> <span class='fred'>65</span> <span class='fbc'>67</span> <span class='fbc'><span class='fbcred'><span class='fred'>68</span></span></span> 70 <span class='fred'>72</span> <span class='fbc'>78</span> <span class='fbc'>79</span> </td><td class="bingof17">42</td><td class="bingof17">7</td><td class="bingof17">大</td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016312</b><br>13:00</td><td class="BBALL"><span class='fred'>07</span> 09 13 <span class='fbc'>18</span> <span class='fbc'><span class='fbcred'><span class='fred'>19</span></span></span> <span class='fred'>22</span> 32 34 41 43 48 56 59 <span class='fbc'>62</span> <span class='fbc'><span class='fbcred'><span class='fred'>63</span></span></span> 65 68 <span class='fbc'>72</span> <span class='fbc'>73</span> 77 </td><td class="bingof17">62</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115016311</b><br>12:55</td><td class="BBALL"><span class='fred'>03</span> 05 <span class='fbc'>07</span> <span class='fbc'>08</span> 10 <span class='fbc'>15</span> <span class='fbc'>16</span> 19 22 <span class='fred'>29</span> <span class='fbc'>49</span> <span class='fbc'>50</span> 53 55 <span class='fred'>60</span> <span class='fbc'>63</span> <span class='fbc'><span class='fbcred'><span class='fred'>64</span></span></span> 69 <span class='fred'>71</span> 76 </td><td class="bingof17">15</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+</table>
+</div>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-527039-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-527039-2');
+</script>
+</div>
+		  </TD>
+		</TR>
+		</TBODY>
+	      </TABLE>
+	    </td>
+	  </tr>
+	  </tbody>
+	</table>
+ </td>
+</tr>
+</table>
+</div><td valign=top></td></tr></table><table border="0" cellpadding="0" cellspacing="0" width="1200">
+  <tr height="2">
+    <td align="center"><hr width="99%"></td>
+  </tr>
+  <tr height="2">
+    <td align="center"></td>
+  </tr>
+  <tr>
+    <td align="center" class="b">
+    <table width="100%" border="0">
+    <tr>
+    <td width="15%" align="center">
+        <img src="//sg-cdn-lotto.auzo.tw/images/qrcode_line.jpg" alt="奧索網路平台LINE" style="width: 110px;"> LineID:@auzo
+    </td>
+    <td width="70%" align="center" class="top_text">
+        <span style="font-family: 'Tahoma';font-weight: bold;">v95v3mloq09flbhj8anvq8si2q</span><br>
+    | <a href="/">樂透首頁</a> | <a href="/privacy.php">隱私權政策</a> | <a href="/faq.php">常見問題</a> | <a href="/charity.php">公益團體</a> | 贊助商: <a href="https://bimmer8.com" target="_blank">Bimmer8.com</a> |<BR>
+	本站數據資訊僅供參考，實際資料以 <u>台灣彩券</u> 公佈為準！(未滿18歲者，不得購買或兌領彩券！)<BR>
+	本站所引用的各項公益彩券商標或名稱，其版權分別屬於各註冊公司所有。<BR>
+	(LINE客服)服務時間:週一 ~ 週五 09:00-18:00　|　(線上客服)服務時間:週一 ~ 週六 09:00-24:00<BR>
+    法律顧問: 承理法律事務所 | 專利事務: 寬宇國際智權顧問 | Powered By 奧索網路科技<BR>
+    </td>
+	<td width="15%" align="center">
+	<img src="//sg-cdn-lotto.auzo.tw/images/hinet_fleet_logo.jpg" alt="奧索網路平台為HiNet資安艦隊成員">
+	</td>
+    </tr>
+    </table>
+    </td>
+  </tr>
+</table>
+
+</div>
+<!-- Used for Fixing IE6 background image cache problem  -->
+<!--
+<script type='text/JavaScript'>
+$(document).ready(function() {
+	$.ajaxSetup({ cache: false });
+});
+try {
+  document.execCommand("BackgroundImageCache", false, true);
+} catch(e) {}
+</script>
+-->
+<script language='javascript'>
+                                    var define_url = 'https://lotto.auzonet.com/';
+                                    var is_test_system = ''
+                                    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"6636578b439d438a9f2cff11ec0da120","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+<!--  Page Load 0.00 seconds (20260322 15:25:04) -->
