@@ -109,7 +109,7 @@
                                     <td id="online_user" width="110">
                                         <script type="text/javascript">
                                             <!--
-                                            Lotto_MemberID = "G17826033066004";
+                                            Lotto_MemberID = "G17826105852631";
                                             Lotto_Path = "/bingobingoV1.php";
                                             //
                                             //-->
@@ -445,9 +445,9 @@
                     if (times <= 0) {
                         clearTimeout(BingoTimer);
                         if ($("#BingoVersion").html() == "1") {
-                            UpdateBingoContentV1(0, "G17826033066004", "/bingobingoV1.php");
+                            UpdateBingoContentV1(0, "G17826105852631", "/bingobingoV1.php");
                         } else {
-                            UpdateBingoJSON(0, "G17826033066004", "/bingobingoV1.php", lottoAdv);
+                            UpdateBingoJSON(0, "G17826105852631", "/bingobingoV1.php", lottoAdv);
                         }
                         times = 30;
                     }
@@ -520,7 +520,7 @@
 </table>
 <div id="RefreshTimer"></div>
 <div id="BingoVersion" style="display:none">1</div>
-<div id="LastPeriod" style="display:none">115036140</div>
+<div id="LastPeriod" style="display:none">115036164</div>
 <div align="center">
 
 &nbsp;<a href="/bingobingo/list_20260628.html">06/28</a>
@@ -555,7 +555,7 @@
 <div align="center">
 <table border="1" width="99%" cellspacing="0" cellpadding="0" style="border-collapse: collapse" bordercolor="#000000" id="table1">
 <tr height="30">
-<td align="center" background="/images/ui/blue_shadow.gif"><font color="#FFFFFF"><b>Bingo Bingo賓果賓果最新一期開獎號碼　第<font style="font-size:19px">115036140</font>期 (2026-06-28 07:30)</b></font></td>
+<td align="center" background="/images/ui/blue_shadow.gif"><font color="#FFFFFF"><b>Bingo Bingo賓果賓果最新一期開獎號碼　第<font style="font-size:19px">115036164</font>期 (2026-06-28 09:30)</b></font></td>
 </tr>
 <tr>
 <td>
@@ -563,7 +563,7 @@
 <table border="0" width="100%" cellspacing="0" cellpadding="0" id="table2">
 <tr height="5"><td></td></tr>
 <tr height="45">
-	<td class="BingoLB">02</td><td class="BingoLB">03</td><td class="BingoLB">04</td><td class="BingoLB">12</td><td class="BingoLB">14</td><td class="BingoLB">15</td><td class="BingoLB">23</td><td class="BingoLB">25</td><td class="BingoLB">31</td><td class="BingoLB">41</td><td class="BingoLB">43</td><td class="BingoLB">48</td><td class="BingoLB">59</td><td class="BingoLB">60</td><td class="BingoLB">61</td><td class="BingoLB">62</td><td class="BingoLB">67</td><td class="BingoLB">68</td><td class="BingoLB">74</td><td class="BingoLB">80</td>
+	<td class="BingoLB">05</td><td class="BingoLB">15</td><td class="BingoLB">17</td><td class="BingoLB">22</td><td class="BingoLB">28</td><td class="BingoLB">31</td><td class="BingoLB">35</td><td class="BingoLB">37</td><td class="BingoLB">38</td><td class="BingoLB">39</td><td class="BingoLB">40</td><td class="BingoLB">43</td><td class="BingoLB">46</td><td class="BingoLB">47</td><td class="BingoLB">48</td><td class="BingoLB">59</td><td class="BingoLB">62</td><td class="BingoLB">68</td><td class="BingoLB">78</td><td class="BingoLB">80</td>
 </tr>
 <tr height="5"><td></td></tr>
 </table>
@@ -587,6 +587,54 @@
   <td width="35" align="center"><b>大小</b></td>
   <td width="35" align="center"><b>單雙</b></td>
  </tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036164</b><br>09:30</td><td class="BBALL"><span class='fred'>05</span> 15 17 <span class='fred'>22</span> <span class='fred'>28</span> <span class='fred'>31</span> <span class='fred'>35</span> <span class='fbc'>37</span> <span class='fbc'><span class='fbcred'><span class='fred'>38</span></span></span> <span class='fbc'>39</span> <span class='fbc'>40</span> 43 <span class='fbc'>46</span> <span class='fbc'>47</span> <span class='fbc'>48</span> 59 <span class='fred'>62</span> 68 <span class='fred'>78</span> <span class='fred'>80</span> </td><td class="bingof17">59</td><td class="bingof17">9</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036163</b><br>09:25</td><td class="BBALL">05 <span class='fbc'>07</span> <span class='fbc'>08</span> 16 22 <span class='fred'>28</span> <span class='fbc'><span class='fbcred'><span class='fred'>30</span></span></span> <span class='fbc'>31</span> 35 38 42 51 <span class='fbc'><span class='fbcred'><span class='fred'>62</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>63</span></span></span> 65 67 73 <span class='fbc'>78</span> <span class='fbc'><span class='fbcred'><span class='fred'>79</span></span></span> <span class='fbc'>80</span> </td><td class="bingof17">62</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036162</b><br>09:20</td><td class="BBALL"><span class='fbc'>20</span> <span class='fbc'>21</span> <span class='fbc'>24</span> <span class='fbc'>25</span> 28 30 <span class='fbc'>32</span> <span class='fbc'>33</span> <span class='fred'>43</span> <span class='fbc'><span class='fbcred'><span class='fred'>47</span></span></span> <span class='fbc'>48</span> 50 <span class='fred'>52</span> <span class='fbc'>59</span> <span class='fbc'>60</span> <span class='fbc'><span class='fbcred'><span class='fred'>62</span></span></span> <span class='fbc'>63</span> 68 71 79 </td><td class="bingof17">59</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036161</b><br>09:15</td><td class="BBALL">05 14 16 18 <span class='fbc'>26</span> <span class='fbc'>27</span> 29 35 38 <span class='fred'>43</span> 47 49 <span class='fred'>52</span> 55 <span class='fred'>58</span> 62 70 <span class='fbc'>72</span> <span class='fbc'>73</span> 77 </td><td class="bingof17">38</td><td class="bingof17">3</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036160</b><br>09:10</td><td class="BBALL"><span class='fbc'>03</span> <span class='fbc'>04</span> 07 <span class='fred'>20</span> <span class='fred'>24</span> <span class='fred'>30</span> 32 40 <span class='fbc'>43</span> <span class='fbc'>44</span> 50 52 54 56 58 <span class='fred'>65</span> 67 71 75 78 </td><td class="bingof17">03</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036159</b><br>09:05</td><td class="BBALL">01 06 10 <span class='fred'>15</span> <span class='fbc'>19</span> <span class='fbc'>20</span> <span class='fred'>24</span> 26 28 30 <span class='fred'>34</span> <span class='fbc'>41</span> <span class='fbc'>42</span> 57 <span class='fbc'>64</span> <span class='fbc'>65</span> <span class='fbc'>68</span> <span class='fbc'>69</span> <span class='fbc'>79</span> <span class='fbc'>80</span> </td><td class="bingof17">19</td><td class="bingof17">3</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036158</b><br>09:00</td><td class="BBALL">05 07 <span class='fbc'>13</span> <span class='fbc'>14</span> <span class='fbc'>15</span> <span class='fbc'><span class='fbcred'><span class='fred'>23</span></span></span> <span class='fbc'>24</span> 27 34 <span class='fred'>36</span> <span class='fbc'><span class='fbcred'><span class='fred'>46</span></span></span> <span class='fbc'>47</span> <span class='fbc'>48</span> <span class='fbc'>54</span> <span class='fbc'><span class='fbcred'><span class='fred'>55</span></span></span> <span class='fbc'>58</span> <span class='fbc'>59</span> 61 <span class='fred'>75</span> 78 </td><td class="bingof17">75</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036157</b><br>08:55</td><td class="BBALL">11 <span class='fbc'><span class='fbcred'><span class='fred'>18</span></span></span> <span class='fbc'>19</span> 23 <span class='fred'>32</span> <span class='fbc'><span class='fbcred'><span class='fred'>36</span></span></span> <span class='fbc'>37</span> 40 <span class='fbc'>43</span> <span class='fbc'>44</span> 46 <span class='fred'>49</span> <span class='fred'>55</span> 57 60 <span class='fred'>67</span> <span class='fbc'><span class='fbcred'><span class='fred'>73</span></span></span> <span class='fbc'>74</span> <span class='fbc'>75</span> 79 </td><td class="bingof17">67</td><td class="bingof17">7</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036156</b><br>08:50</td><td class="BBALL">03 18 <span class='fbc'>25</span> <span class='fbc'>26</span> <span class='fbc'>27</span> <span class='fred'>32</span> <span class='fbc'>35</span> <span class='fbc'><span class='fbcred'><span class='fred'>36</span></span></span> 47 49 52 55 <span class='fbc'>64</span> <span class='fbc'>65</span> <span class='fbc'><span class='fbcred'><span class='fred'>67</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>68</span></span></span> <span class='fbc'>69</span> <span class='fbc'><span class='fbcred'><span class='fred'>72</span></span></span> <span class='fbc'>73</span> 77 </td><td class="bingof17">35</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036155</b><br>08:45</td><td class="BBALL">02 06 08 10 15 <span class='fred'>24</span> 32 36 <span class='fbc'>43</span> <span class='fbc'>44</span> <span class='fbc'>45</span> <span class='fbc'><span class='fbcred'><span class='fred'>46</span></span></span> 51 <span class='fbc'><span class='fbcred'><span class='fred'>53</span></span></span> <span class='fbc'>54</span> <span class='fbc'>66</span> <span class='fbc'><span class='fbcred'><span class='fred'>67</span></span></span> <span class='fbc'>68</span> 72 80 </td><td class="bingof17">36</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036154</b><br>08:40</td><td class="BBALL">01 03 07 09 <span class='fred'>13</span> <span class='fred'>17</span> <span class='fbc'><span class='fbcred'><span class='fred'>23</span></span></span> <span class='fbc'>24</span> <span class='fbc'>29</span> <span class='fbc'>30</span> <span class='fred'>40</span> 46 <span class='fbc'>49</span> <span class='fbc'>50</span> <span class='fbc'>52</span> <span class='fbc'><span class='fbcred'><span class='fred'>53</span></span></span> 55 61 63 67 </td><td class="bingof17">52</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">單</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036153</b><br>08:35</td><td class="BBALL">05 <span class='fred'>11</span> 13 <span class='fred'>15</span> 17 19 23 <span class='fbc'>34</span> <span class='fbc'>35</span> <span class='fbc'>40</span> <span class='fbc'>41</span> <span class='fred'>44</span> 53 <span class='fred'>66</span> 71 <span class='fbc'>73</span> <span class='fbc'>74</span> 76 <span class='fbc'>78</span> <span class='fbc'><span class='fbcred'><span class='fred'>79</span></span></span> </td><td class="bingof17">79</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">單</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036152</b><br>08:30</td><td class="BBALL"><span class='fbc'>02</span> <span class='fbc'>03</span> <span class='fbc'>04</span> 08 <span class='fbc'>10</span> <span class='fbc'>11</span> <span class='fbc'><span class='fbcred'><span class='fred'>15</span></span></span> <span class='fbc'>16</span> <span class='fred'>21</span> <span class='fbc'>31</span> <span class='fbc'>32</span> 44 48 52 64 <span class='fbc'>66</span> <span class='fbc'>67</span> 75 <span class='fbc'>79</span> <span class='fbc'>80</span> </td><td class="bingof17">31</td><td class="bingof17">2</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036151</b><br>08:25</td><td class="BBALL">01 <span class='fred'>05</span> 15 21 <span class='fbc'><span class='fbcred'><span class='fred'>27</span></span></span> <span class='fbc'>28</span> 33 37 <span class='fred'>40</span> 43 49 51 <span class='fbc'>53</span> <span class='fbc'>54</span> 56 61 63 <span class='fbc'>70</span> <span class='fbc'>71</span> <span class='fbc'>72</span> </td><td class="bingof17">05</td><td class="bingof17">3</td><td class="bingof17"></td><td class="bingof17">單</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036150</b><br>08:20</td><td class="BBALL">02 <span class='fbc'>05</span> <span class='fbc'>06</span> 12 24 <span class='fred'>27</span> 32 <span class='fbc'>39</span> <span class='fbc'>40</span> <span class='fred'>44</span> <span class='fbc'>47</span> <span class='fbc'><span class='fbcred'><span class='fred'>48</span></span></span> 52 55 57 <span class='fred'>62</span> <span class='fbc'>67</span> <span class='fbc'>68</span> 77 80 </td><td class="bingof17">67</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036149</b><br>08:15</td><td class="BBALL">10 <span class='fbc'><span class='fbcred'><span class='fred'>18</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>19</span></span></span> 21 <span class='fred'>23</span> <span class='fbc'>26</span> <span class='fbc'>27</span> <span class='fbc'>30</span> <span class='fbc'><span class='fbcred'><span class='fred'>31</span></span></span> 41 44 48 51 <span class='fbc'>61</span> <span class='fbc'>62</span> <span class='fbc'>63</span> 65 69 <span class='fred'>73</span> <span class='fred'>78</span> </td><td class="bingof17">41</td><td class="bingof17">6</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036148</b><br>08:10</td><td class="BBALL">04 <span class='fred'>07</span> <span class='fred'>14</span> <span class='fbc'>17</span> <span class='fbc'>18</span> <span class='fbc'>19</span> <span class='fbc'>22</span> <span class='fbc'>23</span> 29 31 38 <span class='fred'>42</span> <span class='fbc'>45</span> <span class='fbc'>46</span> 49 60 <span class='fred'>67</span> <span class='fbc'>73</span> <span class='fbc'>74</span> 78 </td><td class="bingof17">60</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036147</b><br>08:05</td><td class="BBALL"><span class='fbc'>06</span> <span class='fbc'>07</span> <span class='fbc'>08</span> 14 24 <span class='fbc'>26</span> <span class='fbc'>27</span> <span class='fbc'>28</span> <span class='fred'>32</span> <span class='fred'>42</span> 47 50 54 56 <span class='fred'>61</span> 64 67 <span class='fbc'>70</span> <span class='fbc'>71</span> <span class='fbc'>72</span> </td><td class="bingof17">08</td><td class="bingof17">3</td><td class="bingof17"></td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036146</b><br>08:00</td><td class="BBALL">01 <span class='fred'>05</span> 09 <span class='fbc'>17</span> <span class='fbc'>18</span> 22 32 <span class='fred'>35</span> <span class='fbc'>38</span> <span class='fbc'><span class='fbcred'><span class='fred'>39</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>40</span></span></span> 42 44 57 <span class='fbc'>59</span> <span class='fbc'><span class='fbcred'><span class='fred'>60</span></span></span> <span class='fbc'>61</span> 74 <span class='fbc'>76</span> <span class='fbc'>77</span> </td><td class="bingof17">60</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036145</b><br>07:55</td><td class="BBALL"><span class='fbc'>04</span> <span class='fbc'><span class='fbcred'><span class='fred'>05</span></span></span> 08 15 <span class='fred'>21</span> <span class='fbc'>34</span> <span class='fbc'><span class='fbcred'><span class='fred'>35</span></span></span> <span class='fred'>37</span> <span class='fbc'>39</span> <span class='fbc'>40</span> 45 47 55 60 <span class='fred'>65</span> 68 70 72 75 79 </td><td class="bingof17">05</td><td class="bingof17">5</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036144</b><br>07:50</td><td class="BBALL"><span class='fbc'>02</span> <span class='fbc'>03</span> <span class='fbc'><span class='fbcred'><span class='fred'>05</span></span></span> <span class='fbc'>06</span> 10 17 <span class='fred'>21</span> 29 35 37 <span class='fbc'>41</span> <span class='fbc'><span class='fbcred'><span class='fred'>42</span></span></span> 48 50 53 56 <span class='fbc'><span class='fbcred'><span class='fred'>58</span></span></span> <span class='fbc'>59</span> 63 65 </td><td class="bingof17">35</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036143</b><br>07:45</td><td class="BBALL"><span class='fbc'>04</span> <span class='fbc'>05</span> 14 <span class='fbc'>21</span> <span class='fbc'>22</span> 24 39 <span class='fbc'>42</span> <span class='fbc'>43</span> <span class='fbc'><span class='fbcred'><span class='fred'>51</span></span></span> <span class='fbc'>52</span> 54 <span class='fbc'>57</span> <span class='fbc'>58</span> 64 69 <span class='fred'>72</span> <span class='fred'>74</span> 78 80 </td><td class="bingof17">80</td><td class="bingof17">3</td><td class="bingof17">大</td><td class="bingof17">雙</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036142</b><br>07:40</td><td class="BBALL">09 11 16 20 <span class='fbc'>25</span> <span class='fbc'>26</span> 29 <span class='fbc'>44</span> <span class='fbc'><span class='fbcred'><span class='fred'>45</span></span></span> <span class='fbc'>48</span> <span class='fbc'>49</span> 51 <span class='fred'>53</span> 55 59 <span class='fbc'>70</span> <span class='fbc'>71</span> <span class='fbc'>72</span> 74 79 </td><td class="bingof17">26</td><td class="bingof17">2</td><td class="bingof17">大</td><td class="bingof17">－</td></tr>
+
+<tr class="bingo_text_row"><td align="center"><b>115036141</b><br>07:35</td><td class="BBALL"><span class='fred'>04</span> <span class='fred'>14</span> <span class='fred'>23</span> 27 33 35 <span class='fbc'>37</span> <span class='fbc'>38</span> <span class='fbc'>39</span> <span class='fbc'>40</span> 45 47 <span class='fbc'>52</span> <span class='fbc'>53</span> 56 <span class='fbc'><span class='fbcred'><span class='fred'>61</span></span></span> <span class='fbc'><span class='fbcred'><span class='fred'>62</span></span></span> 66 77 <span class='fred'>80</span> </td><td class="bingof17">35</td><td class="bingof17">6</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
 
 <tr class="bingo_text_row"><td align="center"><b>115036140</b><br>07:30</td><td class="BBALL"><span class='fbc'><span class='fbcred'><span class='fred'>02</span></span></span> <span class='fbc'>03</span> <span class='fbc'>04</span> 12 <span class='fbc'>14</span> <span class='fbc'>15</span> 23 25 31 <span class='fred'>41</span> <span class='fred'>43</span> 48 <span class='fbc'>59</span> <span class='fbc'>60</span> <span class='fbc'>61</span> <span class='fbc'>62</span> <span class='fbc'>67</span> <span class='fbc'>68</span> <span class='fred'>74</span> 80 </td><td class="bingof17">31</td><td class="bingof17">4</td><td class="bingof17"></td><td class="bingof17">－</td></tr>
 
@@ -638,7 +686,7 @@
         <img src="//sg-cdn-lotto.auzo.tw/images/qrcode_line.jpg" alt="奧索網路平台LINE" style="width: 110px;"> LineID:@auzo
     </td>
     <td width="70%" align="center" class="top_text">
-        <span style="font-family: 'Tahoma';font-weight: bold;">a480o0vl3fr4h18coe81jhkbo4</span><br>
+        <span style="font-family: 'Tahoma';font-weight: bold;">20o0d3lfl3ormqgsnb9a2qqnkj</span><br>
     | <a href="/">樂透首頁</a> | <a href="/privacy.php">隱私權政策</a> | <a href="/faq.php">常見問題</a> | <a href="/charity.php">公益團體</a> | 贊助商: <a href="https://bimmer8.com" target="_blank">Bimmer8.com</a> |<BR>
 	本站數據資訊僅供參考，實際資料以 <u>台灣彩券</u> 公佈為準！(未滿18歲者，不得購買或兌領彩券！)<BR>
 	本站所引用的各項公益彩券商標或名稱，其版權分別屬於各註冊公司所有。<BR>
@@ -673,4 +721,4 @@ try {
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"6636578b439d438a9f2cff11ec0da120","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
-<!--  Page Load 0.00 seconds (20260628 07:35:06) -->
+<!--  Page Load 0.00 seconds (20260628 09:36:25) -->
