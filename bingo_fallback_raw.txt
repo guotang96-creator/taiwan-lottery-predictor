@@ -109,7 +109,7 @@
                                     <td id="online_user" width="110">
                                         <script type="text/javascript">
                                             <!--
-                                            Lotto_MemberID = "G17884646628371";
+                                            Lotto_MemberID = "G17884724157875";
                                             Lotto_Path = "/bingobingoV1.php";
                                             //
                                             //-->
@@ -445,9 +445,9 @@
                     if (times <= 0) {
                         clearTimeout(BingoTimer);
                         if ($("#BingoVersion").html() == "1") {
-                            UpdateBingoContentV1(0, "G17884646628371", "/bingobingoV1.php");
+                            UpdateBingoContentV1(0, "G17884724157875", "/bingobingoV1.php");
                         } else {
-                            UpdateBingoJSON(0, "G17884646628371", "/bingobingoV1.php", lottoAdv);
+                            UpdateBingoJSON(0, "G17884724157875", "/bingobingoV1.php", lottoAdv);
                         }
                         times = 30;
                     }
@@ -686,7 +686,7 @@
         <img src="//sg-cdn-lotto.auzo.tw/images/qrcode_line.jpg" alt="奧索網路平台LINE" style="width: 110px;"> LineID:@auzo
     </td>
     <td width="70%" align="center" class="top_text">
-        <span style="font-family: 'Tahoma';font-weight: bold;">q0ai2lnerhrsddc9c223l8mguc</span><br>
+        <span style="font-family: 'Tahoma';font-weight: bold;">q3hhagg44pj79q8f6emh2162uv</span><br>
     | <a href="/">樂透首頁</a> | <a href="/privacy.php">隱私權政策</a> | <a href="/faq.php">常見問題</a> | <a href="/charity.php">公益團體</a> | 贊助商: <a href="https://bimmer8.com" target="_blank">Bimmer8.com</a> |<BR>
 	本站數據資訊僅供參考，實際資料以 <u>台灣彩券</u> 公佈為準！(未滿18歲者，不得購買或兌領彩券！)<BR>
 	本站所引用的各項公益彩券商標或名稱，其版權分別屬於各註冊公司所有。<BR>
@@ -718,7 +718,7 @@ try {
                                     var define_url = 'https://lotto.auzonet.com/';
                                     var is_test_system = ''
                                     </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"6636578b439d438a9f2cff11ec0da120","r":1}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"6636578b439d438a9f2cff11ec0da120","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
-<!--  Page Load 0.00 seconds (20260904 03:44:22) -->
+<!--  Page Load 0.00 seconds (20260904 05:53:35) -->
